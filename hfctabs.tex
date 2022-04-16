@@ -88,54 +88,49 @@
 
 \begin{document}
 
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \maketitle
 \begin{abstract}
 
 Canonical-arbitration algorithms are used to build consensus in decentralized
 state machines.
-%In Proof-of-Work (PoW) block emission systems, canonical-arbitration
-%algorithms are often co-dependent with dynamic emission parameters (eg.
-%Difficulty).
 The consensus characteristics of mutually implemented canonical-arbitration
 algorithms enables a race between block authors and thereby facilitate
 the trust-minimized security characteristics of the blockchain state.
+%In Proof-of-Work (PoW) block emission systems, canonical-arbitration
+%algorithms are often co-dependent with dynamic emission parameters (eg.
+%Difficulty).
 
 We consider a proposed modification to the "Modified GHOST" algorithm in use on
-Ethereum.
-%Ethereum uses a Proof of Work protocol ("Ethash") underpinning a "Modified
-%GHOST" canonical-arbitration algorithm.
+Ethereum.\footnote{\url{https://ethereum.org/en/whitepaper/#modified-ghost-implementation}}
 This proposal introduces two novel features: a capacity for segment-specific
 transactions, and a positive scalar value representing a general measurement of
 active capital.
 From these features we propose a novel condition program situated in an assumed
 incumbent canonical-arbitration algorithm.
-% TODO cite the Modified GHOST reference.
 
 Our proposed design is an augmentation of an existing and widely implemented consensus program.
 As such, it assumes and depends on the existence of other (canonical-arbitration)
 algorithmic conditions.
 We inherit and generally preserve as invariants the characteristics of the incumbent canonical-arbitration algorithm.
-%%The necessary general characteristics of the pre-existing canonical-arbitration algorithm conditions are not defined nor
-%% assumed in this paper beyond what may be generally assumed for PoW protocols.
-
-%Should we name the proposal...'TABS'?
 
 We claim and attempt to demonstrate that the proposed algorithmic condition
 program raises the incumbent consensus decidability rate.
 We show that this increased decidability rate improves chain state finality
 characteristics and reduces network energy waste by 50\%.
-We detail the associated additional risk to the network, which we show to
+Further, we show that the cost to an adversary in a double-spend attack scenario rises.
+We detail any associated additional risk to the network, which we show to
 be practically nominal.
-We note also that implementation of this design is feasible for Ethereum's
+We note that implementation of this design is feasible for Ethereum's
 primary client \textit{go-ethereum} (\texttt{geth}) and probably feasible for
 most existing PoW clients.
-%This security by augmenting the protocol's canonical-arbitration algorithm
-%with a condition on a measure of necessary majority hashrate with a demand on
-%activation of sufficient on-chain capital.
 
 \end{abstract}
 
 \pagebreak
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{\normalsize{Model Definitions}}
 
@@ -201,6 +196,8 @@ antecedent calculation of that of its parent. Comparable to Total Difficulty.
 }
 \end{table}
 
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \section{\normalsize{Glossary}}
 
 \begin{table}[H]
@@ -257,7 +254,7 @@ metadata associated with chain state modification sequences. \\~\\
 }
 \end{table}
 
-
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{\normalsize{Scenarios}}
 
@@ -316,6 +313,8 @@ parameters could be modified while still being considered Finality Terrorism.
 
 %% We assume that all players in the presented theoretical games are
 %% self-interested and infinitely greedy.
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \pagebreak
 \section{\normalsize{Appendix: Ethereum Background}}
@@ -428,6 +427,8 @@ on ETH, and those with Chain ID \texttt{61} are only eligible on ETC, per the
 respective configurations eventually introduced on both networks with their
 independent implementations of the EIP155 feature.
 
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \pagebreak
 \section{\normalsize{Specifications}}
@@ -578,6 +579,7 @@ In both the pre-existing algorithm and the proposed algorithm, a candidate
 block having a greater \textit{TCS} value than the other should be selected for
 the exclusive canonical state.
 
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \pagebreak
 \section{\normalsize{Visual Glossary}}
@@ -866,6 +868,8 @@ the theoretical $\epsilon$ value is probably a positive, small, number.
 While this model could be taken further, for the sake of argument it is not
 necessary and will not be pursued.
 
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \section{\normalsize{Models and Data}}
 
 \subsection{\normalsize{Comparison of a Naive Model and Derived Data}}
@@ -1076,6 +1080,8 @@ this incentive.
 %    adjustment-algorithm-and-a-possible-alternative/5267}
 %}
 %\end{figure}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{\normalsize{A Different Model}}
 
@@ -1297,6 +1303,8 @@ second. Our programming can be configured to represent a simulation of
 arbitrary time units. Evaluation of the degree of fit between model and
 data should take this into consideration.
 
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \section{\normalsize{Model Comparison: Fork Rates}}
 
 We have now two models which can be used to estimate fork rates during
@@ -1502,8 +1510,9 @@ where both rates are measured against total rounds.
 %% hover around at least 5\%.
 %% }
 
-\pagebreak
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\pagebreak
 \section{\normalsize{THE REST OF THIS IS UNEDITED CRUFT}}
 
 Here be dragons. Ye be warned.
