@@ -343,7 +343,7 @@ of the work of this project.
 Important and referenced concepts of Ethereum's protocol are discussed in this 
 section for the the informational value of redundancy.
 
-\subsection{\small{Ethash}}\label{sec: S1.1}
+\subsection{\small{Ethash}}
 
 Ethereum's Proof-of-Work protocol "Ethash" governs block emissions. Solutions
 to a constantly varying guessing game require time to discover -- via trial and
@@ -355,7 +355,7 @@ process of searching for puzzle solutions. \\
 A very difficult puzzle (probably requiring many guesses) is expected to take 
 more time to solve than an easier puzzle (requiring fewer guesses).
 
-\subsection{\small{Difficulty}}\label{sec: S1.2}
+\subsection{\small{Difficulty}}
 Ethereum regulates its block emission rate using a header value called
 $\mathrm{Difficulty}$ ($H_d$). This value is used by the Ethash protocol as a
 parameter for puzzle solution validation. Generally speaking, the Difficulty
@@ -397,7 +397,7 @@ in 3 seconds should cause the difficulty to rise; a block generated in 30
 seconds should cause it to fall; making the next block respectively harder or
 easier (slower or faster) to author.
 
-\subsection{\small{Canonical Arbitration}}\label{sec: S1.3}
+\subsection{\small{Canonical Arbitration}}
 
 The "Total Difficulty" value for any chain segment is the sum of the $H_d$ 
 values of block headers in the segment.
@@ -413,7 +413,7 @@ that of a non-winning miner), a figurative coin is tossed, per the protocol
 described by Eyal and Sirer.\nolinebreak
 \footnote{http://www.cs.cornell.edu/~ie53/publications/btcProcFC.pdf}
 
-\subsection{\small{Chain ID}}\label{sec: S1.4}
+\subsection{\small{Chain ID}}
 
 As specified by EIP155\nolinebreak
 \footnote{https://eips.ethereum.org/EIPS/eip-155} a feature called
@@ -452,7 +452,7 @@ independent implementations of the EIP155 feature.
 In this section we describe the elements of the $TABS$ modification to the
 "Modified GHOST" algorithm.
 
-\subsection{\small{Transactions with Ancestor Hash}}\label{sec: S2.1}
+\subsection{\small{Transactions with Ancestor Hash}}
 
 Transactions are afforded an additional field $T_\mathrm{a}$ (\textit{Ancestor
 Hash}) whose value either describes a block hash or is left undefined.
@@ -476,7 +476,7 @@ program.
 
 %Useful to have a graphic description here
 
-\subsection{\small{TABS Validation}}\label{sec: S3.1}
+\subsection{\small{TABS Validation}}
 
 TABS stands for Total Active Balance Synthesis.
 %Maybe TABS should be defined in the Glossary
@@ -547,7 +547,7 @@ ratio of the $TABS$ value between two parent-child related blocks.
 %Here we deviate from the Eth yellow paper by omitting the 'freeze' parameter. 
 I think this should be acknowledged in a footnote.
 
-\subsection{\small{Canon Scoring}}\label{sec: S4}
+\subsection{\small{Canon Scoring}}
 
 Canonical-arbitration algorithms are assumed to compare two blocks and to
 indicate decisively which one of the two ought to receive canonical status.
@@ -1700,7 +1700,7 @@ We show that for t=0..t=n that the expected revenue of the miner goes up.
 
 We consider this plot for the scenario where a miner observes a next block.
 
-\subsection{\small{Placeholder}}\label{sec: S4.12}
+\subsection{\small{Placeholder}}
 
 \section{\normalsize{Economic Analysis}}
 
@@ -1737,12 +1737,12 @@ consensus pattern.
 \section{\normalsize{Open Questions}}
 
 \subsection{\small{What if emissions revenues were separated from tx processing
-revenue?}}\label{sec: S4.12}
+revenue?}}
 
 
 \subsection{\small{Can we show that 3\%/97\% is a sensible
 simultaneous-production rate using just the Poisson emission
-model?}}\label{sec: S4.1}
+model?}}
 
 NOTE that we don't assume perfect simultanaeity; the Poisson model forbids this.
 We set a window we define as "competitive." We characterise this by a
@@ -1753,7 +1753,7 @@ partisanship? 0.01\%?), e.g. 300 milliseconds.
 
 \subsection{\small{Can we show formally that it is game-optimized to mine on
 the next block immediately (no matter a miner's own anticipated TABS
-score)?}}\label{sec: S4.2}
+score)?}}
 
 We assume under the standard Pow/Ethash game, that it is optimal to always mine
 on the greatest block available.
@@ -1833,7 +1833,7 @@ $k$ seconds given \mathrm{hps} hashes per second}
 
 \section{\normalsize{Discussion}}
 
-\subsection{\small{Ancestor Hash vs. Chain ID}}\label{sec: S7.1}
+\subsection{\small{Ancestor Hash vs. Chain ID}}
 
 Background information has been provided in this paper on Chain ID (see Section
 1.4)  for the purpose of contextualizing the proposed Ancestor Hash feature.
@@ -1907,7 +1907,7 @@ Ancestor Hash transactions allow you to express these assumptions. To write
 them into code.
 
 \subsection{\small{The Necessity of Ancestor Hash to the Proposed
-Canonical-Arbitration Algorithm}}\label{sec: S2.1}
+Canonical-Arbitration Algorithm}}
 
 In the scenario of a malicious chain state-modifying `attack`, an attacker
 exploits an assumption by a counterparty on chain state finality.
@@ -1922,8 +1922,7 @@ Spurious censorship beyond the interests of the attack results in risky
 collateral damage (ie. an increased risk of counter-attack).
 
 
-\subsection{\small{Ancestor Hash: Database Availability Impact}}\label{sec:
-S2.1}
+\subsection{\small{Ancestor Hash: Database Availability Impact}}
 
 Theoretically, the utilization of Ancestor Hash negatively impacts the
 `availability` of the chain state database to pending transactions.
@@ -1939,8 +1938,7 @@ undesirable/spurious transaction inclusion in alternative
 and unobserved chain state histories.
 
 \subsection{\small{Will miners include as many transactions per block as
-possible? (Is network transaction throughput optimized/invariant?)}}\label{sec:
-S2}
+possible? (Is network transaction throughput optimized/invariant?)}}
 
 
 - Assume "full blocks" (more pending transactions than available block space).
@@ -1958,7 +1956,7 @@ possible for each block they mine.
 NOTE as an \textit{invariant} with original "Modified GHOST" protocol.
 
 \subsection{\small{Will miners prefer transactions from senders with relatively
-greater balances?}}\label{sec: S3}
+greater balances?}}
 
 Yes. But transaction gas fees and costs need to be considered simultaneously
 (or at least not forgotten).
@@ -1966,7 +1964,7 @@ That is, until $B_{i}_{TAB}$ $>$ $B_{i-1}_{k}$; then it will prefer transaction
 gas profit, an \textit{invariant}.
 
 \subsection{\small{Will miners be incentivized to raise the block gas limit
-indefinitely?}}\label{sec: S4}
+indefinitely?}}
 
 - Assume (or remember) that given sufficient transaction volume for equilibrium
 fee competition, miners
@@ -2137,7 +2135,7 @@ for emission intervals is assumed.)
 
 
 \subsection{\small{Hashes vs. ETH: Unit Cancellation in Total Canon
-Scoring}}\label{sec: S1}
+Scoring}}
 
 This section shows in math how taking the product of the Difficulty and TABS
 values
