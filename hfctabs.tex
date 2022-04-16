@@ -68,8 +68,7 @@
 \usepackage{marginnote}
 
 \title{\textbf{Keeping TABS}\\
-\small{A Canonical-Arbitration Algorithm\
-for Modified-GHOST PoW Blockchain Protocols}}
+\small{A Canonical-Arbitration Algorithm for Modified-GHOST PoW Blockchain Protocols}}
 
 %% NOMENCLATURE: "Keeping TABS" is a play on words.
 %% The phrase is an english idiom used to describe a state of watchfulness or
@@ -112,11 +111,12 @@ From these features we propose a novel condition program situated in an assumed
 incumbent canonical-arbitration algorithm.
 % TODO cite the Modified GHOST reference.
 
-Our proposed design is an augmentation.
-It assumes and depends on the existence of other (canonical-arbitration)
-algorithmic conditions. The necessary general characteristics of such
-pre-existing canonical-arbitration algorithm conditions are not defined nor
-assumed in this paper beyond what may be generally assumed for PoW protocols.
+Our proposed design is an augmentation of an existing and widely implemented consensus program.
+As such, it assumes and depends on the existence of other (canonical-arbitration)
+algorithmic conditions.
+We inherit and generally preserve as invariants the characteristics of the incumbent canonical-arbitration algorithm.
+%%The necessary general characteristics of the pre-existing canonical-arbitration algorithm conditions are not defined nor
+%% assumed in this paper beyond what may be generally assumed for PoW protocols.
 
 %Should we name the proposal...'TABS'?
 
@@ -124,7 +124,7 @@ We claim and attempt to demonstrate that the proposed algorithmic condition
 program raises the incumbent consensus decidability rate.
 We show that this increased decidability rate improves chain state finality
 characteristics and reduces network energy waste by 50\%.
-We detail the associated theoretical additional risk (cost), which we show to
+We detail the associated additional risk to the network, which we show to
 be practically nominal.
 We note also that implementation of this design is feasible for Ethereum's
 primary client \textit{go-ethereum} (\texttt{geth}) and probably feasible for
@@ -140,7 +140,7 @@ most existing PoW clients.
 \section{\normalsize{Model Definitions}}
 
 \begin{table}[H]
-\caption{List of Model Objects\label{table: model objects}}
+\caption{List of Model Definitions\label{table: model-definitions}}
 \centering
 \small{
 \begin{tabular}{|p{5cm}|p{9cm}|}
@@ -204,7 +204,7 @@ antecedent calculation of that of its parent. Comparable to Total Difficulty.
 \section{\normalsize{Glossary}}
 
 \begin{table}[H]
-\caption{Definitions of Common Terms\label{table: model objects}}
+\caption{Definitions of Common Terms\label{table: common-terms}}
 \centering
 \small{
 \begin{tabular}{|p{5cm}|p{9cm}|}
@@ -262,8 +262,7 @@ metadata associated with chain state modification sequences. \\~\\
 \section{\normalsize{Scenarios}}
 
 \begin{table}[H]
-\caption{Outlines of Referenced Chain State Scenarios \label{table: model
-objects}}
+\caption{Outlines of Referenced Chain State Scenarios \label{table: chainstate-scenarios}}
 \centering
 \small{
 \begin{tabular}{|p{5cm}|p{9cm}|}
