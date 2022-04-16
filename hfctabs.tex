@@ -399,15 +399,13 @@ in 3 seconds should cause the difficulty to rise; a block generated in 30
 seconds should cause it to fall; making the next block respectively harder or
 easier (slower or faster) to author.
 
-\subsection{\small{Canonical Arbitration}}
+\subsection{\small{Canonical Arbitration\footnote{\url{https://github.com/ethereum/go-ethereum/blob/f0328f241b7c3def217b0c2dce1a1b297f979a37/core/forkchoice.go#L77}}}}
 
 The "Total Difficulty" value for any chain segment is the sum of the $H_d$ 
 values of block headers in the segment.
-The canonical-arbitration algorithm used today by Ethereum defines %instructs?
-that preference is given with priority to any valid subtree having the greatest 
-"Total Difficulty" value.
-In the case of equivalent TD values, segments are preferred having lesser 
-latest block numbers. (Shorter segments).
+The canonical-arbitration algorithm used today by Ethereum defines
+that preference is given with priority to any valid subtree having the greatest "Total Difficulty" value.
+In the case of equivalent TD values, segments are preferred having lesser latest block numbers.
 In the case of equivalent TD and block height (number) values, if a node acts 
 on behalf of the block's registered author, that block is preferred.
 If there is no authorship beneficiary interest (as in a non-mining node, or 
@@ -435,8 +433,8 @@ legacy-compatibility reasons.
 This feature was introduced after "The DAO Fork" (at block 1920000) caused
 Ethereum to become both Ethereum and Ethereum Classic by the network's partial rejection of an arbitrary chain state mutation.
 Until the introduction of Chain ID, transactions after this hardfork had no way
-of being exclusive to one of either of these two chains. Between blocks 1920000
-and 2675000on ETH, transactions were ambiguously valid on either, or both.
+of being exclusive to one of either of these two chains.
+Between blocks 1920000 and 2675000on ETH, transactions were ambiguously valid on either, or both.
 Today, Chain ID transactions specifying Chain ID \texttt{1} are only eligible
 on ETH, and those with Chain ID \texttt{61} are only eligible on ETC, per the
 respective configurations eventually introduced on both networks with their
@@ -451,12 +449,12 @@ independent implementations of the EIP155 feature.
 In this section we describe the elements of the $TABS$ modification to the
 \mghost algorithm.
 
-\subsection{\small{Transactions with Ancestor Hash\nolinebreak
-\footnote{Original specification, rationale, and motivation for this feature is
-documented in a standalone Improvement Proposal: \url{https://github.com/ethereumclassic/ecips/tree/master/_specs/ecip-1105.md}}}}
+\subsection{\small{Transactions with Ancestor Hash}}
 
 Transactions are afforded an additional field $T_\mathrm{a}$ (\textit{Ancestor
-Hash}) whose value either describes a block hash or is left undefined.
+Hash}) whose value either describes a block hash or is left undefined.\nolinebreak
+\footnote{Original and complete specification, rationale, and motivation for this feature is
+documented as a standalone proposal at \url{https://github.com/ethereumclassic/ecips/tree/master/_specs/ecip-1105.md}}
 
 If filled, the existence of a block with a header matching this hash anywhere
 in the foregoing canonical chain is a condition of the transaction's validity.
@@ -480,9 +478,8 @@ TABS stands for Total Active Balance Synthesis.
 %Maybe TABS should be defined in the Glossary
 It is a positive scalar value intended to provide a representative measure of 
 chain state capitalization.
-It is denominated in Wei.
-Its value will be used as a parameter in the proposed canonical-arbitration
-condition.
+It is denominated in Wei.\footnote{\url{https://ethereum.stackexchange.com/questions/253}}
+Its value is used as a parameter in the proposed canonical-arbitration condition.
 
 \newcommand{\minTABS}{K_0}
 \newcommand{\mynumerator}{y}
@@ -538,7 +535,7 @@ balance at parent block $P(B)$ of account $s$} \\
 The reader may note that the integer \texttt{128} appears shared between the
 $x$ and $K_0$ components.
 This is not of necessity, but of convenience and for simplicity of design.
-Both values are tune-able constant parameters in the algorithm.
+Both values are tuneable constant parameters in the algorithm.
 $K_0$ expresses a minimum value for $TABS$, while $x$ expresses an adjustment
 ratio of the $TABS$ value between two parent-child related blocks.
 
@@ -551,8 +548,8 @@ Canonical-arbitration algorithms are assumed to compare two blocks and to
 indicate decisively which one of the two ought to receive canonical status.
 This section formally defines a value Canon Score \textit{CS}, which is used as
 the \textit{initial condition} for a canonical-arbitration algorithm.
-This condition, in both the pre-existing and proposed algorithms, may result in
-a tie. If the condition is decisive (a winner is determined), subsequent
+This condition, in both the pre-existing and proposed algorithms, may result in a tie.
+If the condition is decisive (a winner is determined), subsequent
 conditions are not evaluated.
 
 If indecisive (the result is a tie), subsequent conditions are evaluated, each
