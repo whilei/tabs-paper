@@ -1,0 +1,117 @@
+GOROOT=/home/ia/go1.16.2.linux-amd64 #gosetup
+GOPATH=/home/ia/go #gosetup
+/home/ia/go1.16.2.linux-amd64/bin/go build -o /tmp/GoLand/___go_build_github_com_whilei_go_poisson_collision github.com/whilei/go-poisson-collision #gosetup
+/tmp/GoLand/___go_build_github_com_whilei_go_poisson_collision
+-----------------------------------------------------
+CONFIG
+
+        Name:             A, ConsensusAlgorithm: TD,
+        NetworkLambda:    14, Latency:          1.40,
+        TickMultiple:     100, Rounds:           10000,
+        NumberOfMiners:   8, HashrateDistType: longtail,
+
+GENERATED MINERS
+
+        Number: 8, Distribution: longtail, Hashrate Checksum OK:    true,
+        Hashrates: [0.333 0.222 0.148 0.099 0.066 0.059 0.044 0.02]
+
+INTERVALS
+
+        Mean: 1416.7087,
+        Med: 973.0000, Mode: [163.0000],
+        Min: 1.0000, Max: 13713.0000,
+
+
+ELIGIBLE AUTHORS PER BLOCK
+
+        Mean: 1.0793,
+        Med: 1.0000, Mode: [1.0000],
+        Min: 1.0000, Max: 4.0000,
+
+
+MINER CANONICAL WINS
+
+        miner=0 hashrate=0.333 winrate=0.344 winrate/hashrate=1.031 (3436)
+        miner=1 hashrate=0.222 winrate=0.220 winrate/hashrate=0.990 (2201)
+        miner=2 hashrate=0.148 winrate=0.149 winrate/hashrate=1.005 (1489)
+        miner=3 hashrate=0.099 winrate=0.099 winrate/hashrate=1.001 (989)
+        miner=4 hashrate=0.066 winrate=0.064 winrate/hashrate=0.969 (638)
+        miner=5 hashrate=0.059 winrate=0.056 winrate/hashrate=0.948 (555)
+        miner=6 hashrate=0.044 winrate=0.043 winrate/hashrate=0.968 (425)
+        miner=7 hashrate=0.029 winrate=0.027 winrate/hashrate=0.912 (267)
+
+ANALYSIS
+
+        Ticks: 13056327, Rounds (Blocks): 10000, Ticks/Block: 1305.6327
+        AuthorSameParentChildTally/Block: 0.207
+        ArbitrationDecisiveRate: 0.039, ArbitrationDecisiveTally: 386
+        ArbitrationIndecisiveRate: 0.036, ArbitrationIndecisiveTally: 362
+
+
+        Elapsed: 2.892s
+
+9305 POISSON INTERVALS
+
+        Mean: 1515.6216,
+        Med: 1095.0000, Mode: [231.0000],
+        Min: 1.0000, Max: 13049.0000,
+
+
+-----------------------------------------------------
+CONFIG
+
+        Name:             A, ConsensusAlgorithm: TDTABS,
+        NetworkLambda:    14, Latency:          1.40,
+        TickMultiple:     100, Rounds:           10000,
+        NumberOfMiners:   8, HashrateDistType: longtail,
+
+GENERATED MINERS
+
+        Number: 8, Distribution: longtail, Hashrate Checksum OK:    true,
+        Hashrates: [0.333 0.222 0.148 0.099 0.066 0.059 0.044 0.02]
+
+INTERVALS
+
+        Mean: 1408.3236,
+        Med: 973.0000, Mode: [248.0000],
+        Min: 1.0000, Max: 18234.0000,
+
+
+ELIGIBLE AUTHORS PER BLOCK
+
+        Mean: 1.0803,
+        Med: 1.0000, Mode: [1.0000],
+        Min: 1.0000, Max: 4.0000,
+
+
+MINER CANONICAL WINS
+
+        miner=0 hashrate=0.333 winrate=0.348 winrate/hashrate=1.044 (3480)
+        miner=1 hashrate=0.222 winrate=0.225 winrate/hashrate=1.012 (2248)
+        miner=2 hashrate=0.148 winrate=0.148 winrate/hashrate=0.998 (1479)
+        miner=3 hashrate=0.099 winrate=0.099 winrate/hashrate=1.005 (993)
+        miner=4 hashrate=0.066 winrate=0.063 winrate/hashrate=0.960 (632)
+        miner=5 hashrate=0.059 winrate=0.052 winrate/hashrate=0.882 (516)
+        miner=6 hashrate=0.044 winrate=0.039 winrate/hashrate=0.882 (387)
+        miner=7 hashrate=0.029 winrate=0.026 winrate/hashrate=0.906 (265)
+
+ANALYSIS
+
+        Ticks: 12990256, Rounds (Blocks): 10000, Ticks/Block: 1299.0256
+        AuthorSameParentChildTally/Block: 0.219
+        ArbitrationDecisiveRate: 0.051, ArbitrationDecisiveTally: 515
+        ArbitrationIndecisiveRate: 0.025, ArbitrationIndecisiveTally: 250
+
+
+        Elapsed: 2.776s
+
+9233 POISSON INTERVALS
+
+        Mean: 1515.0680,
+        Med: 1055.0000, Mode: [141.0000],
+        Min: 2.0000, Max: 15252.0000,
+
+
+
+Process finished with the exit code 0
+

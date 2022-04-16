@@ -1,0 +1,52 @@
+\BOOKMARK [1][-]{section.1}{Model Definitions}{}% 1
+\BOOKMARK [1][-]{section.2}{Glossary}{}% 2
+\BOOKMARK [1][-]{section.3}{Scenarios}{}% 3
+\BOOKMARK [1][-]{section.4}{Appendix: Ethereum Background}{}% 4
+\BOOKMARK [2][-]{subsection.4.1}{Ethash}{section.4}% 5
+\BOOKMARK [2][-]{subsection.4.2}{Difficulty}{section.4}% 6
+\BOOKMARK [2][-]{subsection.4.3}{Canonical Arbitration}{section.4}% 7
+\BOOKMARK [2][-]{subsection.4.4}{Chain ID}{section.4}% 8
+\BOOKMARK [1][-]{section.5}{Specifications}{}% 9
+\BOOKMARK [2][-]{subsection.5.1}{Transactions with Ancestor Hash}{section.5}% 10
+\BOOKMARK [2][-]{subsection.5.2}{TABS Validation}{section.5}% 11
+\BOOKMARK [2][-]{subsection.5.3}{Canon Scoring}{section.5}% 12
+\BOOKMARK [1][-]{section.6}{Visual Glossary}{}% 13
+\BOOKMARK [1][-]{section.7}{Theoretical Models}{}% 14
+\BOOKMARK [2][-]{subsection.7.1}{Miner Expected Revenue}{section.7}% 15
+\BOOKMARK [2][-]{subsection.7.2}{Probability of block production}{section.7}% 16
+\BOOKMARK [2][-]{subsection.7.3}{Probability of a block's canonical state}{section.7}% 17
+\BOOKMARK [1][-]{section.8}{Models and Data}{}% 18
+\BOOKMARK [2][-]{subsection.8.1}{Comparison of a Naive Model and Derived Data}{section.8}% 19
+\BOOKMARK [2][-]{subsection.8.2}{Network latency \(\)}{section.8}% 20
+\BOOKMARK [1][-]{section.9}{A Different Model}{}% 21
+\BOOKMARK [1][-]{section.10}{Interlude: In Consideration of the Tick}{}% 22
+\BOOKMARK [1][-]{section.11}{Model Comparison: Fork Rates}{}% 23
+\BOOKMARK [2][-]{subsection.11.1}{Simulated Fork Rates vs. Empirical Uncle Rates}{section.11}% 24
+\BOOKMARK [2][-]{subsection.11.2}{ Comparing Simulated Fork Rates: Proposed vs. Incumbent Canonical-Selection Algorithms }{section.11}% 25
+\BOOKMARK [1][-]{section.12}{THE REST OF THIS IS UNEDITED CRUFT}{}% 26
+\BOOKMARK [2][-]{subsection.12.1}{Probability of canonical acceptance of an eligible block by the network}{section.12}% 27
+\BOOKMARK [2][-]{subsection.12.2}{Impact of Proposed Algorithmic Condition on Network Consensus}{section.12}% 28
+\BOOKMARK [2][-]{subsection.12.3}{When Should Miners Mine on the Next Block?}{section.12}% 29
+\BOOKMARK [1][-]{section.13}{Rationale}{}% 30
+\BOOKMARK [1][-]{section.14}{Placeholder}{}% 31
+\BOOKMARK [2][-]{subsection.14.1}{Transaction Ancestor Hash}{section.14}% 32
+\BOOKMARK [2][-]{subsection.14.2}{Another Thing}{section.14}% 33
+\BOOKMARK [1][-]{section.15}{Theoretical Analysis}{}% 34
+\BOOKMARK [2][-]{subsection.15.1}{Network Behavior Analysis}{section.15}% 35
+\BOOKMARK [1][-]{section.16}{Game Theoretical Analysis}{}% 36
+\BOOKMARK [2][-]{subsection.16.1}{Placeholder}{section.16}% 37
+\BOOKMARK [1][-]{section.17}{Economic Analysis}{}% 38
+\BOOKMARK [1][-]{section.18}{Practical Analysis}{}% 39
+\BOOKMARK [1][-]{section.19}{General Proposition}{}% 40
+\BOOKMARK [1][-]{section.20}{Open Questions}{}% 41
+\BOOKMARK [2][-]{subsection.20.1}{What if emissions revenues were separated from tx processing revenue?}{section.20}% 42
+\BOOKMARK [2][-]{subsection.20.2}{Can we show that 3\045/97\045 is a sensible simultaneous-production rate using just the Poisson emission model?}{section.20}% 43
+\BOOKMARK [2][-]{subsection.20.3}{Can we show formally that it is game-optimized to mine on the next block immediately \(no matter a miner's own anticipated TABS score\)?}{section.20}% 44
+\BOOKMARK [1][-]{section.21}{Discussion}{}% 45
+\BOOKMARK [2][-]{subsection.21.1}{Ancestor Hash vs. Chain ID}{section.21}% 46
+\BOOKMARK [2][-]{subsection.21.2}{The Necessity of Ancestor Hash to the Proposed Canonical-Arbitration Algorithm}{section.21}% 47
+\BOOKMARK [2][-]{subsection.21.3}{Ancestor Hash: Database Availability Impact}{section.21}% 48
+\BOOKMARK [2][-]{subsection.21.4}{Will miners include as many transactions per block as possible? \(Is network transaction throughput optimized/invariant?\)}{section.21}% 49
+\BOOKMARK [2][-]{subsection.21.5}{Will miners prefer transactions from senders with relatively greater balances?}{section.21}% 50
+\BOOKMARK [2][-]{subsection.21.6}{Will miners be incentivized to raise the block gas limit indefinitely?}{section.21}% 51
+\BOOKMARK [2][-]{subsection.21.7}{Hashes vs. ETH: Unit Cancellation in Total Canon Scoring}{section.21}% 52
