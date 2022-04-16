@@ -211,20 +211,26 @@ antecedent calculation of that of its parent. Comparable to Total Difficulty.
 \hline
 \hline
 
-$\mathrm{Ancestor Hash}$ & A proposed transaction field whose value references
+Ancestor Hash &
+A proposed transaction field whose value references
 a block by hash, specifying the existence of that block in the transaction's
-chain segment as a condition of the transaction's validity. Proposed. Optional.
-Synonyms: Segment ID, HFC (Header Field Context) Hash. Related: Chain ID. \\~\\
+chain segment as a condition of the transaction's validity.
+Proposed. Optional.
+Synonyms: Segment ID, HFC (Header Field Context) Hash.
+Related: Chain ID.
+\\~\\
 
-%% ISAAC-DAN 
-{\color{red}$\mathrm{Canonical-Arbitration Algorithm}$} & A program of 
-comparative conditions resulting in the selection of one prioritized segment 
-from any two segments. In context, the prioritized segment is used as the basis 
-for determining a canonical chain state, and, as such, for focusing mining 
-effort (via establishing a \textit{parent}. Synonyms: Canonical-Preference 
-Algorithm. Related: GHOST, Modified GHOST, Inclusive Protocol, Nakamoto 
-Protocol. \\~\\
-%% $\mathrm{Canonical-Arbitration Algorithm}$ & A program of comparative
+Canonical-Arbitration Algorithm &
+A program of
+comparative conditions resulting in the selection of one prioritized segment from any two segments.
+In context, the prioritized segment is used as the basis
+for determining a canonical chain state, and, as such, for focusing mining
+effort (via establishing a \textit{parent}.
+Synonyms: Canonical-Preference
+Algorithm.
+Related: GHOST, Modified GHOST, Inclusive Protocol, Nakamoto Protocol.
+\\~\\
+%% $Canonical-Arbitration Algorithm & A program of comparative
 %% conditions resulting in the selection of one prioritized segment from any two
 %% segments. In context, the prioritized segment is used as the basis for
 %% determining a canonical chain state, and, as such, for focusing mining effort
@@ -232,22 +238,30 @@ Protocol. \\~\\
 %% Algorithm.
 %% Related: GHOST, Modified GHOST, Inclusive Protocol, Nakamoto Protocol. \\~\\
 
-$\mathrm{Segment-Agnostic (Transaction)}$ & A property on a transaction such
-that the transaction can be applied to one or more chain histories. Related:
-Segment-Specific. \\~\\
+Segment-Agnostic (Transaction) &
+A property on a transaction such that the transaction can be applied to one or more chain histories.
+Related: Segment-Specific.
+\\~\\
 
-$\mathrm{Segment-Specific (Transaction)}$ & A property on a transaction such
-that the transaction can be applied on a subset of available chain histories.
-Synonyms: Segment-Exclusive, Chain Context Constrained. Related:
-Segment-Agnostic. \\~\\
+Segment-Specific (Transaction) &
+A property on a transaction such that the transaction can be applied on a subset of available chain histories.
+Synonyms: Segment-Exclusive, Chain Context Constrained.
+Related: Segment-Agnostic.
+\\~\\
 
-$\mathrm{Chain State Finality}$ & The permanence of chain state (or series of
-states). PoW blockchain states have characteristically `soft` finality
-characteristics. PoW finality expectations increase as relative state
-increases; newer states are more vulnerable to change than older states. \\~\\
+Chain State Finality &
+The permanence of chain state (or series of
+states).
+PoW blockchain states have characteristically `soft` finality
+characteristics.
+PoW finality expectations increase as relative state
+increases; newer states are more vulnerable to change than older states.
+\\~\\
 
-$\mathrm{Block Emissions}$ & The (rate of) production of blocks. Blocks are
-metadata associated with chain state modification sequences. \\~\\
+Block Emissions &
+The (rate of) production of blocks. Blocks are
+metadata associated with chain state modification sequences.
+\\~\\
 
 \hline
 \end{tabular}
@@ -269,20 +283,20 @@ metadata associated with chain state modification sequences. \\~\\
 \hline
 \hline
 
-$\mathrm{Finality Fraud}$ & A premeditated fraud scheme exploiting a victim's
-assumption of chain state which is later invalidated by the attacker. The
-exemplary scenario defined and reused throughout this paper assumes a single
-entity as a victim and a single censored transaction. In most contexts, these
-assumed parameters could be modified to use a plural set of victim entities
-and/or a plural set of censored transactions while still being considered
-Finality Fraud. \\~\\
+Finality Fraud & A premeditated fraud scheme exploiting a victim's
+assumption of chain state which is later invalidated by the attacker.
+The exemplary scenario defined and reused throughout this paper assumes a single
+entity as a victim and a single censored transaction.
+In most contexts, these assumed parameters could be modified to use a plural set of victim entities
+and/or a plural set of censored transactions while still being considered Finality Fraud.
+\\~\\
 
-$\mathrm{Finality Terrorism}$ & Generally schematically equivalent to Finality
-Fraud; difference is in the attacker's motive and an intentionally large number
-of victims. The exemplary scenario defined and reused throughout this paper
-assumes all users of a blockchain as victims and the censorship of all
-transactions. These parameters are extremes. In most contexts, these assumed
-parameters could be modified while still being considered Finality Terrorism.
+Finality Terrorism & Generally schematically equivalent to Finality
+Fraud; the difference is in the attacker's motive and an intentionally large number of victims.
+The exemplary scenario defined and reused throughout this paper
+assumes all users of a blockchain as victims and the censorship of all transactions.
+These parameters are extremes.
+In most contexts, these assumed parameters could be modified while still being considered Finality Terrorism.
 \\~\\
 
 \hline
