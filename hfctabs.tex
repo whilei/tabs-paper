@@ -67,8 +67,11 @@
 \usepackage{geometry}
 \usepackage{marginnote}
 
+\newcommand{\mghost}{\textit{Modified-GHOST }}
+
+
 \title{\textbf{Keeping TABS}\\
-\small{A Canonical-Arbitration Algorithm for Modified-GHOST PoW Blockchain Protocols}}
+\small{A Canonical-Arbitration Algorithm for \mghost PoW Blockchain Protocols}}
 
 %% NOMENCLATURE: "Keeping TABS" is a play on words.
 %% The phrase is an english idiom used to describe a state of watchfulness or
@@ -102,7 +105,7 @@ the trust-minimized security characteristics of the blockchain state.
 %algorithms are often co-dependent with dynamic emission parameters (eg.
 %Difficulty).
 
-We consider a proposed modification to the "Modified GHOST" algorithm in use on
+We consider a proposed modification to the \mghost algorithm in use on
 Ethereum.\footnote{\url{https://ethereum.org/en/whitepaper/#modified-ghost-implementation}}
 This proposal introduces two novel features: a capacity for segment-specific
 transactions, and a positive scalar value representing a general measurement of
@@ -228,7 +231,7 @@ for determining a canonical chain state, and, as such, for focusing mining
 effort (via establishing a \textit{parent}.
 Synonyms: Canonical-Preference
 Algorithm.
-Related: GHOST, Modified GHOST, Inclusive Protocol, Nakamoto Protocol.
+Related: GHOST, \mghost, Inclusive Protocol, Nakamoto Protocol.
 \\~\\
 %% $Canonical-Arbitration Algorithm & A program of comparative
 %% conditions resulting in the selection of one prioritized segment from any two
@@ -430,8 +433,7 @@ Transactions are not required to specify a \textit{Chain ID} value for
 legacy-compatibility reasons.
 
 This feature was introduced after "The DAO Fork" (at block 1920000) caused
-Ethereum to become both Ethereum and Ethereum Classic, by the network's partial
-rejection of an arbitrary chain state mutation.
+Ethereum to become both Ethereum and Ethereum Classic by the network's partial rejection of an arbitrary chain state mutation.
 Until the introduction of Chain ID, transactions after this hardfork had no way
 of being exclusive to one of either of these two chains. Between blocks 1920000
 and 2675000on ETH, transactions were ambiguously valid on either, or both.
@@ -447,7 +449,7 @@ independent implementations of the EIP155 feature.
 \section{\normalsize{Specifications}}
 
 In this section we describe the elements of the $TABS$ modification to the
-"Modified GHOST" algorithm.
+\mghost algorithm.
 
 \subsection{\small{Transactions with Ancestor Hash\nolinebreak
 \footnote{Original specification, rationale, and motivation for this feature is
@@ -1947,7 +1949,7 @@ The more canonical blocks a miner authors, the more money they make.
 
 QED There exists incentive for miners to include as many transactions as
 possible for each block they mine.
-NOTE as an \textit{invariant} with original "Modified GHOST" protocol.
+NOTE as an \textit{invariant} with original \mghost protocol.
 
 \subsection{\small{Will miners prefer transactions from senders with relatively
 greater balances?}}
@@ -2056,7 +2058,7 @@ implementations), \\
 once-upon-a-time made uncles nearly (if not actually) more profitable than
 canonical blocks themselves on Ethereum). \\
 
-NOTE that GHOST (and later, "Modified GHOST") specifies difficulty-accounting
+NOTE that GHOST (and later, \mghost) specifies difficulty-accounting
 for recorded uncles.
 
 THIS IS SUPER IMPORTANT >> NEED TO MAKE SURE ITS WRITTEN REEAALLL GOOOD >
