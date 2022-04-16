@@ -447,34 +447,31 @@ independent implementations of the EIP155 feature.
 \pagebreak
 \section{\normalsize{Specifications}}
 
-%Specifications for $TABS$?
-
 In this section we describe the elements of the $TABS$ modification to the
 "Modified GHOST" algorithm.
 
-\subsection{\small{Transactions with Ancestor Hash}}
+\subsection{\small{Transactions with Ancestor Hash\nolinebreak
+\footnote{Original specification, rationale, and motivation for this feature is
+documented in a standalone Improvement Proposal: \url{https://github.com/ethereumclassic/ecips/tree/master/_specs/ecip-1105.md}}}}
 
 Transactions are afforded an additional field $T_\mathrm{a}$ (\textit{Ancestor
 Hash}) whose value either describes a block hash or is left undefined.
 
 If filled, the existence of a block with a header matching this hash anywhere
-in the ancestral, canonical chain (prior to the transaction's block) is a
-condition of the transaction's validity.
+in the foregoing canonical chain is a condition of the transaction's validity.
 
-Transactions of this type are considered segment-specific, although the degree
-to which they are specific depends on which block is referenced by the hash is
-provided.
-Transactions referencing relatively older headers are less specific than those
-referencing newer headers.
+Transactions of this type are considered segment-specific.
+The degree to which they are specific depends on which block is referenced by the hash is provided.
+Transactions referencing relatively older headers are less specific than those referencing newer headers.
 
-Transactions are not required to provide this value, but discretionary use is not 
-necessary; the field \textit{could} be required.
+As proposed, transactions are not required to provide this value.
+However, discretionary use is not necessary.
+The field's annotation \textit{could} be demanded by the protocol.
 
 We will show that the rate of this feature's use ($\tau$) will drive desirable
-security characteristics of the proposed canonical-arbitration condition
-program.
+security characteristics of the proposed canonical-arbitration condition program.
 
-%Useful to have a graphic description here
+%TODO Useful to have a graphic description here
 
 \subsection{\small{TABS Validation}}
 
