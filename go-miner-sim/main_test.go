@@ -531,20 +531,20 @@ var genesisBlock = &Block{
 
 type minerResults struct {
 	ConsensusAlgorithm ConsensusAlgorithm
-	HashrateRel float64
-	HeadI int64
-	HeadTABS int64
+	HashrateRel        float64
+	HeadI              int64
+	HeadTABS           int64
 
-	KMean float64
-	IntervalsMeanSeconds float64
+	KMean                      float64
+	IntervalsMeanSeconds       float64
 	DifficultiesRelGenesisMean float64
 
-	Balance int64
+	Balance                 int64
 	DecisiveArbitrationRate float64
-	ReorgMagnitudesMean float64
+	ReorgMagnitudesMean     float64
 }
 
-func TestZ(t *testing.T) {
+func TestPlotting(t *testing.T) {
 	cases := []struct {
 		name          string
 		minerMutation func(m *Miner)
@@ -565,10 +565,10 @@ func TestZ(t *testing.T) {
 
 	for _, c := range cases {
 		c := c
-		testZ(t, c.name, c.minerMutation)
+		runTestPlotting(t, c.name, c.minerMutation)
 	}
 
-	// testZ(t, "td", func(m *Miner) {
+	// runTestPlotting(t, "td", func(m *Miner) {
 	// 	m.ConsensusAlgorithm = TD
 	// })
 }
@@ -590,7 +590,7 @@ type minerEvent struct {
 	blocks Blocks
 }
 
-func testZ(t *testing.T, name string, mut func(m *Miner)) {
+func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 
 	t.Log("Running", name)
 
@@ -668,7 +668,7 @@ func testZ(t *testing.T, name string, mut func(m *Miner)) {
 	}
 
 	c := gg.NewContext(800, 1200)
-	marginX, marginY := c.Width() / 100, c.Width() / 100
+	marginX, marginY := c.Width()/100, c.Width()/100
 
 	c.Push()
 	c.SetColor(colornames.White)
@@ -692,11 +692,11 @@ func testZ(t *testing.T, name string, mut func(m *Miner)) {
 
 			// ctx.DrawCircle(rand.Float64()*float64(c.Width), rand.Float64()*float64(c.Height), 10)
 
-			xW := (c.Width() - (2*marginX)) / int(countMiners)
-			x := event.minerI * xW + marginX
+			xW := (c.Width() - (2 * marginX)) / int(countMiners)
+			x := event.minerI*xW + marginX
 
 			blockRowsN := 150
-			yH := (c.Height() - (2*marginY)) / blockRowsN
+			yH := (c.Height() - (2 * marginY)) / blockRowsN
 			var y int64
 			// if event.i > blockRowsN{
 			// 	y = 0
@@ -759,14 +759,13 @@ func testZ(t *testing.T, name string, mut func(m *Miner)) {
 					c.SetColor(clr)
 				}
 
-
 				realX := float64(x)
 				realX += float64(ib) * float64(xW/nblocks)
 
 				rectMargin := float64(0)
 
-				rectX, rectY := realX + rectMargin, float64(y) + rectMargin
-				rectW, rectH := float64(xW/nblocks) - (2*rectMargin), float64(yH) - (2*rectMargin)
+				rectX, rectY := realX+rectMargin, float64(y)+rectMargin
+				rectW, rectH := float64(xW/nblocks)-(2*rectMargin), float64(yH)-(2*rectMargin)
 
 				// t.Log("here.ib", ib, b == nil, b.miner, clr)
 				// t.Logf("x=%d y=%d width=%v height=%v b=%d/%d", x, y, xW, yH, ib, nblocks)
@@ -1012,7 +1011,6 @@ func testZ(t *testing.T, name string, mut func(m *Miner)) {
 	// }
 	// plotMinerReorgMagnitudes()
 
-
 	/*
 		https://superuser.com/questions/249101/how-can-i-combine-30-000-images-into-a-timelapse-movie
 
@@ -1060,7 +1058,7 @@ func testZ(t *testing.T, name string, mut func(m *Miner)) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, f := range  animSlides{
+	for _, f := range animSlides {
 		if strings.Contains(f, "0420") {
 			continue
 		}
