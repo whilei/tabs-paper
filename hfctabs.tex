@@ -96,12 +96,12 @@
 \maketitle
 \begin{abstract}
 
-Canonical-arbitration algorithms are used to build consensus in decentralized
+Canon-arbitration algorithms are used to build consensus in decentralized
 state machines.
-The consensus characteristics of mutually implemented canonical-arbitration
+The consensus characteristics of mutually implemented canon-arbitration
 algorithms enables a race between block authors and thereby facilitate
 the trust-minimized security characteristics of the blockchain state.
-%In Proof-of-Work (PoW) block emission systems, canonical-arbitration
+%In Proof-of-Work (PoW) block emission systems, canon-arbitration
 %algorithms are often co-dependent with dynamic emission parameters (eg.
 %Difficulty).
 
@@ -111,12 +111,12 @@ This proposal introduces two novel features: a capacity for segment-specific
 transactions, and a positive scalar value representing a general measurement of
 active capital.
 From these features we propose a novel condition program situated in an assumed
-incumbent canonical-arbitration algorithm.
+incumbent canon-arbitration algorithm.
 
 Our proposed design is an augmentation of an existing and widely implemented consensus program.
-As such, it assumes and depends on the existence of other (canonical-arbitration)
+As such, it assumes and depends on the existence of other (canon-arbitration)
 algorithmic conditions.
-We inherit and generally preserve as invariants the characteristics of the incumbent canonical-arbitration algorithm.
+We inherit and generally preserve as invariants the characteristics of the incumbent canon-arbitration algorithm.
 
 We claim and attempt to demonstrate that the proposed algorithmic condition
 program raises the incumbent consensus decidability rate.
@@ -403,7 +403,7 @@ easier (slower or faster) to author.
 
 The "Total Difficulty" value for any chain segment is the sum of the $H_d$ 
 values of block headers in the segment.
-The canonical-arbitration algorithm used today by Ethereum defines
+The canon-arbitration algorithm used today by Ethereum defines
 that preference is given with priority to any valid subtree having the greatest "Total Difficulty" value.
 In the case of equivalent TD values, segments are preferred having lesser latest block numbers.
 In the case of equivalent TD and block height (number) values, if a node acts 
@@ -468,7 +468,7 @@ However, discretionary use is not necessary.
 The field's annotation \textit{could} be demanded by the protocol.
 
 We will show that the rate of this feature's use ($\tau$) will drive desirable
-security characteristics of the proposed canonical-arbitration condition program.
+security characteristics of the proposed canon-arbitration condition program.
 
 %TODO Useful to have a graphic description here
 
@@ -480,7 +480,7 @@ an aggregate of all transaction sender accounts (and the miner) for a blockchain
 Generally considered, it provides a representative measure of active capital on some chain state.
 It is denominated in Wei,\footnote{\url{https://ethereum.stackexchange.com/questions/253}}
 equivalent to 1000000000000000000\footnote{1e18} so-called Ether.
-Its value is used as a parameter in the proposed canonical-arbitration condition.
+Its value is used as a parameter in the proposed canon-arbitration condition.
 
 \newcommand{\minTABS}{K_0}
 \newcommand{\mynumerator}{y}
@@ -545,10 +545,10 @@ ratio of the $TABS$ value between two parent-child related blocks.
 
 \subsection{\small{Canon Scoring}}
 
-Canonical-arbitration algorithms are assumed to compare two blocks and to
+Canon-arbitration algorithms are assumed to compare two blocks and to
 indicate decisively which one of the two ought to receive canonical status.
 This section formally defines a value Canon Score \textit{CS}, which is used as
-the \textit{initial condition} for a canonical-arbitration algorithm.
+the \textit{initial condition} for a canon-arbitration algorithm.
 This condition, in both the pre-existing and proposed algorithms, may result in a tie.
 If the condition is decisive (a winner is determined), subsequent
 conditions are not evaluated.
@@ -557,7 +557,7 @@ If indecisive (the result is a tie), subsequent conditions are evaluated, each
 potentially decisively, in program order.
 
 For the sake of context, we write the assumed existing initial condition for
-canonical-arbitration in our notation below.
+canon-arbitration in our notation below.
 
 The Canon Score value is defined as:
 
@@ -715,7 +715,7 @@ reorg scenario with transactional Ancestor Hash use.
 \begin{figure}[tph]
 \centering
 \includegraphics[width=1.0\textwidth]{vis_blocksegment_canonpref_incumbent_ex.png}
-\caption{Visual conceptualization of the incumbent canonical-arbitration
+\caption{Visual conceptualization of the incumbent canon-arbitration
 initial condition using Total Difficulty values.
 }
 \label{fig:blocksegment_forks_canonpref_incumbent_ex}
@@ -725,7 +725,7 @@ initial condition using Total Difficulty values.
 \begin{figure}[tph]
 \centering
 \includegraphics[width=1.0\textwidth]{vis_blocksegment_canonpref_proposed_ex.png}
-\caption{Visual conceptualization of the proposed canonical-arbitration initial
+\caption{Visual conceptualization of the proposed canon-arbitration initial
 condition using Difficulty and TABS values.
 }
 \label{fig:blocksegment_forks_canonpref_proposed_ex}
@@ -1712,7 +1712,7 @@ We propose the introduction of segment-specific transactions and an accounting
 on a representative measure of capital saturation for some segment, yielding a
 "hybrid" canonical-score value.
 
-We intend to extend the incumbent PoW canonical-arbitration protocol to include
+We intend to extend the incumbent PoW canon-arbitration protocol to include
 reasoning about segments' relative "capitalization" rates.
 The introduction of such a variable can be shown to raise the expected cost of
 an alternative-history-based attack and to have minimal negative side effects.
