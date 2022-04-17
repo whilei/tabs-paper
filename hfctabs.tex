@@ -71,7 +71,7 @@
 
 
 \title{\textbf{Keeping TABS}\\
-\small{A Canonical-Arbitration Algorithm for \mghost PoW Blockchain Protocols}}
+\small{A Canon-Arbitration Algorithm for \mghost PoW Blockchain Protocols}}
 
 %% NOMENCLATURE: "Keeping TABS" is a play on words.
 %% The phrase is an english idiom used to describe a state of watchfulness or
@@ -101,9 +101,9 @@ state machines.
 The consensus characteristics of mutually implemented canon-arbitration
 algorithms enables a race between block authors and thereby facilitate
 the trust-minimized security characteristics of the blockchain state.
-%In Proof-of-Work (PoW) block emission systems, canon-arbitration
-%algorithms are often co-dependent with dynamic emission parameters (eg.
-%Difficulty).
+In Proof of Work (PoW) block validation protocols, canon-arbitration
+algorithms typically depend on dynamic emission parameters like Difficulty,
+facilitating consistent canonical block emission outcomes for the network.
 
 We consider a proposed modification to the \mghost algorithm in use on
 Ethereum.\footnote{\url{https://ethereum.org/en/whitepaper/#modified-ghost-implementation}}
@@ -135,7 +135,7 @@ most existing PoW clients.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{\normalsize{Model Definitions}}
+\section{\normalsize{Model Definitions}}\label{sec: definitions}
 
 \begin{table}[H]
 \caption{List of Model Definitions\label{table: model-definitions}}
@@ -201,7 +201,7 @@ antecedent calculation of that of its parent. Comparable to Total Difficulty.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{\normalsize{Glossary}}
+\section{\normalsize{Glossary}}\label{sec: glossary}
 
 \begin{table}[H]
 \caption{Definitions of Common Terms\label{table: common-terms}}
@@ -273,7 +273,7 @@ metadata associated with chain state modification sequences.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{\normalsize{Scenarios}}
+\section{\normalsize{Scenarios}}\label{sec: scenarios}
 
 \begin{table}[H]
 \caption{Outlines of Referenced Chain State Scenarios \label{table: chainstate-scenarios}}
@@ -334,7 +334,7 @@ In most contexts, these assumed parameters could be modified while still being c
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \pagebreak
-\section{\normalsize{Appendix: Ethereum Background}}
+\section{\normalsize{Appendix: Ethereum Background}}\label{sec: appendix}
 
 The parameters and logic of this paper's proposal take the existence of a
 system equivalent with that of Ethereum's at the time of writing.
@@ -444,7 +444,7 @@ independent implementations of the EIP155 feature.
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \pagebreak
-\section{\normalsize{Specifications}}
+\section{\normalsize{Specifications}}\label{sec: specs}
 
 In this section we describe the elements of the $TABS$ modification to the
 \mghost algorithm.
@@ -565,7 +565,7 @@ The Canon Score value is defined as:
 \mathrm{CS} \equiv H_d
 \end{equation}
 
-And derived from that a Total Canon Score for any segment as:
+And derived from that a Total Canon Score ($\mathrm{TCS}$) for any segment as:
 
 \begin{equation}
 \mathrm{TCS} \equiv \sum_{H_\mathrm{i = 0}}^{\mathrm{i <= n}} H_d
@@ -586,13 +586,13 @@ and in the segment case:
 \end{equation}
 
 In both the pre-existing algorithm and the proposed algorithm, a candidate
-block having a greater \textit{TCS} value than the other should be selected for
+block having a greater $\mathrm{TCS}$ value than the other should be selected for
 the exclusive canonical state.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \pagebreak
-\section{\normalsize{Visual Glossary}}
+\section{\normalsize{Visual Glossary}}\label{sec: visual-glossary}
 
 \begin{figure}[tph]
 \centering
@@ -731,28 +731,11 @@ condition using Difficulty and TABS values.
 \label{fig:blocksegment_forks_canonpref_proposed_ex}
 \end{figure}
 
-\begin{figure}[tph]
-    \label{go-block-step-cdf-interval}
-    \centering
-    \includegraphics[width=1.0\textwidth]{go-block-step/out/vis_poisson_cdf_next_in_interval.png}
-    \caption{
-      A Poisson CDF function is used to model the probability of a block
-ocurrence (Y) in some interval (X).
-      This plot is produced by the included Go test
-\texttt{TestPoissonCDFNextBlock}.
-    }
-\end{figure}
 
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \pagebreak
-\section{\normalsize{Theoretical Models}}
-
-%% What is finality?
-%% The chance that the blocks you see are permanent.
-
-%% Miner logic.
-%% Consensus algorithm block (state) arbitration.
-%% Selfish deviance.
+\section{\normalsize{Theoretical Models}}\label{sec: theoretical-models}
 
 \subsection{\normalsize{Miner Expected Revenue}}
 
@@ -777,6 +760,18 @@ P(C)
 naive, and can be further developed.)
 
 \subsection{\normalsize{Probability of block production}}
+
+\begin{figure}[htp]
+    \label{go-block-step-cdf-interval}
+    \centering
+    \includegraphics[width=1.0\textwidth]{go-block-step/out/vis_poisson_cdf_next_in_interval.png}
+    \caption{
+        A Poisson CDF function is used to model the probability of a block
+        ocurrence (Y) in some interval (X).
+        This plot is produced by the included Go test
+        \texttt{TestPoissonCDFNextBlock}.
+    }
+\end{figure}
 
 We assume that the distribution of block intervals at the network level can be
 modeled as a Poisson Distribution.\nolinebreak
@@ -1065,8 +1060,7 @@ this incentive.
 \begin{figure}[tph]
     \centering
 
-    \includegraphics[width=1.0\textwidth]{go-block-step/out/vis_poisson_samples_eventintervals_latencysamesamestrat_hist
-    .png}
+    \includegraphics[width=1.0\textwidth]{go-block-step/out/vis_poisson_samples_eventintervals_latencysamesamestrat_hist.png}
     \caption{
         Procedurally generated events $k \geq 1$ interval samples from a Poisson distribution
         with $\lambda = \frac{1}{14}$, with a sample size of 86400.
