@@ -215,22 +215,20 @@ antecedent calculation of that of its parent. Comparable to Total Difficulty.
 \hline
 
 Ancestor Hash &
-A proposed transaction field whose value references
-a block by hash, specifying the existence of that block in the transaction's
-chain segment as a condition of the transaction's validity.
-Proposed. Optional.
+A proposed transaction field whose value references a block by hash,
+specifying the existence of that block in the transaction's chain segment
+as a condition of the transaction's validity.
+Proposed.
+Use optional.
 Synonyms: Segment ID, HFC (Header Field Context) Hash.
 Related: Chain ID.
 \\~\\
 
 Canonical-Arbitration Algorithm &
-A program of
-comparative conditions resulting in the selection of one prioritized segment from any two segments.
-In context, the prioritized segment is used as the basis
-for determining a canonical chain state, and, as such, for focusing mining
-effort (via establishing a \textit{parent}.
-Synonyms: Canonical-Preference
-Algorithm.
+A program of comparative conditions resulting in the selection of one prioritized segment from any two segments.
+In context, the prioritized segment is used as the basis for determining a canonical chain state,
+and, as such, for focusing mining effort (via establishing a \textit{parent}.
+Synonyms: Canonical-Preference Algorithm.
 Related: GHOST, \mghost, Inclusive Protocol, Nakamoto Protocol.
 \\~\\
 %% $Canonical-Arbitration Algorithm & A program of comparative
@@ -253,17 +251,21 @@ Related: Segment-Agnostic.
 \\~\\
 
 Chain State Finality &
-The permanence of chain state (or series of
-states).
-PoW blockchain states have characteristically `soft` finality
-characteristics.
-PoW finality expectations increase as relative state
-increases; newer states are more vulnerable to change than older states.
+The permanence of chain state (or series of states).
+PoW blockchain states have characteristically `soft` finality characteristics.
+PoW finality expectations increase as relative state increases;
+newer states are more vulnerable to change than older states.
 \\~\\
 
 Block Emissions &
-The (rate of) production of blocks. Blocks are
-metadata associated with chain state modification sequences.
+The (rate of) production of blocks. Blocks are metadata associated with chain state modification sequences.
+\\~\\
+
+Decidability &
+The frequency of ties in canon-arbitration during chain growth.
+Narula et al. call this \emph{symmetry-breaking}.
+Decidable scenarios are characterized by eventual network-level chain state consensus.
+Undecidable scenarios are characterized by bifurcated (canonical) network chain states.
 \\~\\
 
 \hline
@@ -880,8 +882,8 @@ necessary and will not be pursued.
 We use two computer program models to simulate competitive block emissions.
 
 \textt{go-block-step} models block emissions from the network level.
-It does not use a Poisson library or logic.
-Instead, it arrives at comparable (to Poisson) outcomes using only basic network-level block production rules.
+It tests and compares simulated network emission outcomes
+against the expected Poisson distribution of block time intervals.
 
 \textt{go-miner-sim} models block emissions in an "actor-based" way,
 simulating block emissions given a set of independent miners following a common protocol.
