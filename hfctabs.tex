@@ -877,16 +877,34 @@ necessary and will not be pursued.
 
 \section{\normalsize{Models and Data}}
 
+We use two computer program models to simulate competitive block emissions.
+
+\textt{go-block-step} models block emissions from the network level.
+It does not use a Poisson library or logic.
+Instead, it arrives at comparable (to Poisson) outcomes using only basic network-level block production rules.
+
+\textt{go-miner-sim} models block emissions in an "actor-based" way,
+simulating block emissions given a set of independent miners following a common protocol.
+
+As neighbors, these models can be considered as 'top-down' (\texttt{go-block-step}) and 'bottom-up' (\texttt{go-miner-sim})
+approaches to network block emissions and consensus modeling.
+
+We compare the data produced by these programs with empirical chain data, testing for representativeness.
+We want to understand the change the TABS protocol presents on block emissions rate,
+network consensus rate, and miner incentives and rewards, and transaction liveness\nolinebreak
+\footnote{\emph{Liveness} is a database-jargon term used in several related and referenced papers.
+In this context, it is the general chain state's processing of available transactions.
+}.
+
 \subsection{\normalsize{Comparison of a Naive Model and Derived Data}}
 
-If we assume that the characteristics of a Poisson Distribution model represent
-accurately the characteristics of the PoW block emission model,
-we are lead by reason to compare a theoretical model with empirical data.
+We assume that the characteristics of a Poisson Distribution model
+accurately represent the characteristics of the PoW block emission model,
+and compare a theoretical model with empirical data under this condition.
 
-We assume that the empirical block interval data is accurately represented in
-Figure 18,
-and we assume the Ethereum network's mean block interval is reasonably
-considered as 14 seconds for the sake of the argument.
+We assume that the empirical block interval data is accurately represented in Figure 18,
+and we assume the Ethereum network's mean block interval is reasonably considered as 14 seconds
+for the sake of the argument.
 
 \begin{figure}[tph]
     \centering
