@@ -898,15 +898,22 @@ network consensus rate, and miner incentives and rewards, and transaction livene
 In this context, it is the general chain state's processing of available transactions.
 }.
 
-\subsection{\normalsize{Comparison of a Naive Model and Derived Data}}
+\subsection{\normalsize{Comparing Models and Empirical Data}}
 
 We assume that the characteristics of a Poisson Distribution model
 accurately represent the characteristics of the PoW block emission model,
 and compare a theoretical model with empirical data under this condition.
+%TODO cite why we can assume Poisson. Its in the LITERATURE.
 
-We assume that the empirical block interval data is accurately represented in Figure 18,
-and we assume the Ethereum network's mean block interval is reasonably considered as 14 seconds
-for the sake of the argument.
+We examined comparable data from the Etherum (ETH) and Ethereum Classic (ETC) blockchains
+to determine empirical estimates for \emph{status quo} emission rates.
+
+These data are charted as histograms\footnote{
+    Source code for the analysis is included in the repository under \texttt{./empirical}.
+} in the following two figures.
+
+Further, we derived the mean block time for both networks, yielding approximately 13.5 seconds for both chains.
+From this, for the sake of argument, we assume a general mean block interval as a round 14 seconds.
 
 \begin{figure}[tph]
     \centering

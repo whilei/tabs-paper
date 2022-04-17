@@ -2,7 +2,10 @@ module github.com/whilei/empirical-ETH
 
 go 1.17
 
-require gonum.org/v1/plot v0.11.0
+require (
+	github.com/montanaflynn/stats v0.6.6
+	gonum.org/v1/plot v0.11.0
+)
 
 require (
 	git.sr.ht/~sbinet/gg v0.3.1 // indirect

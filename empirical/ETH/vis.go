@@ -2,11 +2,13 @@ package main
 
 import (
 	"encoding/csv"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"time"
 
+	"github.com/montanaflynn/stats"
 	"gonum.org/v1/plot"
 	"gonum.org/v1/plot/plotter"
 )
@@ -28,6 +30,8 @@ func main() {
 	csvReader := csv.NewReader(fi)
 	csvReader.FieldsPerRecord = 4
 	records, err := csvReader.ReadAll()
+
+	datasetIntervalsFloat64s := []float64{}
 
 	var lastRecordTime time.Time
 	for i, record := range records {
@@ -57,6 +61,8 @@ func main() {
 
 		// Calculate the time offset interval.
 		interval := timestamp.Sub(lastRecordTime).Seconds()
+		datasetIntervalsFloat64s = append(datasetIntervalsFloat64s, interval)
+
 		intervalInt := int(interval)
 
 		// Add it to our bucket map.
@@ -73,8 +79,13 @@ func main() {
 	fi.Close()
 
 	// Typed XY values from the data for the plotter lib.
+	seconds := 0
+	blocks := 0
 	for k, v := range data {
 		dataP = append(dataP, plotter.XY{X: float64(k), Y: float64(v)})
+
+		seconds += k * v
+		blocks += v
 	}
 
 	hist, _ := plotter.NewHistogram(dataP, len(data))
@@ -84,4 +95,17 @@ func main() {
 	if err := p.Save(800, 400, outPath); err != nil {
 		log.Fatalln(err)
 	}
+
+	// Statistics
+
+	mean := float64(seconds) / float64(blocks)
+	fmt.Println("mean interval", mean)
+	// => mean interval 13.482376
+
+	min, _ := stats.Min(datasetIntervalsFloat64s)
+	max, _ := stats.Max(datasetIntervalsFloat64s)
+	med, _ := stats.Median(datasetIntervalsFloat64s)
+	mmean, _ := stats.Mean(datasetIntervalsFloat64s)
+	fmt.Println("min", min, "max", max, "med", med, "mean", mmean)
+	// => min 1 max 208 med 9 mean 13.482376
 }

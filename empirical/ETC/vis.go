@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"path/filepath"
@@ -45,4 +46,20 @@ func main() {
 	if err := p.Save(800, 400, outPath); err != nil {
 		log.Fatalln(err)
 	}
+
+	// Statistic: mean
+
+	seconds := 0
+	blocks := 0
+	for k, v := range data {
+		kk, err := strconv.Atoi(k)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		seconds += kk * v
+		blocks += v
+	}
+	mean := float64(seconds) / float64(blocks)
+	fmt.Println("mean interval", mean)
+	// => mean interval 13.278645721354279
 }
