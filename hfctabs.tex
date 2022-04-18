@@ -761,7 +761,7 @@ P(C)
 (Note that the ratio $\frac{\minerHashrate}{\networkHashrate}$ is intuitive but
 naive, and can be further developed.)
 
-\subsection{\normalsize{Probability of block production}}
+\subsection{\normalsize{Probability of network block production}}
 
 \begin{figure}[htp]
     \label{go-block-step-cdf-interval}
@@ -769,7 +769,7 @@ naive, and can be further developed.)
     \includegraphics[width=1.0\textwidth]{go-block-step/out/vis_poisson_cdf_next_in_interval.png}
     \caption{
         A Poisson CDF function is used to model the probability of a block
-        ocurrence (Y) in some interval (X).
+        occurrence (Y) in some interval (X).
         This plot is produced by the included Go test
         \texttt{TestPoissonCDFNextBlock}.
     }
@@ -812,9 +812,7 @@ P(C) \equiv 1 - \epsilon
 
 In this simple definition, $\epsilon$ represents the frequency in which a miner
 authors a valid (eligible,candidate,potentially-canonical) block which is not
-ultimately accepted into the public canonical chain.\footnote{The solutions
-these blocks represent in a PoW chain have material cost; ie. wasted
-electricity and wasted money.}
+ultimately accepted into the public canonical chain.
 
 We claim and show that $\epsilon > 0$. We take $\epsilon < 1$ for granted as
 common sense; canonical blocks exist.
@@ -846,9 +844,8 @@ potentially incomplete records of the existence of non-canonical blocks.
 Alternatively, we can derive a reasonable definition of $\epsilon$ using purely
 theoretical models, as follows.
 
-Given our assumption of the Poisson Distribution fit for network block
-intervals, we can set Poisson's $k$ to 2, representing the occurence of 2
-blocks.
+Given our assumption of the Poisson Distribution fit for network block intervals,
+we can set Poisson's $k$ value to 2, representing the occurrence of 2 blocks.
 Using the Poisson Probability Mass Function, we see that given an average block
 interval of $1/14$ seconds, the probability of seeing $k=2$ blocks in some
 interval $t=1$ seconds
@@ -868,12 +865,45 @@ is the number of miners on the network.} occurring in the interval:
   \sum_{k=2}^{99}\frac{\frac{1}{14}^{k}e^{-\frac{1}{14}}}{k!} = 0.002432736...
 \end{equation}
 
+%% Wolfram:
+% Sum[Power[(60/14),k]Power[e,-60/14]/k!,{k,2,99}]
+
+% Probability of 1 event in 1 interval
+\begin{equation}
+    \sum_{k=1}^{1}\frac{\frac{1}{14}^{k}e^{-\frac{1}{14}}}{k!} = 0.0665044842...
+\end{equation}
+
+\begin{equation}
+    \sum_{k=1}^{99}\frac{\frac{2}{14}^{k}e^{-\frac{2}{14}}}{k!} = 0.009282400...
+\end{equation}
+
+\begin{equation}
+    \sum_{k=2}^{99}\frac{\frac{3}{14}^{k}e^{-\frac{3}{14}}}{k!} = 0.019928450...
+\end{equation}
+
+\begin{equation}
+    \sum_{k=2}^{99}\frac{\frac{4}{14}^{k}e^{-\frac{4}{14}}}{k!} = 0.033814908...
+\end{equation}
+
+% 0.2642411176571153568089524596770782651083777379364643309843263966...
+\begin{equation}
+    \sum_{k=2}^{99}\frac{\frac{14}{14}^{k}e^{-\frac{14}{14}}}{k!} = 0.264241117...
+\end{equation}
+
+% 0.9272485558395907416045300561128228868543525343254139440341029213...
+\begin{equation}
+    \sum_{k=2}^{99}\frac{\frac{60}{14}^{k}e^{-\frac{60}{14}}}{k!} = 0.927248555...
+\end{equation}
+
+% TODO/Dan Please help me with math here.
+% What does Poisson think our expected uncle rate is?
+% We know the lambda (1/14).
+% We know its a Poisson Process/Distribution.
+% We want to know the probability of 2 or more events occurring
+
 Since by definition the canonical state is applied exclusively to 1 of
 $\geq 2$ block occurrences, we have shown that even under an idealized game,
-the theoretical $\epsilon$ value is probably a positive, small, number.
-
-While this model could be taken further, for the sake of argument it is not
-necessary and will not be pursued.
+the theoretical $\epsilon$ value is a positive, small, number.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
