@@ -67,6 +67,10 @@
 \usepackage{geometry}
 \usepackage{marginnote}
 
+% This is a custom command to make multi-line comments.
+% https://tex.stackexchange.com/questions/87303/multi-line-block-comments-in-latex
+\newcommand{\comment}[1]{}
+
 \newcommand{\mghost}{\textit{Modified-GHOST }}
 
 
@@ -739,6 +743,15 @@ condition using Difficulty and TABS values.
 \pagebreak
 \section{\normalsize{Theoretical Models}}\label{sec: theoretical-models}
 
+We model block emissions at the network level using a Poisson Distribution
+(where independent mining exemplifies a Poisson Process).\nolinebreak
+\footnote{
+    Nakamoto. 'Bitcoin: A Peer-to-Peer Electronic Cash System', 2007.
+    Ren. 'Analysis of Nakamoto Consensus', 2019.
+    Su, Liu, Narula. 'The Power of Random Symmetry-Breaking in Nakamoto Consensus', 2021.
+    Gazi, Kiayias, Russel. 'Tight Consistency Bounds for Bitcoin', 2020.
+}.
+
 \subsection{\normalsize{Miner Expected Revenue}}
 
 We naively define miner expected revenue over time $t$ (in seconds) as:
@@ -844,6 +857,50 @@ potentially incomplete records of the existence of non-canonical blocks.
 Alternatively, we can derive a reasonable definition of $\epsilon$ using purely
 theoretical models, as follows.
 
+Assume that for some time interval (eg. 1 second) a (one) block has been created.
+We model the probability, then, for the case that \emph{another} block
+will \emph{also} be created in that same interval.
+
+\begin{equation}
+    \frac{\frac{1}{14}^{k=1}e^{-\frac{1}{14}}}{k=1!} = 0.066504484...
+\end{equation}
+
+The value $0.0665...$ represents the probability that for this arbitrary interval,
+another (one) block is also found.
+
+For the sake of argument we assume that both miners
+(of the given block, and the modeled near-simultaneous block),
+should expect to divide the probability of eventual canonicalization evenly between them.
+
+Thus, when a miner finds a block they should expect that block to be canonical
+with a probability of 96.675\%, as shown below.
+
+\begin{equation}
+    1 - \frac{0.0665}{2} = 0.96675
+\end{equation}
+
+\subsection{\normalsize{Expected network uncle rate}}
+
+The network's uncle rate is the generalization of the previous argument.
+
+Since the uncle rate for a network can be (albeit somewhat loosely)
+understood as the occurrence of at least (but usually only) two blocks
+within some interval (usually the network latency variable, but here 1 second),
+the expected network uncle rate with these assumptions is around $0.0665$.
+
+We can extend this definition by including cases where another one \emph{or more} blocks
+are found in the given interval.
+
+\begin{equation}
+    \sum_{k=1}^{\infty}\frac{\frac{1}{14}^{k}e^{-\frac{1}{14}}}{k!} = 0.068937
+\end{equation}
+
+Note that as the considered interval\textsubscript{1 second} changes,
+this value will change.
+
+
+%% This is commented!
+\comment{
 Given our assumption of the Poisson Distribution fit for network block intervals,
 we can set Poisson's $k$ value to 2, representing the occurrence of 2 blocks.
 Using the Poisson Probability Mass Function, we see that given an average block
@@ -904,18 +961,22 @@ is the number of miners on the network.} occurring in the interval:
 Since by definition the canonical state is applied exclusively to 1 of
 $\geq 2$ block occurrences, we have shown that even under an idealized game,
 the theoretical $\epsilon$ value is a positive, small, number.
+} % end comment!
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{\normalsize{Models and Data}}
 
-We use two computer program models to simulate competitive block emissions.
+The theoretical models described in the previous section serve to
+frame our understanding and expectations for programmatic simulations.
 
-\textt{go-block-step} models block emissions from the network level.
+We use two computer program simulations to model competitive block emissions.
+
+\texttt{go-block-step} models block emissions from the network level.
 It tests and compares simulated network emission outcomes
 against the expected Poisson distribution of block time intervals.
 
-\textt{go-miner-sim} models block emissions in an "actor-based" way,
+\texttt{go-miner-sim} models block emissions in an "actor-based" way,
 simulating block emissions given a set of independent miners following a common protocol.
 
 As neighbors, these models can be considered as 'top-down' (\texttt{go-block-step}) and 'bottom-up' (\texttt{go-miner-sim})
@@ -923,29 +984,21 @@ approaches to network block emissions and consensus modeling.
 
 We compare the data produced by these programs with empirical chain data, testing for representativeness.
 We want to understand the change the TABS protocol presents on block emissions rate,
-network consensus rate, and miner incentives and rewards, and transaction liveness\nolinebreak
+network consensus rate, miner incentives, and transaction liveness\nolinebreak
 \footnote{\emph{Liveness} is a database-jargon term used in several related and referenced papers.
 In this context, it is the general chain state's processing of available transactions.
 }.
 
 \subsection{\normalsize{Comparing Models and Empirical Data}}
 
-We assume that the characteristics of a Poisson Distribution model
-accurately represent the characteristics of the PoW block emission model,
-and compare a theoretical model with empirical data under this condition.
-%TODO cite why we can assume Poisson. Its in the LITERATURE.
-
-We examined comparable data from the Etherum (ETH) and Ethereum Classic (ETC) blockchains
+We examined recent and comparable data from the Etherum (ETH) and Ethereum Classic (ETC) blockchains
 to determine empirical estimates for \emph{status quo} emission rates.
 
 These data are charted as histograms\footnote{
     Source code for the analysis is included in the repository under \texttt{./empirical}.
 } in the following two figures.
 
-Further, we derived the mean block time for both networks, yielding approximately 13.5 seconds for both chains.
-From this, for the sake of argument, we assume a general mean block interval as a round 14 seconds.
-
-\begin{figure}[tph]
+\begin{figure}[tph!]
     \centering
     \includegraphics[width=1.0\textwidth]{vis_data_blockinterval_distribution_ETC.png}
     \caption{
@@ -953,7 +1006,7 @@ From this, for the sake of argument, we assume a general mean block interval as 
     }
 \end{figure}
 
-\begin{figure}[tph]
+\begin{figure}[tph!]
     \centering
     \includegraphics[width=1.0\textwidth]{vis_data_blockinterval_distribution_ETH.png}
     \caption{
@@ -961,10 +1014,15 @@ From this, for the sake of argument, we assume a general mean block interval as 
     }
 \end{figure}
 
-Next, we use a computer program to simulate block intervals under the Poisson
-model:\footnote{\texttt{TestPoissonIntervals}}
+\clearpage
 
-\begin{figure}[tph]
+The mean block time for both networks is approximately 13.5 seconds for both chains.
+From this, for the sake of argument, we assume a general mean block interval as 14 seconds.
+
+Next, we use a computer program to simulate block intervals under the Poisson
+model.\footnote{\texttt{TestPoissonIntervals}}
+
+\begin{figure}[tph!]
     \label{vis_poisson_samples_events_86400}
     \centering
     \includegraphics[width=1.0\textwidth]{go-block-step/out/vis_poisson_samples_events_86400.png}
@@ -977,7 +1035,7 @@ model:\footnote{\texttt{TestPoissonIntervals}}
     }
 \end{figure}
 
-\begin{figure}[tph]
+\begin{figure}[tph!]
     \label{vis_poisson_samples_eventintervals_hist}
     \centering
 \includegraphics[width=1.0\textwidth]{go-block-step/out/vis_poisson_samples_eventintervals_hist.png}
@@ -1003,38 +1061,30 @@ model:\footnote{\texttt{TestPoissonIntervals}}
 %    }
 %\end{figure}
 
-\pagebreak
+\clearpage
 
 \textbf{Where is the hump?}
 
-The empirical data clearly shows a `hump` which is not visible in the
-procedurally sampled Poisson distribution values,
-which instead consistently slope downwards from lesser intervals to greater.
-From this simple napkin comparison, we must conclude that our model is as yet
-incomplete (or wrong!).
+The empirical data for Ethereum Classic shows a `hump` which is not visible in the
+procedurally sampled Poisson distribution values.
 
 \subsection{\normalsize{Network latency ($\eta$)}}
 
-We propose that an explanation can be made for this mismatch presented in the
-previous section between map and territory by a consideration of network
-latency.
+We propose that an explanation can be made for this unexpected shape
+by a consideration of network latency.
 
 \vspace{5mm}
 \begin{proposition}
   Latency exists.
 \end{proposition}
 
-The material existence of network latency is irrefutable under
-current physical models of the world.
-Information cannot travel faster than the speed of light, which is finite.
-The networks in question assume the transmission of messages (information), and
-thus, this takes time.
-This is latency; the time required for message transmission.
+%The material existence of network latency is irrefutable under current physical models of the world.
+%Information cannot travel faster than the speed of light, which is finite.
+%The networks in question assume the transmission of messages (information), and thus, this takes time.
+Latency is the time required for message transmission.
 
-The production of any block depends on the block it will be appended to; its
-Parent.
+The production of any block depends on the observation of the block it will be appended to, its parent.
 A miner can only begin mining block $B_{i=n}$ after observing block $B_{i=n-1}$.
-The existence of network latency as a positive value has already been asserted.
 
 Arbitrarily defining network latency as a constant $\eta=3$ seconds allows us
 to produce a revised histogram of expected Poisson event intervals.
@@ -1043,9 +1093,9 @@ to produce a revised histogram of expected Poisson event intervals.
     \centering
 \includegraphics[width=1.0\textwidth]{go-block-step/out/vis_poisson_samples_eventintervals_latencynaive_hist.png}
     \caption{
-      Procedurally generated events $k \geq 1$ interval samples from a Poisson distribution
-with $\lambda = \frac{1}{14}$, with a sample size of 86400.
-      Every interval is increased by $\eta=3$ seconds.
+      Procedurally generated events $k \geq 1$ interval samples from a Poisson process
+        with $\lambda = \frac{1}{14}$, with a sample size of 86400.
+        Every interval is increased by $\eta=3$ seconds.
     Clearly, this general application of latency is insufficient.
     The shape is unchanged; only the domain is shifted by $3$.
     }
