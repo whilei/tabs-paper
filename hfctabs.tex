@@ -480,16 +480,19 @@ security characteristics of the proposed canon-arbitration condition program.
 
 \subsection{\small{TABS Validation}}
 
+% TABS must change more slowly than Difficulty, per block.
+% TABS should be able to fall more quickly than rise.
+
 Total Active Balance Synthesis (TABS) is a positive scalar value,
 an aggregate of all transaction sender accounts (and the miner) for a blockchain of some length.
-%Maybe TABS should be defined in the Glossary
 Generally considered, it provides a representative measure of active capital on some chain state.
 It is denominated in Wei,\footnote{\url{https://ethereum.stackexchange.com/questions/253}}
-equivalent to 1000000000000000000\footnote{1e18} so-called Ether.
+where 1000000000000000000\footnote{1e18} Wei equal 1 Ether.
 Its value is used as a parameter in the proposed canon-arbitration condition.
 
 \newcommand{\minTABS}{K_0}
 \newcommand{\mynumerator}{y}
+\newcommand{\tabsAdjustmentDenominator}{r}
 \newcommand{\diffadjustment}{x}
 
 Validation of the TABS value of a block of header $H$ is asserted as
@@ -511,12 +514,23 @@ where:
 \begin{equation}
 \minTABS \equiv 128\times 10^{18}
 \end{equation}
+
+\begin{equation}
+    \tabsAdjustmentDenominator \equiv 2049
+%    \begin{cases}
+%        2048 & \text{if} \quad \lVert P(H)_{\mathbf{U}}\rVert = 0 \\
+%        1028 & \text{otherwise} \\
+%    \end{cases}
+\end{equation}
+
 \begin{equation}
 \diffadjustment \equiv
-\left\lfloor\frac{{P(H)_{\mathrm{H}}}_{\mathrm{k}}}{128}\right\rfloor
+\left\lfloor\frac{{P(H)_{\mathrm{H}}}_{\mathrm{k}}}{\tabsAdjustmentDenominator}\right\rfloor
 \end{equation}
+
 \begin{equation}
-y \equiv \begin{cases}
+y \equiv
+\begin{cases}
 -1 & \text{if} \, $TAB(B)$ \, < \, $P(H)_{H_k}$ \\
 0 & \text{if} \, $TAB(B)$ \, \equiv \, $P(H)_{H_k}$ \\
 1 & \text{if} \, $TAB(B)$ \, > \, $P(H)_{H_k}$ \\
@@ -539,15 +553,21 @@ L(B,s) \equiv P(B)_{\sigma[s]_{\mathrm{b}}} \quad \text{The account state
 balance at parent block $P(B)$ of account $s$} \\
 \end{equation}
 
-The reader may note that the integer \texttt{128} appears shared between the
-$x$ and $K_0$ components.
-This is not of necessity, but of convenience and for simplicity of design.
-Both values are tuneable constant parameters in the algorithm.
-$K_0$ expresses a minimum value for $TABS$, while $x$ expresses an adjustment
-ratio of the $TABS$ value between two parent-child related blocks.
+%The reader may note that the integer \texttt{128} appears shared between the
+%$x$ and $K_0$ components.
+%This is not of necessity, but of convenience and for simplicity of design.
+%Both values are tuneable constant parameters in the algorithm.
+$K_0$ expresses an arbitrary minimum value for $TABS$,
+while $x$ expresses an adjustment ratio of the $TABS$ value between two parent-child related blocks.
 
-%TODO Here we deviate from the Eth yellow paper by omitting the 'freeze' parameter.
-%I think this should be acknowledged in a footnote.
+The TABS adjustment mechanism is designed to closely imitate the behavior of block difficulty.
+However, the the rate of change of TABS values between blocks ($x$)
+must be less than that of difficulty.\footnote{
+For example, if the difficulty between blocks moves by a factor of $\pm1/2048$,
+then the TABS value should move by a factor of $<\pm1/2048$.
+}
+This ensures that difficulty remains the primary driver of chain growth
+and that miner incentives are invariant.
 
 \subsection{\small{Canon Scoring}}
 
@@ -1259,6 +1279,32 @@ we expect that the most profitable strategy for miners is to mine on top of the 
 block they observe.
 We can thereby expect that puzzle solutions will continue to be
 the primary driving factor for chain-growth.
+
+Do we expect any additional vulnerabilities to malicious behavior?
+Can the TABS Consensus Score be exploited to allow slower blocks produced by rich miners to win?
+
+When could a slower block produced by a rich miner win?
+Block difficulty function is a step function parameterized by block interval.
+We assume two blocks:
+- A: t=9
+- B: t=10
+
+... For blocks produced within some network latency of each other, but occupying
+different steps in the difficulty function (thus, different TDs):
+
+1 / 2048
+2 / 2048 with uncles = 1 / 1028
+
+minimum difficulty = 131072
+current difficulty =
+ETH: 14615997 #0xf378378d0575b8ed5ac48434173a61f29b693a20a46623dbda4094114fe04365 D=12,947,922,331,000,968
+ETC: 14961128 #0x20cceb7960ce30edea9c5f2b817a861ecf7ebe5b0f7a518a4f6fdd1538046921 D=00,357,336,764,833,767
+
+d * tabs < d * 1027/1028 * tabs * tabs_multiple
+1 < 1027/1028 * tabs_multiple
+1028/1027 < tabs_multiple
+
+but as written: tabs_multiple = 1/128
 
 \subsection{\normalsize{Transaction availability}}
 % Transactors on chain want to have their transactions processed by the miners.
