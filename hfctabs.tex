@@ -186,7 +186,7 @@ Ancestor Hash depth $\delta$ values. Transactions \textit{not} asserting an
 Ancestor Hash value can be defined as having $\delta$ = $H_i$.
 Smaller values represent a greater dependence on blocks nearer a common
 (consensus) chain head (a greater degree of transaction/segment exclusivity),
-while larger values signal less exclusive transactional assertion on chain
+while larger values signal less exclusive transaction assertion on chain
 state dependence.
 \\~\\
 
@@ -713,9 +713,9 @@ and value of the proposed Transaction Ancestor Hash field and validation).
 \includegraphics[width=1.0\textwidth]{vis_blocksegment_canonpref_abstract.png}
 \caption{
   A component diagram of block and transaction occurrences under the assumed
-reorg scenario with transactional Ancestor Hash use.
+reorg scenario with transactions using Ancestor Hash.
 }
-\label{fig:blocksegment_forks_canonpref_incumbent_ex}
+\label{fig:blocksegment_forks_canonpref_abstract_ex}
 \end{figure}
 
 \begin{figure}[tph]
@@ -879,11 +879,11 @@ with a probability of 96.675\%, as shown below.
     1 - \frac{0.0665}{2} = 0.96675
 \end{equation}
 
-\subsection{\normalsize{Expected network uncle rate}}
+\subsection{\normalsize{Expected network orphan rate}}
 
-The network's uncle rate is the generalization of the previous argument.
+The network's uncle orphan is the generalization of the previous argument.
 
-Since the uncle rate for a network can be (albeit somewhat loosely)
+Since the orphan rate for a network can be (albeit somewhat loosely)
 understood as the occurrence of at least (but usually only) two blocks
 within some interval (usually the network latency variable, but here 1 second),
 the expected network uncle rate with these assumptions is around $0.0665$.
@@ -965,31 +965,37 @@ the theoretical $\epsilon$ value is a positive, small, number.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{\normalsize{Models and Data}}
+\section{\normalsize{Comparing Theoretical Models and Empirical Data}}
 
-The theoretical models described in the previous section serve to
-frame our understanding and expectations for programmatic simulations.
+\subsection{\normalsize{Orphan/Uncle Rate}}
 
-We use two computer program simulations to model competitive block emissions.
+Orphans are blocks which are valid but do not eventually become canonical.
+Uncles are orphans which have been included in chain data via the \mghost protocol.
+As such, an uncle rate can be estimated by chaindata observation.
 
-\texttt{go-block-step} models block emissions from the network level.
-It tests and compares simulated network emission outcomes
-against the expected Poisson distribution of block time intervals.
+A measured uncle rate should be expected to be at least, but not more than, predicted orphan rates.
 
-\texttt{go-miner-sim} models block emissions in an "actor-based" way,
-simulating block emissions given a set of independent miners following a common protocol.
+Per the \mghost protocol uncle citations are rewarded, so we expect this heuristic
+to tend toward a complete representation.
 
-As neighbors, these models can be considered as 'top-down' (\texttt{go-block-step}) and 'bottom-up' (\texttt{go-miner-sim})
-approaches to network block emissions and consensus modeling.
+At the time of writing, Etherscan.io\footnote{\url{https://etherscan.io/uncles}}
+shows $1,256,671$ recorded uncles and a current canonical height of $14,610,325$ for Ethereum.
 
-We compare the data produced by these programs with empirical chain data, testing for representativeness.
-We want to understand the change the TABS protocol presents on block emissions rate,
-network consensus rate, miner incentives, and transaction liveness\nolinebreak
-\footnote{\emph{Liveness} is a database-jargon term used in several related and referenced papers.
-In this context, it is the general chain state's processing of available transactions.
+\begin{equation}
+    1256671 / 14610325 =  0.0860125
+\end{equation}
+
+We interpret this as representing an orphan rate of about 8.7\%.
+
+As noted earlier, the difference between the theoretical 6.8\% and observed 8.7\% is rationalizable by
+an actual heterogeneous and $>1$ second latency (increasing the Poisson's $\lambda$ variable)\footnote{
+    A 2 second interval with $>=2$ blocks co-occurring under Poisson yields 13.3\%.
+}, and our prior rough estimation of mean block time\footnote{
+    Rounding our measurement of Ethereum's mean block time of 13.48 seconds \emph{down} to 13 seconds
+    yields a 7.4\% theoretical fork rate.
 }.
 
-\subsection{\normalsize{Comparing Models and Empirical Data}}
+\subsection{\normalsize{Canonical Emission Rate}}
 
 We examined recent and comparable data from the Etherum (ETH) and Ethereum Classic (ETC) blockchains
 to determine empirical estimates for \emph{status quo} emission rates.
@@ -1002,7 +1008,7 @@ These data are charted as histograms\footnote{
     \centering
     \includegraphics[width=1.0\textwidth]{vis_data_blockinterval_distribution_ETC.png}
     \caption{
-      Exemplary block interval data for Ethereum Classic.\footnote{Source: \texttt{empirical/ETC}}
+        Exemplary block interval data for Ethereum Classic.\footnote{Source: \texttt{empirical/ETC}}
     }
 \end{figure}
 
@@ -1038,9 +1044,9 @@ model.\footnote{\texttt{TestPoissonIntervals}}
 \begin{figure}[tph!]
     \label{vis_poisson_samples_eventintervals_hist}
     \centering
-\includegraphics[width=1.0\textwidth]{go-block-step/out/vis_poisson_samples_eventintervals_hist.png}
+    \includegraphics[width=1.0\textwidth]{go-block-step/out/vis_poisson_samples_eventintervals_hist.png}
     \caption{
-      Procedurally generated intervals of samples where events $\geq 1$ from
+        Procedurally generated intervals of samples where events $\geq 1$ from
         a Poisson distribution with $\lambda = \frac{1}{14}$.
     }
 \end{figure}
@@ -1075,7 +1081,7 @@ by a consideration of network latency.
 
 \vspace{5mm}
 \begin{proposition}
-  Latency exists.
+    Latency exists.
 \end{proposition}
 
 %The material existence of network latency is irrefutable under current physical models of the world.
@@ -1091,41 +1097,41 @@ to produce a revised histogram of expected Poisson event intervals.
 
 \begin{figure}[tph]
     \centering
-\includegraphics[width=1.0\textwidth]{go-block-step/out/vis_poisson_samples_eventintervals_latencynaive_hist.png}
+    \includegraphics[width=1.0\textwidth]{go-block-step/out/vis_poisson_samples_eventintervals_latencynaive_hist.png}
     \caption{
-      Procedurally generated events $k \geq 1$ interval samples from a Poisson process
+        Procedurally generated events $k \geq 1$ interval samples from a Poisson process
         with $\lambda = \frac{1}{14}$, with a sample size of 86400.
         Every interval is increased by $\eta=3$ seconds.
-    Clearly, this general application of latency is insufficient.
-    The shape is unchanged; only the domain is shifted by $3$.
+        Clearly, this general application of latency is insufficient.
+        The shape is unchanged; only the domain is shifted by $3$.
     }
 \end{figure}
 
 \vspace{5mm}
 \begin{proposition}
-  Latency is heterogenous.
+    Latency is heterogenous.
 \end{proposition}
 
-If we assume there exist $m$ miners on the network, and that each miner 
-controls $\frac{1}{m} \times \networkHashrate$, we can estimate the rate of the 
-same miner producing blocks $B_{i=n}$ and its child $B_{i=n+1}$ as 
+If we assume there exist $m$ miners on the network, and that each miner
+controls $\frac{1}{m} \times \networkHashrate$, we can estimate the rate of the
+same miner producing blocks $B_{i=n}$ and its child $B_{i=n+1}$ as
 $\frac{1}{m}$.
 When a miner produces both the Parent and Child blocks, the $\eta$ value for
-that interval should approach $0$; where time of program execution alone is 
-considered relative to the aggregate time of program execution plus network 
+that interval should approach $0$; where time of program execution alone is
+considered relative to the aggregate time of program execution plus network
 transmission duration.
-We arbitrarily define $m=8$, and, accounting for this probability, produce 
+We arbitrarily define $m=8$, and, accounting for this probability, produce
 Figure 23.
 
 \begin{figure}[tph]
     \centering
 
-\includegraphics[width=1.0\textwidth]{go-block-step/out/vis_poisson_samples_eventintervals_latencysamesame_hist.png}
+    \includegraphics[width=1.0\textwidth]{go-block-step/out/vis_poisson_samples_eventintervals_latencysamesame_hist.png}
     \caption{
-      Procedurally generated events $k \geq 1$ interval samples from a Poisson distribution
-with $\lambda = \frac{1}{14}$, with a sample size of 86400.
-      Every interval is increased by $\eta=3$ for approximately
-$1-\frac{1}{8}$ of the intervals.
+        Procedurally generated events $k \geq 1$ interval samples from a Poisson distribution
+        with $\lambda = \frac{1}{14}$, with a sample size of 86400.
+        Every interval is increased by $\eta=3$ for approximately
+        $1-\frac{1}{8}$ of the intervals.
     }
 \end{figure}
 
@@ -1133,7 +1139,7 @@ Though still naive, we have found a hump.
 
 \vspace{5mm}
 \begin{proposition}
-  Latency's heterogeneity depends on miner hashrate. %% , and thus, the $\frac{1}{m}$ model is inaccurately simplistic.
+    Latency's heterogeneity depends on miner hashrate. %% , and thus, the $\frac{1}{m}$ model is inaccurately simplistic.
 \end{proposition}
 
 We assume that miner hashrate for the Ethereum network is unevenly distributed.
@@ -1144,13 +1150,13 @@ approximation.
 
 \vspace{5mm}
 \begin{proposition}
-  Latency may be optional.
+    Latency may be optional.
 \end{proposition}
 
 If latency is defined as the time between transmission and reception of a
 message, it attributes should be mostly attributable to physical or
 otherwise 'external' limitations.\nolinebreak\footnote{
-e.g Cable size, net neutrality (or lack thereof).
+    e.g Cable size, net neutrality (or lack thereof).
 }
 
 However, if we were instead to define latency as the time between the availability
@@ -1196,6 +1202,96 @@ this incentive.
 %    adjustment-algorithm-and-a-possible-alternative/5267}
 %}
 %\end{figure}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{\normalsize{Network implications of TABS}}
+
+The consensus properties of so-called Nakamoto Consensus are well studied.
+% TODO this is an actual quote from a so-called paper.
+
+We seek to show that an implementation of the proposed AHA/TABS protocol for a PoW network
+either preserves or improves key characteristics of network behavior and usability.
+
+We provide the outcomes of two programmatic simulations as experimental evidence of our claims.
+
+\subsection{\normalsize{Network block emission rates}}
+% This should include fork (noncanonical) and canonical block production.
+
+We can reframe the previous section's theoretically modeled orphan rate
+as an indicator of what some domain literature considers "symmetry" during "chain-growth."\nolinebreak
+\footnote{Narula, 2021.}
+The coincidence of block emission occurrences is a result of chain-growth symmetry.
+Since only one block may be ultimately selected for canonicalization, we consider the rate of orphan production
+a measure of network \emph{efficiency}.
+Orphan blocks represent wasted electricity on behalf of the orphan miner.\footnote{
+    Compensating for orphans is the main objective of the GHOST protocol,
+    which specifies increasing difficulty for blocks with uncle citations.
+}
+
+The AHA/TABS protocol is expected to reduce the orphan rate of the network by increasing decidability (asymmetry)
+during canon-arbitration by virtue of an assumed asymmetry in respective block Total Active Balances.
+
+Block emission rates will not change.
+Emission rates are a function of difficulty, which is codependent with block intervals.
+The expected reduction in network waste will \emph{not} ultimately cause faster chain-growth.
+Instead, it will cause an increase in \emph{finality = canonical} rates for proposed blocks.
+There will be fewer uncles.
+
+%TODO/Isaac
+Should uncles be rewarded less? More? The same? \#\mghost.
+
+\subsection{\normalsize{Miner incentives}}
+% Miner incentives are assumed as the driving economic factor for block emissions.
+
+Where Total Difficulty alone drives the \mghost and Nakamoto protocols,
+AHA/TABS introduces another variable in the miner's efforts to produce a canonical block: transaction sender balances.
+Since this value should be expected to impact their probability of a canon win, we should expect them
+to prefer transactions with senders of greater balance over those with lesser.
+
+%TODO/Isaac
+To what degree should miners prefer transactions and their balances over puzzle solutions?
+Will slower blocks win more than they do now?
+Will rich miners win more blocks than poor miners?
+
+* Because we assume that miners (entities) hold minority shares of hashrate (no 51+\%s),
+we expect that the most profitable strategy for miners is to mine on top of the last best
+block they observe.
+We can thereby expect that puzzle solutions will continue to be
+the primary driving factor for chain-growth.
+
+\subsection{\normalsize{Transaction availability}}
+% Transactors on chain want to have their transactions processed by the miners.
+
+Poor transactors should expect lesser transaction availability,
+richer transactors should expect greater availability.
+Overall network transaction availability is preserved as an invariant.
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{\normalsize{Models and Data}}
+
+The theoretical models described in the previous section serve to
+frame our understanding and expectations for programmatic simulations.
+
+We use two computer program simulations to model competitive block emissions.
+
+\texttt{go-block-step} models block emissions from the network level.
+It tests and compares simulated network emission outcomes
+against the expected Poisson distribution of block time intervals.
+
+\texttt{go-miner-sim} models block emissions in an "actor-based" way,
+simulating block emissions given a set of independent miners following a common protocol.
+
+As neighbors, these models can be considered as 'top-down' (\texttt{go-block-step}) and 'bottom-up' (\texttt{go-miner-sim})
+approaches to network block emissions and consensus modeling.
+
+We compare the data produced by these programs with empirical chain data, testing for representativeness.
+We want to understand the change the TABS protocol presents on block emissions rate,
+network consensus rate, miner incentives, and transaction liveness\nolinebreak
+\footnote{\emph{Liveness} is a database-jargon term used in several related and referenced papers.
+In this context, it is the general chain state's processing of available transactions.
+}.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -2028,7 +2124,7 @@ collateral damage (ie. an increased risk of counter-attack).
 Theoretically, the utilization of Ancestor Hash negatively impacts the
 `availability` of the chain state database to pending transactions.
 
-In other words, this reduces the chain's transactional `throughput`.
+In other words, this reduces the chain's transaction `throughput`.
 
 We argue that the extent to which database availability is restricted is not
 necessarily undesirable.
