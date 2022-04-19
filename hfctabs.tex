@@ -575,17 +575,15 @@ Canon-arbitration algorithms are assumed to compare two blocks and to
 indicate decisively which one of the two ought to receive canonical status.
 This section formally defines a value Canon Score \textit{CS}, which is used as
 the \textit{initial condition} for a canon-arbitration algorithm.
-This condition, in both the pre-existing and proposed algorithms, may result in a tie.
-If the condition is decisive (a winner is determined), subsequent
-conditions are not evaluated.
 
-If indecisive (the result is a tie), subsequent conditions are evaluated, each
-potentially decisively, in program order.
+In both the pre-existing and proposed algorithms, this condition may result in a tie.
+If the condition is decisive (a winner is determined),
+subsequent conditions are not evaluated.
+If indecisive (the result is a tie), subsequent conditions are evaluated,
+each potentially decisively, in program order.
 
 For the sake of context, we write the assumed existing initial condition for
-canon-arbitration in our notation below.
-
-The Canon Score value is defined as:
+canon-arbitration in our notation below. The \textbf{pre-existing Canon Score value} is defined as:
 
 \begin{equation}
 \mathrm{CS} \equiv H_d
@@ -597,7 +595,7 @@ And derived from that a Total Canon Score ($\mathrm{TCS}$) for any segment as:
 \mathrm{TCS} \equiv \sum_{H_\mathrm{i = 0}}^{\mathrm{i <= n}} H_d
 \end{equation}
 
-Respective to this assumed existing condition, we propose its modification as,
+Respective to this assumed pre-existing condition, \textbf{we propose its modification} as,
 
 in the atomic case:
 
