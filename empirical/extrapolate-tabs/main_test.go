@@ -19,25 +19,27 @@ func TestTABSAdjustment1(t *testing.T) {
 
 	dataSize := 1000000
 
-	runExperiment := func(rander distuv.Rander, name string) {
+	runExperiment := func(rander distuv.Rander, name string, valsOper func(int, []float64, func()) bool) {
 		simulatedTABVals := []float64{}
 		for i := 0; i < dataSize; i++ {
 			r := rander.Rand()
 			simulatedTABVals = append(simulatedTABVals, r)
 		}
 
+		// tabs := simulatedTABVals[rand.Intn(dataSize)]
 		mean, _ := stats.Mean(simulatedTABVals)
 		med, _ := stats.Median(simulatedTABVals)
 		t.Logf("%s | mean: %v med: %v\n", name, mean, med)
-
-		// tabs := simulatedTABVals[rand.Intn(dataSize)]
 		tabs := med
 
 		tabsPlottable := plotter.XYs{}
+		meansPlottable := plotter.XYs{}
+		medsPlottable := plotter.XYs{}
 
 		consecutiveDrops := 0 // experimental
 		maxDrops := 20
 		for i, f := range simulatedTABVals {
+
 			if f > tabs {
 				consecutiveDrops = 0 // experimental
 
@@ -57,7 +59,7 @@ func TestTABSAdjustment1(t *testing.T) {
 
 				// floorDrops sets a floor for the drop rate multiplier
 				floorDrops := consecutiveDrops
-				if consecutiveDrops <= 10 {
+				if consecutiveDrops <= 42 {
 					floorDrops = 1
 				}
 				tabs -= tabs / (100 / float64(floorDrops))
@@ -67,6 +69,36 @@ func TestTABSAdjustment1(t *testing.T) {
 				tabs += 0
 			}
 			tabsPlottable = append(tabsPlottable, plotter.XY{X: float64(i), Y: tabs})
+
+			var modifiedVals bool
+			if valsOper != nil {
+				modifiedVals = valsOper(i, simulatedTABVals, func() {
+					// Last reading before they
+					mean, _ = stats.Mean(simulatedTABVals)
+					meansPlottable = append(meansPlottable, plotter.XY{
+						X: float64(i),
+						Y: mean,
+					})
+					med, _ = stats.Median(simulatedTABVals)
+					medsPlottable = append(medsPlottable, plotter.XY{
+						X: float64(i),
+						Y: med,
+					})
+				})
+			}
+			if modifiedVals || i == 0 || i == len(simulatedTABVals)-1 {
+				mean, _ = stats.Mean(simulatedTABVals)
+				meansPlottable = append(meansPlottable, plotter.XY{
+					X: float64(i),
+					Y: mean,
+				})
+				med, _ = stats.Median(simulatedTABVals)
+				medsPlottable = append(medsPlottable, plotter.XY{
+					X: float64(i),
+					Y: med,
+				})
+			}
+
 			// t.Log("tabs", tabs)
 		}
 
@@ -84,26 +116,23 @@ func TestTABSAdjustment1(t *testing.T) {
 		scatterTABS.Shape = draw.CircleGlyph{}
 		p.Add(scatterTABS)
 
-		lineMean, _ := plotter.NewLine(plotter.XYs{
-			plotter.XY{0, mean},
-			plotter.XY{float64(dataSize), mean},
-		})
+		lineMean, _ := plotter.NewLine(meansPlottable)
 		lineMean.Color = colornames.Green
 		p.Add(lineMean)
 
-		lineMed, _ := plotter.NewLine(plotter.XYs{
-			plotter.XY{0, med},
-			plotter.XY{float64(dataSize), med},
-		})
+		lineMed, _ := plotter.NewLine(medsPlottable)
 		lineMed.Color = colornames.Blue
 		p.Add(lineMed)
 
-		p.Save(800, 400, fmt.Sprintf("./%s.png", name))
+		chartFilepath := fmt.Sprintf("./%s.png", name)
+		t.Log("Writing", chartFilepath)
+		p.Save(800, 400, chartFilepath)
 	}
 
 	for _, d := range []struct {
-		name string
-		dist distuv.Rander
+		name     string
+		dist     distuv.Rander
+		valsOper func(int, []float64, func()) bool
 	}{
 		{
 			"pareto",
@@ -112,12 +141,33 @@ func TestTABSAdjustment1(t *testing.T) {
 				Alpha: 1,
 				Src:   exprand.NewSource(uint64(time.Now().UnixNano())),
 			},
+			nil,
 		},
 		{
 			"exponential",
 			distuv.Exponential{
 				Rate: 1,
 				Src:  exprand.NewSource(uint64(time.Now().UnixNano())),
+			},
+			nil,
+		},
+		{
+			"exponential_dynamic",
+			distuv.Exponential{
+				Rate: 1,
+				Src:  exprand.NewSource(uint64(time.Now().UnixNano())),
+			},
+			// This operation drops all simuluated active balances by half.
+			// Paper hands.
+			func(i int, float64s []float64, beforeHook func()) bool {
+				if i == len(float64s)/2 {
+					beforeHook()
+					for j, v := range float64s {
+						float64s[j] = v / 2
+					}
+					return true
+				}
+				return false
 			},
 		},
 		{
@@ -127,8 +177,9 @@ func TestTABSAdjustment1(t *testing.T) {
 				Sigma: math.Sqrt(1),
 				Src:   exprand.NewSource(uint64(time.Now().UnixNano())),
 			},
+			nil,
 		},
 	} {
-		runExperiment(d.dist, d.name)
+		runExperiment(d.dist, d.name, d.valsOper)
 	}
 }
