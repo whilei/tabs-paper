@@ -75,7 +75,7 @@
 
 
 \title{\textbf{Keeping TABS}\\
-\small{A Canon-Arbitration Algorithm for \mghost PoW Blockchain Protocols}}
+\small{A Canon-Arbitration Algorithm for \mghost Proof-of-Work Blockchain Protocols}}
 
 %% NOMENCLATURE: "Keeping TABS" is a play on words.
 %% The phrase is an english idiom used to describe a state of watchfulness or
@@ -105,37 +105,51 @@ state machines.
 The consensus characteristics of mutually implemented canon-arbitration
 algorithms enables a race between block authors and thereby facilitate
 the trust-minimized security characteristics of the blockchain state.
-In Proof of Work (PoW) block validation protocols, canon-arbitration
+In Proof-of-Work (PoW) block validation protocols canon-arbitration
 algorithms typically depend on dynamic emission parameters like Difficulty,
-facilitating consistent canonical block emission outcomes for the network.
+facilitating a near-constant block emission rate for the network.
 
-We consider a proposed modification to the \mghost algorithm in use on
-Ethereum.\footnote{\url{https://ethereum.org/en/whitepaper/#modified-ghost-implementation}}
+We proposed and evaluate a modification to the \mghost\footnote{
+    \url{https://ethereum.org/en/whitepaper/#modified-ghost-implementation}}
+algorithm used by Ethereum.
 This proposal introduces two novel features: a capacity for segment-specific
 transactions, and a positive scalar value representing a general measurement of
-active capital.
-From these features we propose a novel condition program situated in an assumed
-incumbent canon-arbitration algorithm.
+active capital per block.
+From these features we construct a novel canon-arbitration strategy
+which preserves the incumbent PoW chain-growth game
+while improving the expected block finality rate by 50\%
+and raising the cost of double-spend attacks.
 
-Our proposed design is an augmentation of an existing and widely implemented consensus program.
-As such, it assumes and depends on the existence of other (canon-arbitration)
-algorithmic conditions.
-We inherit and generally preserve as invariants the characteristics of the incumbent canon-arbitration algorithm.
+We evaluate associated additional risk to the network,
+which we show to be practically nominal.
+A proof-of-concept code implementation of the protocol is drafted
+for Ethereum's primary client \textit{go-ethereum}\footnote{
+    \url{https://github.com/ethereum/go-ethereum}},
+and is included with or easily referenced from this document.
 
-We claim and attempt to demonstrate that the proposed algorithmic condition
-program raises the incumbent consensus decidability rate.
-We show that this increased decidability rate improves chain state finality
-characteristics and reduces network energy waste by 50\%.
-Further, we show that the cost to an adversary in a double-spend attack scenario rises.
-We detail any associated additional risk to the network, which we show to
-be practically nominal.
-We note that implementation of this design is feasible for Ethereum's
-primary client \textit{go-ethereum} (\texttt{geth}) and probably feasible for
-most existing PoW clients.
+%We note that implementation of this design is feasible for Ethereum's
+%primary client \textit{go-ethereum} (\texttt{geth}) and probably feasible for
+%most existing PoW clients.
+
+%Our proposed design is an augmentation of an existing and widely implemented consensus program.
+%As such, it assumes and depends on the existence of incumbent (canon-arbitration) algorithmic conditions.
+%We inherit and generally preserve as invariants
+%the characteristics of the incumbent canon-arbitration algorithm.
+
+%We claim and attempt to demonstrate that the proposed algorithmic condition
+%program raises the incumbent consensus decidability rate.
+%We show that this increased decidability rate improves chain state finality
+%characteristics and reduces network energy waste by 50\%.
+%Further, we show that the cost to an adversary in a double-spend attack scenario rises.
+%We detail any associated additional risk to the network, which we show to
+%be practically nominal.
+%We note that implementation of this design is feasible for Ethereum's
+%primary client \textit{go-ethereum} (\texttt{geth}) and probably feasible for
+%most existing PoW clients.
 
 \end{abstract}
 
-\pagebreak
+%\clearpage
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -151,7 +165,7 @@ most existing PoW clients.
 \multicolumn{2}{| c |}{Model Elements} \\
 \hline
 \hline
-$t$ & Unit of time. Standard unit: seconds. \\~\\
+$t$ & Time. Standard unit: seconds. \\~\\
 
 $\lambda$ & Network mean block time; the average number of seconds between
 block timestamps. \\~\\
@@ -163,8 +177,8 @@ information and its reception. \\~\\
 $B_i$ & A block with number $i$. \\~\\
 $H_i$ & A block header with number $i$. \\~\\
 
-$H_d$ & Block (and header) annotated difficulty \\~\\
-$H_k$ & Block (and header) annotated $\mathrm{TABS}$ value \\~\\
+$H_d$ & Block (and header) annotated difficulty. \\~\\
+$H_k$ & Block (and header) annotated $\mathrm{TABS}$ value. \\~\\
 
 $TAB(B)$ & A scalar value representing aggregated account balances for a given
 block $B$. "TAB" stands for Total Active Balance. \\~\\
@@ -172,14 +186,15 @@ $TABS(B_i,B_{\mathrm{i-1}})$ & A scalar value derived from the $TAB$ value of
 block $B_i$ and recursively its parent $B_{i-1}$. This value is annotated in a
 block's header. "S" stands for \textit{synthetic} or \textit{synthesis}. \\~\\
 
-$\sigma[a]$ & Global account state $\sigma$ at address $a$ \\~\\
+$\sigma[a]$ & Global account state $\sigma$ at address $a$. \\~\\
 
-$T$ & A transaction \\~\\
+$T$ & A transaction. \\~\\
 
-$T_a$ & A proposed transaction field: Ancestor Hash \\~\\
+$T_a$ & A proposed transaction field: Ancestor Hash.
+See Glossary. \\~\\
 
 $\delta(T_a)$ & The depth (magnitude of ancestry) of a block cited by some
-transaction as $T_a$ \\~\\
+transaction as $T_a$. \\~\\
 
 $\tau$ & A network-level aggregate over time or segment (assume: average) of
 Ancestor Hash depth $\delta$ values. Transactions \textit{not} asserting an
@@ -205,7 +220,7 @@ antecedent calculation of that of its parent. Comparable to Total Difficulty.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{\normalsize{Glossary}}\label{sec: glossary}
+\section{\normalsize{Verbal Glossary}}\label{sec: glossary}
 
 \begin{table}[H]
 \caption{Definitions of Common Terms\label{table: common-terms}}
@@ -277,12 +292,155 @@ Undecidable scenarios are characterized by bifurcated (canonical) network chain 
 }
 \end{table}
 
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\pagebreak
+\section{\normalsize{Visual Glossary}}\label{sec: visual-glossary}
+
+\begin{figure}[tph]
+    \centering
+    \includegraphics[width=0.2\textwidth]{vis_block.png}
+    \caption{A block}
+    \label{fig:block}
+\end{figure}
+
+\begin{figure}[tph]
+    \centering
+    \includegraphics[height=1cm]{vis_tx.png}
+    \caption{A transaction}
+    \label{fig:tx}
+\end{figure}
+
+\begin{figure}[tph]
+    \centering
+    \includegraphics[width=0.2\textwidth]{vis_tx_set.png}
+    \caption{Several transactions}
+    \label{fig:txs}
+\end{figure}
+
+\begin{figure}[tph]
+    \centering
+    \includegraphics[width=0.2\textwidth]{vis_tx_set_sized.png}
+    \caption{Several transactions representing relative gas consumption}
+    \label{fig:txsgas}
+\end{figure}
+
+\begin{figure}[tph]
+    \centering
+    \includegraphics[width=0.2\textwidth]{vis_blocktxs.png}
+    \caption{Transactions in a block}
+    \label{fig:blocktxs}
+\end{figure}
+
+\begin{figure}[tph]
+    \centering
+    \includegraphics[width=1.0\textwidth]{vis_blocksegment.png}
+    \caption{A block segment (chain)}
+    \label{fig:blocksegment}
+\end{figure}
+
+\begin{figure}[tph]
+    \centering
+    \includegraphics[width=1.0\textwidth]{vis_blocksegment_forking.png}
+    \caption{A block segment with forks}
+    \label{fig:blocksegment_forks}
+\end{figure}
+
+\begin{figure}[tph]
+    \centering
+    \includegraphics[width=1.0\textwidth]{vis_blocksegment_forking_txs_sparse.png}
+    \caption{A block segment with forks and sparse transactions}
+    \label{fig:blocksegment_forks_txs_sparse}
+\end{figure}
+
+\begin{figure}[tph]
+    \centering
+    \includegraphics[width=1.0\textwidth]{vis_blocksegment_forking_txs_full.png}
+    \caption{A longer block segment with forks and full of transactions}
+    \label{fig:blocksegment_forks_txs_full}
+\end{figure}
+
+
+\begin{figure}[tph]
+    \centering
+    \includegraphics[width=1.0\textwidth]{vis_blocksegment_forking_reorg.png}
+    \caption{Block composition of a large reorg (eg. finality attack)}
+    \label{fig:blocksegment_forks_reorg}
+\end{figure}
+
+\begin{figure}[tph]
+    \centering
+    \includegraphics[width=1.0\textwidth]{vis_blocksegment_forking_reorg_txs.png}
+    \caption{Block composition of a large reorg (eg. finality attack) including
+    transactions.
+    The `fraudulent` modified or omitted (censored) transaction is red.
+    %should we identify the transaction on the fork that empties the address from
+    which the double-spend was made?
+    }
+    \label{fig:blocksegment_forks_reorg_txs}
+\end{figure}
+
+\begin{figure}[tph]
+    \centering
+    \includegraphics[width=1.0\textwidth]{vis_blocksegment_forking_reorg_t.png}
+    \caption{Block composition of a large reorg (eg. finality attack), noting a
+    value $t$ representing some point in time.
+    Since the domain of this visualization is (implicity) block number, we deduce
+    that the gray (top) chain has built more blocks per unit of time than its
+    counterpart.
+    The value of time $t$ in this case can be understood as an arbitrary instant
+    where the segments (via their head blocks) are evaluated for canonical status.
+    }
+    \label{fig:blocksegment_forks_reorg__t}
+\end{figure}
+
+\begin{figure}[tph]
+    \centering
+    \includegraphics[width=1.0\textwidth]{vis_blocksegment_forking_reorg_anchash.png
+    }
+    \caption{Two illustrations of transaction inclusion under the large reorg
+    scenario and assuming successively aggressive $\tau$ rates (composite frequency
+    and value of the proposed Transaction Ancestor Hash field and validation).
+    }
+    \label{fig:blocksegment_forks_reorg_anchash}
+\end{figure}
+
+\begin{figure}[tph]
+    \centering
+    \includegraphics[width=1.0\textwidth]{vis_blocksegment_canonpref_abstract.png}
+    \caption{
+        A component diagram of block and transaction occurrences under the assumed
+        reorg scenario with transactions using Ancestor Hash.
+    }
+    \label{fig:blocksegment_forks_canonpref_abstract_ex}
+\end{figure}
+
+\begin{figure}[tph]
+    \centering
+    \includegraphics[width=1.0\textwidth]{vis_blocksegment_canonpref_incumbent_ex.png}
+    \caption{Visual conceptualization of the incumbent canon-arbitration
+    initial condition using Total Difficulty values.
+    }
+    \label{fig:blocksegment_forks_canonpref_incumbent_ex}
+\end{figure}
+
+
+\begin{figure}[tph]
+    \centering
+    \includegraphics[width=1.0\textwidth]{vis_blocksegment_canonpref_proposed_ex.png}
+    \caption{Visual conceptualization of the proposed canon-arbitration initial
+    condition using Difficulty and TABS values.
+    }
+    \label{fig:blocksegment_forks_canonpref_proposed_ex}
+\end{figure}
+
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{\normalsize{Scenarios}}\label{sec: scenarios}
 
 \begin{table}[H]
-\caption{Outlines of Referenced Chain State Scenarios \label{table: chainstate-scenarios}}
+\caption{Abstracts of Referenced Chain State Scenarios \label{table: chainstate-scenarios}}
 \centering
 \small{
 \begin{tabular}{|p{5cm}|p{9cm}|}
@@ -340,116 +498,6 @@ In most contexts, these assumed parameters could be modified while still being c
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \pagebreak
-\section{\normalsize{Appendix: Ethereum Background}}\label{sec: appendix}
-
-The parameters and logic of this paper's proposal take the existence of a
-system equivalent with that of Ethereum's at the time of writing.
-We strongly suggest that the Ethereum Yellow Paper\nolinebreak
-\footnote{\url{https://github.com/ethereum/yellowpaper/tree/fabef2531a8f8e772a4bf5be23191044d0ce3569}}
-be read and understood as a precondition for interpretation and evaluation
-of the work of this project.
-%should we state the 'Berlin' version? ISAAC: Done.
-Important and referenced concepts of Ethereum's protocol are discussed in this 
-section for the the informational value of redundancy.
-
-\subsection{\small{Ethash}}
-
-Ethereum's Proof-of-Work protocol "Ethash" governs block emissions. Solutions
-to a constantly varying guessing game require time to discover -- via trial and
-error -- and are a notably required field in block headers. Authors of blocks
-providing valid solutions to these puzzles are called miners; mining is the
-process of searching for puzzle solutions. \\
-\\
-%should we define "block emissions" for the non-expert?
-A very difficult puzzle (probably requiring many guesses) is expected to take 
-more time to solve than an easier puzzle (requiring fewer guesses).
-
-\subsection{\small{Difficulty}}
-Ethereum regulates its block emission rate using a header value called
-$\mathrm{Difficulty}$ ($H_d$). This value is used by the Ethash protocol as a
-parameter for puzzle solution validation. Generally speaking, the Difficulty
-value for some block can be thought of as the number of wrong guesses
-("hashes") expected before a valid puzzle solution for a child block is
-found.\nolinebreak
-\footnote{Formally, difficulty is governed by the relation of a fixed size
-bit-field (called the 'nonce') in the domain of the block hash, into which a 
-miner writes its guess, and a fixed size bit-field in the output range of the 
-hash function, which takes on values induced by the miner's guess. The 
-difficulty is measured by the number of required zero entries in the output  
-bit-field, which defines the feasible output range.  The size of the set of 
-guesses that map into the feasible range expands and contracts with the size of 
-the feasible range. For a given rate of guesses per unit of time, the 
-difficulty induces a cumulative distribution function of the probability of a 
-solution being found by each point in time. From this an expected interval 
-between timestamps can be derived.}
-An adjustment algorithm governs the rise and fall of this value, accepting a 
-block timestamp interval and parent difficulty as parameters;
-this provides a feedback loop joining block emission rates (via sequential 
-block timestamps and thus relative intervals) with puzzle difficulty.
-Given a target block interval, difficulty can be adjusted dynamically, 
-incrementally, such that the difficulty value will cause blocks to be authorable
-at rates approaching the target rate.
-In Ethereum the parameters are tuned to produce a median 9 seconds, or about 14
-seconds on average.
-Network block emission rates are typically modeled with a Poisson
-distribution.\nolinebreak
-\footnote{\url{https://ethresear.ch/t/deep-dive-into-current-pow-difficulty-adjustment-algorithm-and-a-possible-alternative/5267}}\nolinebreak
-\footnote{\url{https://blog.ethereum.org/2015/09/14/on-slow-and-fast-block-times/}}\nolinebreak
-\footnote{\url{https://en.wikipedia.org/wiki/Proof_of_work#Variants}}\nolinebreak
-\footnote{\url{https://arxiv.org/pdf/1901.04620, Section III.A}}
-
-\textit{e.g.} Given a block difficulty $H_d$ = 63115 and a network target
-emission interval of 13 seconds, we deduce that the modeled network average
-hashrate is 63115 hashes / 13 seconds = 4855 hashes/second. A block generated
-in 3 seconds should cause the difficulty to rise; a block generated in 30
-seconds should cause it to fall; making the next block respectively harder or
-easier (slower or faster) to author.
-
-\subsection{\small{Canonical Arbitration\footnote{\url{https://github.com/ethereum/go-ethereum/blob/f0328f241b7c3def217b0c2dce1a1b297f979a37/core/forkchoice.go#L77}}}}
-
-The "Total Difficulty" value for any chain segment is the sum of the $H_d$ 
-values of block headers in the segment.
-The canon-arbitration algorithm used today by Ethereum defines
-that preference is given with priority to any valid subtree having the greatest "Total Difficulty" value.
-In the case of equivalent TD values, segments are preferred having lesser latest block numbers.
-In the case of equivalent TD and block height (number) values, if a node acts 
-on behalf of the block's registered author, that block is preferred.
-If there is no authorship beneficiary interest (as in a non-mining node, or 
-that of a non-winning miner), a figurative coin is tossed, per the protocol 
-described by Eyal and Sirer.\nolinebreak
-\footnote{\url{http://www.cs.cornell.edu/~ie53/publications/btcProcFC.pdf}}
-
-\subsection{\small{Chain ID}}
-
-As specified by EIP155\nolinebreak
-\footnote{\url{https://eips.ethereum.org/EIPS/eip-155}} a feature called
-\textit{Chain ID} was introduced on the Ethereum network (ETH) at block
-2675000, and on the Ethereum Classic network (ETC) at block 3000000.
-
-This feature, generally considered, allows transactions to be made exclusive to
-certain predefined segments, or entire chains, by validating a match between a
-transaction-specified \textit{Chain ID} field value and that of a hardcoded
-(constant) network protocol configuration.
-The mechanism ascribes an arbitrary positive integer to a network configuration
-and transactions use this value when signing a transaction intended for that
-subset of chain state.
-Transactions are not required to specify a \textit{Chain ID} value for
-legacy-compatibility reasons.
-
-This feature was introduced after "The DAO Fork" (at block 1920000) caused
-Ethereum to become both Ethereum and Ethereum Classic by the network's partial rejection of an arbitrary chain state mutation.
-Until the introduction of Chain ID, transactions after this hardfork had no way
-of being exclusive to one of either of these two chains.
-Between blocks 1920000 and 2675000on ETH, transactions were ambiguously valid on either, or both.
-Today, Chain ID transactions specifying Chain ID \texttt{1} are only eligible
-on ETH, and those with Chain ID \texttt{61} are only eligible on ETC, per the
-respective configurations eventually introduced on both networks with their
-independent implementations of the EIP155 feature.
-
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\pagebreak
 \section{\normalsize{Specifications}}\label{sec: specs}
 
 In this section we describe the elements of the $TABS$ modification to the
@@ -462,19 +510,20 @@ Hash}) whose value either describes a block hash or is left undefined.\nolinebre
 \footnote{Original and complete specification, rationale, and motivation for this feature is
 documented as a standalone proposal at \url{https://github.com/ethereumclassic/ecips/tree/master/_specs/ecip-1105.md}}
 
-If filled, the existence of a block with a header matching this hash anywhere
-in the foregoing canonical chain is a condition of the transaction's validity.
+If a transaction defines $T_\mathrm{a}$, its validity is conditioned on
+the existence of a block with this hash in the canonical chain
+prior to the block including the transaction.
 
 Transactions of this type are considered segment-specific.
 The degree to which they are specific depends on which block is referenced by the hash is provided.
-Transactions referencing relatively older headers are less specific than those referencing newer headers.
+Transactions referencing relatively older blocks are less specific than those referencing newer ones.
+The generalization of this concept is defined as $\tau$ (see Glossary).
 
 As proposed, transactions are not required to provide this value.
 However, discretionary use is not necessary.
 The field's annotation \textit{could} be demanded by the protocol.
 
-We will show that the rate of this feature's use ($\tau$) will drive desirable
-security characteristics of the proposed canon-arbitration condition program.
+%We will show that $\tau$ drives desirable security characteristics of the proposed canon-arbitration protocol.
 
 %TODO Useful to have a graphic description here
 
@@ -486,8 +535,9 @@ security characteristics of the proposed canon-arbitration condition program.
 Total Active Balance Synthesis (TABS) is a positive scalar value,
 an aggregate of all transaction sender accounts (and the miner) for a blockchain of some length.
 Generally considered, it provides a representative measure of active capital on some chain state.
-It is denominated in Wei,\footnote{\url{https://ethereum.stackexchange.com/questions/253}}
-where 1000000000000000000\footnote{1e18} Wei equal 1 Ether.
+It is denominated in Wei.\footnote{
+    1000000000000000000 (1e18) Wei equal 1 Ether. % See \url{https://ethereum.stackexchange.com/questions/253}
+}
 Its value is used as a parameter in the proposed canon-arbitration condition.
 
 \newcommand{\minTABS}{K_0}
@@ -622,149 +672,6 @@ the exclusive canonical state.
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \pagebreak
-\section{\normalsize{Visual Glossary}}\label{sec: visual-glossary}
-
-\begin{figure}[tph]
-\centering
-\includegraphics[width=0.2\textwidth]{vis_block.png}
-\caption{A block}
-\label{fig:block}
-\end{figure}
-
-\begin{figure}[tph]
-\centering
-\includegraphics[height=1cm]{vis_tx.png}
-\caption{A transaction}
-\label{fig:tx}
-\end{figure}
-
-\begin{figure}[tph]
-\centering
-\includegraphics[width=0.2\textwidth]{vis_tx_set.png}
-\caption{Several transactions}
-\label{fig:txs}
-\end{figure}
-
-\begin{figure}[tph]
-\centering
-\includegraphics[width=0.2\textwidth]{vis_tx_set_sized.png}
-\caption{Several transactions representing relative gas consumption}
-\label{fig:txsgas}
-\end{figure}
-
-\begin{figure}[tph]
-\centering
-\includegraphics[width=0.2\textwidth]{vis_blocktxs.png}
-\caption{Transactions in a block}
-\label{fig:blocktxs}
-\end{figure}
-
-\begin{figure}[tph]
-\centering
-\includegraphics[width=1.0\textwidth]{vis_blocksegment.png}
-\caption{A block segment (chain)}
-\label{fig:blocksegment}
-\end{figure}
-
-\begin{figure}[tph]
-\centering
-\includegraphics[width=1.0\textwidth]{vis_blocksegment_forking.png}
-\caption{A block segment with forks}
-\label{fig:blocksegment_forks}
-\end{figure}
-
-\begin{figure}[tph]
-\centering
-\includegraphics[width=1.0\textwidth]{vis_blocksegment_forking_txs_sparse.png}
-\caption{A block segment with forks and sparse transactions}
-\label{fig:blocksegment_forks_txs_sparse}
-\end{figure}
-
-\begin{figure}[tph]
-\centering
-\includegraphics[width=1.0\textwidth]{vis_blocksegment_forking_txs_full.png}
-\caption{A longer block segment with forks and full of transactions}
-\label{fig:blocksegment_forks_txs_full}
-\end{figure}
-
-
-\begin{figure}[tph]
-\centering
-\includegraphics[width=1.0\textwidth]{vis_blocksegment_forking_reorg.png}
-\caption{Block composition of a large reorg (eg. finality attack)}
-\label{fig:blocksegment_forks_reorg}
-\end{figure}
-
-\begin{figure}[tph]
-\centering
-\includegraphics[width=1.0\textwidth]{vis_blocksegment_forking_reorg_txs.png}
-\caption{Block composition of a large reorg (eg. finality attack) including
-transactions.
-  The `fraudulent` modified or omitted (censored) transaction is red.
-  %should we identify the transaction on the fork that empties the address from 
-which the double-spend was made?
-}
-\label{fig:blocksegment_forks_reorg_txs}
-\end{figure}
-
-\begin{figure}[tph]
-\centering
-\includegraphics[width=1.0\textwidth]{vis_blocksegment_forking_reorg_t.png}
-\caption{Block composition of a large reorg (eg. finality attack), noting a
-value $t$ representing some point in time.
-Since the domain of this visualization is (implicity) block number, we deduce
-that the gray (top) chain has built more blocks per unit of time than its
-counterpart.
-The value of time $t$ in this case can be understood as an arbitrary instant
-where the segments (via their head blocks) are evaluated for canonical status.
-}
-\label{fig:blocksegment_forks_reorg__t}
-\end{figure}
-
-\begin{figure}[tph]
-\centering
-\includegraphics[width=1.0\textwidth]{vis_blocksegment_forking_reorg_anchash.png
-}
-\caption{Two illustrations of transaction inclusion under the large reorg
-scenario and assuming successively aggressive $\tau$ rates (composite frequency
-and value of the proposed Transaction Ancestor Hash field and validation).
-}
-\label{fig:blocksegment_forks_reorg_anchash}
-\end{figure}
-
-\begin{figure}[tph]
-\centering
-\includegraphics[width=1.0\textwidth]{vis_blocksegment_canonpref_abstract.png}
-\caption{
-  A component diagram of block and transaction occurrences under the assumed
-reorg scenario with transactions using Ancestor Hash.
-}
-\label{fig:blocksegment_forks_canonpref_abstract_ex}
-\end{figure}
-
-\begin{figure}[tph]
-\centering
-\includegraphics[width=1.0\textwidth]{vis_blocksegment_canonpref_incumbent_ex.png}
-\caption{Visual conceptualization of the incumbent canon-arbitration
-initial condition using Total Difficulty values.
-}
-\label{fig:blocksegment_forks_canonpref_incumbent_ex}
-\end{figure}
-
-
-\begin{figure}[tph]
-\centering
-\includegraphics[width=1.0\textwidth]{vis_blocksegment_canonpref_proposed_ex.png}
-\caption{Visual conceptualization of the proposed canon-arbitration initial
-condition using Difficulty and TABS values.
-}
-\label{fig:blocksegment_forks_canonpref_proposed_ex}
-\end{figure}
-
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\pagebreak
 \section{\normalsize{Theoretical Models}}\label{sec: theoretical-models}
 
 We model block emissions at the network level using a Poisson Distribution
@@ -805,15 +712,14 @@ naive, and can be further developed.)
     \centering
     \includegraphics[width=1.0\textwidth]{go-block-step/out/vis_poisson_cdf_next_in_interval.png}
     \caption{
-        A Poisson CDF function is used to model the probability of a block
-        occurrence (Y) in some interval (X).
-        This plot is produced by the included Go test
-        \texttt{TestPoissonCDFNextBlock}.
+        A Poisson Cumulative Distribution Function (CDF) is used to model the probability of a block
+        occurrence (y-axis) in some interval (x-axis).
+        This plot is produced by the included Go test \texttt{TestPoissonCDFNextBlock}.
     }
 \end{figure}
 
-We assume that the distribution of block intervals at the network level can be
-modeled as a Poisson Distribution.\nolinebreak
+We assume that the occurrence of block events at the network level can be
+modeled as a Poisson Process.\nolinebreak
 \footnote{
 One must note that while it may be granted that the model fits \emph{recorded}
 network block interval data, it may not necessarily represent the \emph{actual}
@@ -848,14 +754,15 @@ P(C) \equiv 1 - \epsilon
 \end{equation}
 
 In this simple definition, $\epsilon$ represents the frequency in which a miner
-authors a valid (eligible,candidate,potentially-canonical) block which is not
-ultimately accepted into the public canonical chain.
+authors a valid block which is not ultimately accepted into the public canonical chain.
 
-We claim and show that $\epsilon > 0$. We take $\epsilon < 1$ for granted as
-common sense; canonical blocks exist.
+We take $\epsilon < 1$ for granted as common sense; canonical blocks exist.
+We can also assume that $\epsilon > 0$, since non-canonical blocks exist and
+are observable as uncles (also known as "ommers") on chain.
 
 A practical value of $\epsilon$ can be approximated by an empirical measurement
 of a network's Uncle rate.\nolinebreak
+\comment{
 \footnote{
   There is a lot to say about this, and the nuances of this idea are important
 for understanding what kind of approximation this is, and what its limits are.
@@ -877,40 +784,41 @@ potentially incomplete records of the existence of non-canonical blocks.
   Is it actually reasonable for a miner to record an uncle, getting the
   other miner paid? Or are uncles only recorded when the author of the
   canonical block is also the author of the uncle?
-}
-Alternatively, we can derive a reasonable definition of $\epsilon$ using purely
-theoretical models, as follows.
+}}
+Given that observable orphan data on chain may not be complete,
+we can derive a reasonable expectation for $\epsilon$ using a
+theoretical model, as follows.
 
 Assume that for some time interval (eg. 1 second) a (one) block has been created.
 We model the probability, then, for the case that \emph{another} block
 will \emph{also} be created in that same interval.
 
 \begin{equation}
-    \frac{\frac{1}{14}^{k=1}e^{-\frac{1}{14}}}{k=1!} = 0.066504484...
+    \epsilon \equiv \frac{\frac{1}{14}^{k=1}e^{-\frac{1}{14}}}{k=1!} = 0.066504484...
 \end{equation}
 
 The value $0.0665...$ represents the probability that for this arbitrary interval,
-another (one) block is also found.
+at the network level, another (one) block is also found.
 
-For the sake of argument we assume that both miners
-(of the given block, and the modeled near-simultaneous block),
-should expect to divide the probability of eventual canonicalization evenly between them.
-
-Thus, when a miner finds a block they should expect that block to be canonical
-with a probability of 96.675\%, as shown below.
+To derive the probability of any one miner winning this arbitration,
+the network-level probability of orphanhood should be divided by the number
+of competing miners (assumed here to be 2).
 
 \begin{equation}
-    1 - \frac{0.0665}{2} = 0.96675
+    P(C) \equiv 1 - \frac{0.0665}{2} = 0.96675
 \end{equation}
 
-\subsection{\normalsize{Expected network orphan rate}}
+Generalization of this model to any number of near-simultaneous block-production events
+is trivial by modifying the Poisson $k$ value, and adjusting the miner share respectively.
 
-The network's uncle orphan is the generalization of the previous argument.
+\subsection{\normalsize{Network orphan probability}}
+
+The expected network orphan rate is generally the converse of the previous model.
 
 Since the orphan rate for a network can be (albeit somewhat loosely)
 understood as the occurrence of at least (but usually only) two blocks
 within some interval (usually the network latency variable, but here 1 second),
-the expected network uncle rate with these assumptions is around $0.0665$.
+the expected network orphan rate with these assumptions is around $0.0665$.
 
 We can extend this definition by including cases where another one \emph{or more} blocks
 are found in the given interval.
@@ -919,9 +827,12 @@ are found in the given interval.
     \sum_{k=1}^{\infty}\frac{\frac{1}{14}^{k}e^{-\frac{1}{14}}}{k!} = 0.068937
 \end{equation}
 
-Note that as the considered interval\textsubscript{1 second} changes,
-this value will change.
-
+Note that as the considered interval\textsubscript{1 second} changes, this value will change,
+and that determination of the considered interval should be made
+with respect to relevant estimated network latencies.\footnote{
+Network latencies between miners are more relevant, for example,
+than latencies between non-mining nodes.
+}
 
 %% This is commented!
 \comment{
@@ -991,16 +902,21 @@ the theoretical $\epsilon$ value is a positive, small, number.
 
 \section{\normalsize{Comparing Theoretical Models and Empirical Data}}
 
+In this section we compare the theoretical models defined above with empirical chain data
+for Ethereum and Ethereum Classic to both affirm the validity of the models as well
+as develop our understanding of observable network and chain behavior.
+
 \subsection{\normalsize{Orphan/Uncle Rate}}
 
-Orphans are blocks which are valid but do not eventually become canonical.
-Uncles are orphans which have been included in chain data via the \mghost protocol.
-As such, an uncle rate can be estimated by chaindata observation.
+%Orphans are blocks which are valid but do not eventually become canonical.
+%Uncles are orphans which have been included in chain data via the \mghost protocol.
+%As such, an uncle rate can be estimated by chaindata observation.
 
-A measured uncle rate should be expected to be at least, but not more than, predicted orphan rates.
-
-Per the \mghost protocol uncle citations are rewarded, so we expect this heuristic
-to tend toward a complete representation.
+The observable uncle rate should be expected to be at least, but not more than, predicted orphan rates.
+All orphans recorded as uncles on chain must be valid, but not all orphans must be recorded.\footnote{
+The recording of orphans as uncles is allowed but not mandated (or enforceable) by chain protocol.
+However, miners are rewarded for each uncle reference, and thus are incentivized to do so.
+}
 
 At the time of writing, Etherscan.io\footnote{\url{https://etherscan.io/uncles}}
 shows $1,256,671$ recorded uncles and a current canonical height of $14,610,325$ for Ethereum.
@@ -1012,17 +928,18 @@ shows $1,256,671$ recorded uncles and a current canonical height of $14,610,325$
 We interpret this as representing an orphan rate of about 8.7\%.
 
 As noted earlier, the difference between the theoretical 6.8\% and observed 8.7\% is rationalizable by
-an actual heterogeneous and $>1$ second latency (increasing the Poisson's $\lambda$ variable)\footnote{
-    A 2 second interval with $>=2$ blocks co-occurring under Poisson yields 13.3\%.
-}, and our prior rough estimation of mean block time\footnote{
-    Rounding our measurement of Ethereum's mean block time of 13.48 seconds \emph{down} to 13 seconds
-    yields a 7.4\% theoretical fork rate.
-}.
+the difference between assumed and actual latency and block interval values.\footnote{
+    Given observed uncle rates, we can use the model to estimate actual latency between miners.
+    For example, the values $\lambda = 13.48$ and $t = 1.23$ yield a probability of $8.7\%$,
+suggesting actual miner-miner latency of around 1.23 seconds.
+}
 
 \subsection{\normalsize{Canonical Emission Rate}}
 
-We examined recent and comparable data from the Etherum (ETH) and Ethereum Classic (ETC) blockchains
-to determine empirical estimates for \emph{status quo} emission rates.
+We examined recent and comparable data\footnote{
+Blocks 13 million through 14 million on both chains.
+} from the Etherum (ETH) and Ethereum Classic (ETC) blockchains
+to determine empirical estimates for incumbent-protocol emission rates.
 
 These data are charted as histograms\footnote{
     Source code for the analysis is included in the repository under \texttt{./empirical}.
@@ -1342,6 +1259,117 @@ network consensus rate, miner incentives, and transaction liveness\nolinebreak
 \footnote{\emph{Liveness} is a database-jargon term used in several related and referenced papers.
 In this context, it is the general chain state's processing of available transactions.
 }.
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\pagebreak
+\section{\normalsize{Appendix: Ethereum Background}}\label{sec: appendix}
+
+The parameters and logic of this paper's proposal take the existence of a
+system equivalent with that of Ethereum's at the time of writing.
+We strongly suggest that the Ethereum Yellow Paper\nolinebreak
+\footnote{\url{https://github.com/ethereum/yellowpaper/tree/fabef2531a8f8e772a4bf5be23191044d0ce3569}}
+be read and understood as a precondition for interpretation and evaluation
+of the work of this project.
+%should we state the 'Berlin' version? ISAAC: Done.
+Important and referenced concepts of Ethereum's protocol are discussed in this
+section for the the informational value of redundancy.
+
+\subsection{\small{Ethash}}
+
+Ethereum's Proof-of-Work protocol "Ethash" governs block emissions. Solutions
+to a constantly varying guessing game require time to discover -- via trial and
+error -- and are a notably required field in block headers. Authors of blocks
+providing valid solutions to these puzzles are called miners; mining is the
+process of searching for puzzle solutions. \\
+\\
+%should we define "block emissions" for the non-expert?
+A very difficult puzzle (probably requiring many guesses) is expected to take
+more time to solve than an easier puzzle (requiring fewer guesses).
+
+\subsection{\small{Difficulty}}
+Ethereum regulates its block emission rate using a header value called
+$\mathrm{Difficulty}$ ($H_d$). This value is used by the Ethash protocol as a
+parameter for puzzle solution validation. Generally speaking, the Difficulty
+value for some block can be thought of as the number of wrong guesses
+("hashes") expected before a valid puzzle solution for a child block is
+found.\nolinebreak
+\footnote{Formally, difficulty is governed by the relation of a fixed size
+bit-field (called the 'nonce') in the domain of the block hash, into which a
+miner writes its guess, and a fixed size bit-field in the output range of the
+hash function, which takes on values induced by the miner's guess. The
+difficulty is measured by the number of required zero entries in the output
+bit-field, which defines the feasible output range.  The size of the set of
+guesses that map into the feasible range expands and contracts with the size of
+the feasible range. For a given rate of guesses per unit of time, the
+difficulty induces a cumulative distribution function of the probability of a
+solution being found by each point in time. From this an expected interval
+between timestamps can be derived.}
+An adjustment algorithm governs the rise and fall of this value, accepting a
+block timestamp interval and parent difficulty as parameters;
+this provides a feedback loop joining block emission rates (via sequential
+block timestamps and thus relative intervals) with puzzle difficulty.
+Given a target block interval, difficulty can be adjusted dynamically,
+incrementally, such that the difficulty value will cause blocks to be authorable
+at rates approaching the target rate.
+In Ethereum the parameters are tuned to produce a median 9 seconds, or about 14
+seconds on average.
+Network block emission rates are typically modeled with a Poisson
+distribution.\nolinebreak
+\footnote{\url{https://ethresear.ch/t/deep-dive-into-current-pow-difficulty-adjustment-algorithm-and-a-possible-alternative/5267}}\nolinebreak
+\footnote{\url{https://blog.ethereum.org/2015/09/14/on-slow-and-fast-block-times/}}\nolinebreak
+\footnote{\url{https://en.wikipedia.org/wiki/Proof_of_work#Variants}}\nolinebreak
+\footnote{\url{https://arxiv.org/pdf/1901.04620, Section III.A}}
+
+\textit{e.g.} Given a block difficulty $H_d$ = 63115 and a network target
+emission interval of 13 seconds, we deduce that the modeled network average
+hashrate is 63115 hashes / 13 seconds = 4855 hashes/second. A block generated
+in 3 seconds should cause the difficulty to rise; a block generated in 30
+seconds should cause it to fall; making the next block respectively harder or
+easier (slower or faster) to author.
+
+\subsection{\small{Canonical Arbitration\footnote{\url{https://github.com/ethereum/go-ethereum/blob/f0328f241b7c3def217b0c2dce1a1b297f979a37/core/forkchoice.go#L77}}}}
+
+The "Total Difficulty" value for any chain segment is the sum of the $H_d$
+values of block headers in the segment.
+The canon-arbitration algorithm used today by Ethereum defines
+that preference is given with priority to any valid subtree having the greatest "Total Difficulty" value.
+In the case of equivalent TD values, segments are preferred having lesser latest block numbers.
+In the case of equivalent TD and block height (number) values, if a node acts
+on behalf of the block's registered author, that block is preferred.
+If there is no authorship beneficiary interest (as in a non-mining node, or
+that of a non-winning miner), a figurative coin is tossed, per the protocol
+described by Eyal and Sirer.\nolinebreak
+\footnote{\url{http://www.cs.cornell.edu/~ie53/publications/btcProcFC.pdf}}
+
+\subsection{\small{Chain ID}}
+
+As specified by EIP155\nolinebreak
+\footnote{\url{https://eips.ethereum.org/EIPS/eip-155}} a feature called
+\textit{Chain ID} was introduced on the Ethereum network (ETH) at block
+2675000, and on the Ethereum Classic network (ETC) at block 3000000.
+
+This feature, generally considered, allows transactions to be made exclusive to
+certain predefined segments, or entire chains, by validating a match between a
+transaction-specified \textit{Chain ID} field value and that of a hardcoded
+(constant) network protocol configuration.
+The mechanism ascribes an arbitrary positive integer to a network configuration
+and transactions use this value when signing a transaction intended for that
+subset of chain state.
+Transactions are not required to specify a \textit{Chain ID} value for
+legacy-compatibility reasons.
+
+This feature was introduced after "The DAO Fork" (at block 1920000) caused
+Ethereum to become both Ethereum and Ethereum Classic by the network's partial rejection of an arbitrary chain state mutation.
+Until the introduction of Chain ID, transactions after this hardfork had no way
+of being exclusive to one of either of these two chains.
+Between blocks 1920000 and 2675000on ETH, transactions were ambiguously valid on either, or both.
+Today, Chain ID transactions specifying Chain ID \texttt{1} are only eligible
+on ETH, and those with Chain ID \texttt{61} are only eligible on ETC, per the
+respective configurations eventually introduced on both networks with their
+independent implementations of the EIP155 feature.
+
+
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
