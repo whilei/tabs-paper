@@ -559,15 +559,21 @@ balance at parent block $P(B)$ of account $s$} \\
 %Both values are tuneable constant parameters in the algorithm.
 $K_0$ expresses an arbitrary minimum value for $TABS$,
 while $x$ expresses an adjustment ratio of the $TABS$ value between two parent-child related blocks.
+The constant $\tabsAdjustmentDenominator$ is defined relative to the incumbent
+Ethereum difficulty adjustment factor (
+    $\left\lfloor\frac{{P(H)_{\mathrm{H}}}_{\mathrm{d}}}{2048}\right\rfloor$
+)
+with $\tabsAdjustmentDenominator$ being marginally less in order to maintain the precedence of the difficulty value
+in the resulting Consensus Score product.
+This ensures that difficulty remains the primary driver of chain growth,
+keeping miner incentives invariant.
 
-The TABS adjustment mechanism is designed to closely imitate the behavior of block difficulty.
-However, the the rate of change of TABS values between blocks ($x$)
-must be less than that of difficulty.\footnote{
-For example, if the difficulty between blocks moves by a factor of $\pm1/2048$,
-then the TABS value should move by a factor of $<\pm1/2048$.
-}
-This ensures that difficulty remains the primary driver of chain growth
-and that miner incentives are invariant.
+%The TABS adjustment mechanism is designed to closely imitate the behavior of block difficulty.
+%However, the the rate of change of TABS values between blocks ($x$)
+%must be less than that of difficulty.\footnote{
+%For example, if the difficulty between blocks moves by a factor of $\pm1/2048$,
+%then the TABS value should move by a factor of $<\pm1/2048$.
+%}
 
 \subsection{\small{Canon Scoring}}
 

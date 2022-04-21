@@ -15,6 +15,39 @@ import (
 	"gonum.org/v1/plot/vg/draw"
 )
 
+// func algoTABS_A(tabs float64, i int, tabValues []float64) float64 {
+// 	f := tabValues[i]
+//
+// 	if f > tabs {
+// 		consecutiveDrops = 0 // experimental
+//
+// 		tabs += tabs / 100
+//
+// 	} else if f < tabs {
+// 		// // experimental
+// 		// consecutiveDrops++
+// 		// if consecutiveDrops > 9 {
+// 		// 	consecutiveDrops = 9
+// 		// }
+// 		// tabs -= tabs / (100 / float64(consecutiveDrops))
+//
+// 		// experimental 2
+// 		consecutiveDrops++
+// 		consecutiveDrops = int(math.Min(float64(consecutiveDrops), float64(maxDrops))) // set ceiling of 9
+//
+// 		// floorDrops sets a floor for the drop rate multiplier
+// 		floorDrops := consecutiveDrops
+// 		if consecutiveDrops <= 42 {
+// 			floorDrops = 1
+// 		}
+// 		tabs -= tabs / (100 / float64(floorDrops))
+//
+// 		// tabs -= tabs / (100)
+// 	} else {
+// 		tabs += 0
+// 	}
+// }
+
 func TestTABSAdjustment1(t *testing.T) {
 
 	dataSize := 1000000
@@ -36,38 +69,71 @@ func TestTABSAdjustment1(t *testing.T) {
 		meansPlottable := plotter.XYs{}
 		medsPlottable := plotter.XYs{}
 
-		consecutiveDrops := 0 // experimental
-		maxDrops := 20
+		// consecutiveDrops := 0 // experimental
+		// maxDrops := 20
+
 		for i, f := range simulatedTABVals {
 
-			if f > tabs {
-				consecutiveDrops = 0 // experimental
+			// MODIFY TABS
 
-				tabs += tabs / 100
+			ratio := tabs / f           // eg. 0.84, 1.02, 1.58, 2.37
+			ratio = math.Ceil(ratio)    // eg. 0, 1, 2, 3
+			deltaNumerator := 1 - ratio // eg. 1, 0, -1, -2
+			deltaDenominator := float64(2049)
+			// set upper and lower bounds
+			deltaNumerator = math.Min(deltaNumerator, 1)  // ceiling
+			deltaNumerator = math.Max(deltaNumerator, -2) // floor
 
-			} else if f < tabs {
-				// // experimental
-				// consecutiveDrops++
-				// if consecutiveDrops > 9 {
-				// 	consecutiveDrops = 9
-				// }
-				// tabs -= tabs / (100 / float64(consecutiveDrops))
+			adjustment := deltaNumerator / deltaDenominator
+			tabs += tabs * adjustment
 
-				// experimental 2
-				consecutiveDrops++
-				consecutiveDrops = int(math.Min(float64(consecutiveDrops), float64(maxDrops))) // set ceiling of 9
+			// =>
 
-				// floorDrops sets a floor for the drop rate multiplier
-				floorDrops := consecutiveDrops
-				if consecutiveDrops <= 42 {
-					floorDrops = 1
-				}
-				tabs -= tabs / (100 / float64(floorDrops))
+			// ratio := f / tabs                       // eg. 0.981
+			// ratioPerc := ratio * 100                // eg. 98.1
+			// ratioPercRound := math.Floor(ratioPerc) // eg. 98
+			// deltaNumerator := ratioPercRound - 100  // eg. -2
+			// deltaDenominator := float64(2049)
+			//
+			// // set upper and lower bounds
+			// deltaNumerator = math.Min(deltaNumerator, 1)   // ceiling
+			// deltaNumerator = math.Max(deltaNumerator, -99) // floor
+			//
+			// adjustment := deltaNumerator / deltaDenominator
+			// tabs += tabs * adjustment
+			// => TABS drops off a cliff...
 
-				// tabs -= tabs / (100)
-			} else {
-				tabs += 0
-			}
+			// tabs = algoTABS_A(tabs, i, simulatedTABVals)
+
+			// if f > tabs {
+			// 	consecutiveDrops = 0 // experimental
+			//
+			// 	tabs += tabs / 100
+			//
+			// } else if f < tabs {
+			// 	// // experimental
+			// 	// consecutiveDrops++
+			// 	// if consecutiveDrops > 9 {
+			// 	// 	consecutiveDrops = 9
+			// 	// }
+			// 	// tabs -= tabs / (100 / float64(consecutiveDrops))
+			//
+			// 	// experimental 2
+			// 	consecutiveDrops++
+			// 	consecutiveDrops = int(math.Min(float64(consecutiveDrops), float64(maxDrops))) // set ceiling of 9
+			//
+			// 	// floorDrops sets a floor for the drop rate multiplier
+			// 	floorDrops := consecutiveDrops
+			// 	if consecutiveDrops <= 42 {
+			// 		floorDrops = 1
+			// 	}
+			// 	tabs -= tabs / (100 / float64(floorDrops))
+			//
+			// 	// tabs -= tabs / (100)
+			// } else {
+			// 	tabs += 0
+			// }
+
 			tabsPlottable = append(tabsPlottable, plotter.XY{X: float64(i), Y: tabs})
 
 			var modifiedVals bool
