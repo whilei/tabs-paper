@@ -566,7 +566,7 @@ where:
 \end{equation}
 
 \begin{equation}
-    \tabsAdjustmentDenominator \equiv 2049
+    \tabsAdjustmentDenominator \equiv 4096
 %    \begin{cases}
 %        2048 & \text{if} \quad \lVert P(H)_{\mathbf{U}}\rVert = 0 \\
 %        1028 & \text{otherwise} \\
@@ -609,12 +609,12 @@ balance at parent block $P(B)$ of account $s$} \\
 %Both values are tuneable constant parameters in the algorithm.
 $K_0$ expresses an arbitrary minimum value for $TABS$,
 while $x$ expresses an adjustment ratio of the $TABS$ value between two parent-child related blocks.
-The constant $\tabsAdjustmentDenominator$ is defined relative to the incumbent
-Ethereum difficulty adjustment factor (
+The constant $\tabsAdjustmentDenominator$ is defined relative to
+the minimum incumbent Ethereum difficulty adjustment factor (
     $\left\lfloor\frac{{P(H)_{\mathrm{H}}}_{\mathrm{d}}}{2048}\right\rfloor$
 )
-with $\tabsAdjustmentDenominator$ being marginally less in order to maintain the precedence of the difficulty value
-in the resulting Consensus Score product.
+with $\tabsAdjustmentDenominator$'s definition designed
+to maintain the precedence of the difficulty value in the resulting Consensus Score product.
 This ensures that difficulty remains the primary driver of chain growth,
 keeping miner incentives invariant.
 
@@ -672,16 +672,23 @@ the exclusive canonical state.
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \pagebreak
-\section{\normalsize{Theoretical Models}}\label{sec: theoretical-models}
+\section{\normalsize{Models}}\label{sec: models}
 
 We model block emissions at the network level using a Poisson Distribution
 (where independent mining exemplifies a Poisson Process).\nolinebreak
 \footnote{
-    Nakamoto. 'Bitcoin: A Peer-to-Peer Electronic Cash System', 2007.
-    Ren. 'Analysis of Nakamoto Consensus', 2019.
-    Su, Liu, Narula. 'The Power of Random Symmetry-Breaking in Nakamoto Consensus', 2021.
-    Gazi, Kiayias, Russel. 'Tight Consistency Bounds for Bitcoin', 2020.
-}.
+- Nakamoto. 'Bitcoin: A Peer-to-Peer Electronic Cash System', 2007.\\
+- Ren. 'Analysis of Nakamoto Consensus', 2019.\\
+- Gazi, Kiayias, Russel. 'Tight Consistency Bounds for Bitcoin', 2020.\\
+- Su, Liu, Narula. 'The Power of Random Symmetry-Breaking in Nakamoto Consensus', 2021.\\
+%    Sources categorizing block emissions as a Poisson Process and/or Distribution:
+%    \begin{itemize}
+%        \item Nakamoto. 'Bitcoin: A Peer-to-Peer Electronic Cash System', 2007.
+%        \item Ren. 'Analysis of Nakamoto Consensus', 2019.
+%        \item Gazi, Kiayias, Russel. 'Tight Consistency Bounds for Bitcoin', 2020.
+%        \item Su, Liu, Narula. 'The Power of Random Symmetry-Breaking in Nakamoto Consensus', 2021.
+%    \end{itemize}
+}
 
 \subsection{\normalsize{Miner Expected Revenue}}
 
@@ -727,22 +734,24 @@ production intervals. Neither must it represent accurately the production
 interval of blocks by any subset of miners.
 }
 From this, we can define the probability of any block being discovered in an
-interval of $t$ seconds as a derivation of the Poisson CDF.
+interval of $t$ seconds given an event rate $r$ (such that $r * t = \lambda$)
+as a derivation of the Poisson CDF.
+%In this model, $k$ is held constant at $0$ signifying the occurence of 0
+%blocks, and $\lambda$ can be defined as the product of an average event rate
+%$r$ and some time interval $t$.\nolinebreak
+\footnote{
+%For example, given an average network block intervals of $14$ seconds, the
+%expectation that a next block occurs within $3$ seconds becomes $\lambda =
+%(1/14) * 3$, yielding $19.2\%$.
+    The plot in Figure 17 shows this probability for intervals of 0 through 99
+    seconds assuming an average block interval rate of 14 seconds.
+}
 
 \begin{equation}
 P(E,t) \equiv 1 - e^{-\lambda} \times \sum_{i=0}^{|k|}{\frac{\lambda^{i}}{i!}} 
 \end{equation}
 
-In this model, $k$ is held constant at $0$ signifying the occurence of 0
-blocks, and $\lambda$ can be defined as the product of an average event rate
-$r$ and some time interval $t$.\nolinebreak
-\footnote{
-For example, given an average network block intervals of $14$ seconds, the
-expectation that a next block occurs within $3$ seconds becomes $\lambda =
-(1/14) * 3$, yielding $19.2\%$.
-The plot in Figure 17 shows this probability for intervals of 0 through 99
-seconds assuming an average block interval rate of 14 seconds.
-}
+
 
 \subsection{\normalsize{Probability of a block's canonical state}}
 
@@ -761,7 +770,7 @@ We can also assume that $\epsilon > 0$, since non-canonical blocks exist and
 are observable as uncles (also known as "ommers") on chain.
 
 A practical value of $\epsilon$ can be approximated by an empirical measurement
-of a network's Uncle rate.\nolinebreak
+of a network's uncle rate.\nolinebreak
 \comment{
 \footnote{
   There is a lot to say about this, and the nuances of this idea are important
@@ -828,7 +837,7 @@ are found in the given interval.
 \end{equation}
 
 Note that as the considered interval\textsubscript{1 second} changes, this value will change,
-and that determination of the considered interval should be made
+and that determination of this interval should be made
 with respect to relevant estimated network latencies.\footnote{
 Network latencies between miners are more relevant, for example,
 than latencies between non-mining nodes.
@@ -900,253 +909,7 @@ the theoretical $\epsilon$ value is a positive, small, number.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{\normalsize{Comparing Theoretical Models and Empirical Data}}
-
-In this section we compare the theoretical models defined above with empirical chain data
-for Ethereum and Ethereum Classic to both affirm the validity of the models as well
-as develop our understanding of observable network and chain behavior.
-
-\subsection{\normalsize{Orphan/Uncle Rate}}
-
-%Orphans are blocks which are valid but do not eventually become canonical.
-%Uncles are orphans which have been included in chain data via the \mghost protocol.
-%As such, an uncle rate can be estimated by chaindata observation.
-
-The observable uncle rate should be expected to be at least, but not more than, predicted orphan rates.
-All orphans recorded as uncles on chain must be valid, but not all orphans must be recorded.\footnote{
-The recording of orphans as uncles is allowed but not mandated (or enforceable) by chain protocol.
-However, miners are rewarded for each uncle reference, and thus are incentivized to do so.
-}
-
-At the time of writing, Etherscan.io\footnote{\url{https://etherscan.io/uncles}}
-shows $1,256,671$ recorded uncles and a current canonical height of $14,610,325$ for Ethereum.
-
-\begin{equation}
-    1256671 / 14610325 =  0.0860125
-\end{equation}
-
-We interpret this as representing an orphan rate of about 8.7\%.
-
-As noted earlier, the difference between the theoretical 6.8\% and observed 8.7\% is rationalizable by
-the difference between assumed and actual latency and block interval values.\footnote{
-    Given observed uncle rates, we can use the model to estimate actual latency between miners.
-    For example, the values $\lambda = 13.48$ and $t = 1.23$ yield a probability of $8.7\%$,
-suggesting actual miner-miner latency of around 1.23 seconds.
-}
-
-\subsection{\normalsize{Canonical Emission Rate}}
-
-We examined recent and comparable data\footnote{
-Blocks 13 million through 14 million on both chains.
-} from the Etherum (ETH) and Ethereum Classic (ETC) blockchains
-to determine empirical estimates for incumbent-protocol emission rates.
-
-These data are charted as histograms\footnote{
-    Source code for the analysis is included in the repository under \texttt{./empirical}.
-} in the following two figures.
-
-\begin{figure}[tph!]
-    \centering
-    \includegraphics[width=1.0\textwidth]{vis_data_blockinterval_distribution_ETC.png}
-    \caption{
-        Exemplary block interval data for Ethereum Classic.\footnote{Source: \texttt{empirical/ETC}}
-    }
-\end{figure}
-
-\begin{figure}[tph!]
-    \centering
-    \includegraphics[width=1.0\textwidth]{vis_data_blockinterval_distribution_ETH.png}
-    \caption{
-        Exemplary block interval data for Ethereum.\footnote{Source: \texttt{empirical/ETH}}
-    }
-\end{figure}
-
-\clearpage
-
-The mean block time for both networks is approximately 13.5 seconds for both chains.
-From this, for the sake of argument, we assume a general mean block interval as 14 seconds.
-
-Next, we use a computer program to simulate block intervals under the Poisson
-model.\footnote{\texttt{TestPoissonIntervals}}
-
-\begin{figure}[tph!]
-    \label{vis_poisson_samples_events_86400}
-    \centering
-    \includegraphics[width=1.0\textwidth]{go-block-step/out/vis_poisson_samples_events_86400.png}
-    \caption{
-        Procedurally generated event occurrence samples from a Poisson distribution
-        with $\lambda = \frac{1}{14}$, sample size of 86400.
-        We can interpret the data points at $y=2$ in Figure 20 and Figure 21 as
-        representative of occurrences of forks having 2 candidate blocks.
-        For $y=3$, the sample has 3 candidate blocks, etc.
-    }
-\end{figure}
-
-\begin{figure}[tph!]
-    \label{vis_poisson_samples_eventintervals_hist}
-    \centering
-    \includegraphics[width=1.0\textwidth]{go-block-step/out/vis_poisson_samples_eventintervals_hist.png}
-    \caption{
-        Procedurally generated intervals of samples where events $\geq 1$ from
-        a Poisson distribution with $\lambda = \frac{1}{14}$.
-    }
-\end{figure}
-
-%The  represents derivative data from original sample values presented in
-%the following plot, Figure 20.
-
-%The same program is reused with a smaller sample size to produce a data set
-%(shown in Figure 21) making the intervals between $r >= 1$ occurrences (for
-%time interval 1 second) more observable:
-%
-%\begin{figure}[tph]
-%    \centering
-%    \includegraphics[width=1.0\textwidth]{go-block-step/out/vis_poisson_samples_events_8640000.png}
-%    \caption{
-%      Procedurally generated event interval samples from a Poisson distribution
-%with $\lambda = \frac{1}{14}$, with a sample size of 8640000.
-%    }
-%\end{figure}
-
-\clearpage
-
-\textbf{Where is the hump?}
-
-The empirical data for Ethereum Classic shows a `hump` which is not visible in the
-procedurally sampled Poisson distribution values.
-
-\subsection{\normalsize{Network latency ($\eta$)}}
-
-We propose that an explanation can be made for this unexpected shape
-by a consideration of network latency.
-
-\vspace{5mm}
-\begin{proposition}
-    Latency exists.
-\end{proposition}
-
-%The material existence of network latency is irrefutable under current physical models of the world.
-%Information cannot travel faster than the speed of light, which is finite.
-%The networks in question assume the transmission of messages (information), and thus, this takes time.
-Latency is the time required for message transmission.
-
-The production of any block depends on the observation of the block it will be appended to, its parent.
-A miner can only begin mining block $B_{i=n}$ after observing block $B_{i=n-1}$.
-
-Arbitrarily defining network latency as a constant $\eta=3$ seconds allows us
-to produce a revised histogram of expected Poisson event intervals.
-
-\begin{figure}[tph]
-    \centering
-    \includegraphics[width=1.0\textwidth]{go-block-step/out/vis_poisson_samples_eventintervals_latencynaive_hist.png}
-    \caption{
-        Procedurally generated events $k \geq 1$ interval samples from a Poisson process
-        with $\lambda = \frac{1}{14}$, with a sample size of 86400.
-        Every interval is increased by $\eta=3$ seconds.
-        Clearly, this general application of latency is insufficient.
-        The shape is unchanged; only the domain is shifted by $3$.
-    }
-\end{figure}
-
-\vspace{5mm}
-\begin{proposition}
-    Latency is heterogenous.
-\end{proposition}
-
-If we assume there exist $m$ miners on the network, and that each miner
-controls $\frac{1}{m} \times \networkHashrate$, we can estimate the rate of the
-same miner producing blocks $B_{i=n}$ and its child $B_{i=n+1}$ as
-$\frac{1}{m}$.
-When a miner produces both the Parent and Child blocks, the $\eta$ value for
-that interval should approach $0$; where time of program execution alone is
-considered relative to the aggregate time of program execution plus network
-transmission duration.
-We arbitrarily define $m=8$, and, accounting for this probability, produce
-Figure 23.
-
-\begin{figure}[tph]
-    \centering
-
-    \includegraphics[width=1.0\textwidth]{go-block-step/out/vis_poisson_samples_eventintervals_latencysamesame_hist.png}
-    \caption{
-        Procedurally generated events $k \geq 1$ interval samples from a Poisson distribution
-        with $\lambda = \frac{1}{14}$, with a sample size of 86400.
-        Every interval is increased by $\eta=3$ for approximately
-        $1-\frac{1}{8}$ of the intervals.
-    }
-\end{figure}
-
-Though still naive, we have found a hump.
-
-\vspace{5mm}
-\begin{proposition}
-    Latency's heterogeneity depends on miner hashrate. %% , and thus, the $\frac{1}{m}$ model is inaccurately simplistic.
-\end{proposition}
-
-We assume that miner hashrate for the Ethereum network is unevenly distributed.
-This assumption causes our estimation above of Parent/Child same-miner events
-as $\frac{1}{m}$ to be inaccurate.
-Under this theoretical model, we do not pursue further revisions for this
-approximation.
-
-\vspace{5mm}
-\begin{proposition}
-    Latency may be optional.
-\end{proposition}
-
-If latency is defined as the time between transmission and reception of a
-message, it attributes should be mostly attributable to physical or
-otherwise 'external' limitations.\nolinebreak\footnote{
-    e.g Cable size, net neutrality (or lack thereof).
-}
-
-However, if we were instead to define latency as the time between the availability
-of the message (to the transmitor) and the time of message reception,
-a new variable arises: delay.
-
-By creating a delay on purpose, a miner gives themselves a head-start
-on the mining of a next block. They postpone the transmission of their message,
-stalling the game for the rest of the network. While this strategy can benefit
-the miner, it comes with the risk that another miner may produce (or have
-produced) a competitor block in this interval reducing their chances of success.
-
-On this topic, the reader should reference Eyal and Sirer\footnote{TODO}, who
-show that large-hashrate miners (ie. 25\%, 33\%, etc.) can be reasonably
-expected to demonstrate this behavior, and with it, a block emission
-rate superlinear to their hashrate ratio. They propose network bifurcation
-(via a simulated coin-toss) as a network protocol strategy for mitigating
-this incentive.
-
-\begin{figure}[tph]
-    \centering
-
-    \includegraphics[width=1.0\textwidth]{go-block-step/out/vis_poisson_samples_eventintervals_latencysamesamestrat_hist.png}
-    \caption{
-        Procedurally generated events $k \geq 1$ interval samples from a Poisson distribution
-        with $\lambda = \frac{1}{14}$, with a sample size of 86400.
-        Every interval is increased by $\eta=3 + \frac{1}{8} \times \mathrm{interval_{\Delta}}$ seconds for approximately
-        $1-\frac{1}{8}$ of the intervals.
-        This represents a loose event interval model including selfish miner delays.
-    }
-\end{figure}
-
-%% Let's compare them!
-
-%begin{figure}[tph]
-%\centering
-%
-%
-%\includegraphics[width=1.0\textwidth]{vis_data_blockinterval_distribution.png}
-%\caption{
-%    Exemplary block interval data for
-%    Ethereum.\footnote{https://ethresear.ch/t/deep-dive-into-current-pow-difficulty-
-%    adjustment-algorithm-and-a-possible-alternative/5267}
-%}
-%\end{figure}
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\section{\normalsize{Network implications of TABS}}
+\section{\normalsize{Discussion}}
 
 The consensus properties of so-called Nakamoto Consensus are well studied.
 % TODO this is an actual quote from a so-called paper.
@@ -1156,13 +919,67 @@ either preserves or improves key characteristics of network behavior and usabili
 
 We provide the outcomes of two programmatic simulations as experimental evidence of our claims.
 
+\subsection{\normalsize{Chain-Growth}}
+
+Because the TABS adjustment rate is smaller than that of Difficulty in all cases,
+we can show that PoW mining remains the primary driver of chain-growth.
+
+%Increased difficulty, increased TABS.
+%Increased difficulty, stable TABS.
+%Increased difficulty, decreased TABS.
+%
+%Stable difficulty, increased TABS.
+%Stable difficulty, stable TABS.
+%Stable difficulty, decreased TABS.
+%
+%Decreased difficulty, increased TABS.
+%Decreased difficulty, stable TABS.
+%Decreased difficulty, decreased TABS.
+
+% Relevant cases:
+A: Difficulty+, TABS-
+B: Difficulty0, TABS+
+=> B
+
+\begin{equation}
+    (H_d + \frac{H_d}{2048}) \times (H_k - \frac{H_k}{2049}) > (H_d + 0) \times (H_k + \frac{H_k}{2049})
+\end{equation}
+
+\begin{equation}
+(H_d + \frac{H_d}{2048}) \times (H_k - \frac{H_k}{2049}) > (H_d + 0) \times (H_k + \frac{H_k}{2049})
+\end{equation}
+
+
+A: Difficulty+, TABS-
+B: Difficulty-, TABS+
+=> A
+
+
+
+\begin{equation}
+    \mathrm{TCS} \equiv \sum_{H_\mathrm{i = 0}}^{\mathrm{i <= n}} H_d
+\end{equation}
+
+
+(12947922331000968 + 12947922331000968 * (1/2048)) * ()
+
+\subsection{\normalsize{Decidability Matrix}}
+
+TABS is expected to increase network decidability rates.
+% aka canon-arbitration asymmetry outcomes, aka decrease number of ties
+
+\begin{tabular}[pos]{cols}
+    table & content
+\end{tabular}
+
+
 \subsection{\normalsize{Network block emission rates}}
 % This should include fork (noncanonical) and canonical block production.
 
 We can reframe the previous section's theoretically modeled orphan rate
 as an indicator of what some domain literature considers "symmetry" during "chain-growth."\nolinebreak
 \footnote{Narula, 2021.}
-The coincidence of block emission occurrences is a result of chain-growth symmetry.
+The coincidence of block emission occurrences is an event of chain-growth symmetry.
 Since only one block may be ultimately selected for canonicalization, we consider the rate of orphan production
 a measure of network \emph{efficiency}.
 Orphan blocks represent wasted electricity on behalf of the orphan miner.\footnote{
@@ -1236,7 +1053,7 @@ Overall network transaction availability is preserved as an invariant.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{\normalsize{Models and Data}}
+\section{\normalsize{Program Models}}
 
 The theoretical models described in the previous section serve to
 frame our understanding and expectations for programmatic simulations.
@@ -1259,339 +1076,6 @@ network consensus rate, miner incentives, and transaction liveness\nolinebreak
 \footnote{\emph{Liveness} is a database-jargon term used in several related and referenced papers.
 In this context, it is the general chain state's processing of available transactions.
 }.
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\pagebreak
-\section{\normalsize{Appendix: Ethereum Background}}\label{sec: appendix}
-
-The parameters and logic of this paper's proposal take the existence of a
-system equivalent with that of Ethereum's at the time of writing.
-We strongly suggest that the Ethereum Yellow Paper\nolinebreak
-\footnote{\url{https://github.com/ethereum/yellowpaper/tree/fabef2531a8f8e772a4bf5be23191044d0ce3569}}
-be read and understood as a precondition for interpretation and evaluation
-of the work of this project.
-%should we state the 'Berlin' version? ISAAC: Done.
-Important and referenced concepts of Ethereum's protocol are discussed in this
-section for the the informational value of redundancy.
-
-\subsection{\small{Ethash}}
-
-Ethereum's Proof-of-Work protocol "Ethash" governs block emissions. Solutions
-to a constantly varying guessing game require time to discover -- via trial and
-error -- and are a notably required field in block headers. Authors of blocks
-providing valid solutions to these puzzles are called miners; mining is the
-process of searching for puzzle solutions. \\
-\\
-%should we define "block emissions" for the non-expert?
-A very difficult puzzle (probably requiring many guesses) is expected to take
-more time to solve than an easier puzzle (requiring fewer guesses).
-
-\subsection{\small{Difficulty}}
-Ethereum regulates its block emission rate using a header value called
-$\mathrm{Difficulty}$ ($H_d$). This value is used by the Ethash protocol as a
-parameter for puzzle solution validation. Generally speaking, the Difficulty
-value for some block can be thought of as the number of wrong guesses
-("hashes") expected before a valid puzzle solution for a child block is
-found.\nolinebreak
-\footnote{Formally, difficulty is governed by the relation of a fixed size
-bit-field (called the 'nonce') in the domain of the block hash, into which a
-miner writes its guess, and a fixed size bit-field in the output range of the
-hash function, which takes on values induced by the miner's guess. The
-difficulty is measured by the number of required zero entries in the output
-bit-field, which defines the feasible output range.  The size of the set of
-guesses that map into the feasible range expands and contracts with the size of
-the feasible range. For a given rate of guesses per unit of time, the
-difficulty induces a cumulative distribution function of the probability of a
-solution being found by each point in time. From this an expected interval
-between timestamps can be derived.}
-An adjustment algorithm governs the rise and fall of this value, accepting a
-block timestamp interval and parent difficulty as parameters;
-this provides a feedback loop joining block emission rates (via sequential
-block timestamps and thus relative intervals) with puzzle difficulty.
-Given a target block interval, difficulty can be adjusted dynamically,
-incrementally, such that the difficulty value will cause blocks to be authorable
-at rates approaching the target rate.
-In Ethereum the parameters are tuned to produce a median 9 seconds, or about 14
-seconds on average.
-Network block emission rates are typically modeled with a Poisson
-distribution.\nolinebreak
-\footnote{\url{https://ethresear.ch/t/deep-dive-into-current-pow-difficulty-adjustment-algorithm-and-a-possible-alternative/5267}}\nolinebreak
-\footnote{\url{https://blog.ethereum.org/2015/09/14/on-slow-and-fast-block-times/}}\nolinebreak
-\footnote{\url{https://en.wikipedia.org/wiki/Proof_of_work#Variants}}\nolinebreak
-\footnote{\url{https://arxiv.org/pdf/1901.04620, Section III.A}}
-
-\textit{e.g.} Given a block difficulty $H_d$ = 63115 and a network target
-emission interval of 13 seconds, we deduce that the modeled network average
-hashrate is 63115 hashes / 13 seconds = 4855 hashes/second. A block generated
-in 3 seconds should cause the difficulty to rise; a block generated in 30
-seconds should cause it to fall; making the next block respectively harder or
-easier (slower or faster) to author.
-
-\subsection{\small{Canonical Arbitration\footnote{\url{https://github.com/ethereum/go-ethereum/blob/f0328f241b7c3def217b0c2dce1a1b297f979a37/core/forkchoice.go#L77}}}}
-
-The "Total Difficulty" value for any chain segment is the sum of the $H_d$
-values of block headers in the segment.
-The canon-arbitration algorithm used today by Ethereum defines
-that preference is given with priority to any valid subtree having the greatest "Total Difficulty" value.
-In the case of equivalent TD values, segments are preferred having lesser latest block numbers.
-In the case of equivalent TD and block height (number) values, if a node acts
-on behalf of the block's registered author, that block is preferred.
-If there is no authorship beneficiary interest (as in a non-mining node, or
-that of a non-winning miner), a figurative coin is tossed, per the protocol
-described by Eyal and Sirer.\nolinebreak
-\footnote{\url{http://www.cs.cornell.edu/~ie53/publications/btcProcFC.pdf}}
-
-\subsection{\small{Chain ID}}
-
-As specified by EIP155\nolinebreak
-\footnote{\url{https://eips.ethereum.org/EIPS/eip-155}} a feature called
-\textit{Chain ID} was introduced on the Ethereum network (ETH) at block
-2675000, and on the Ethereum Classic network (ETC) at block 3000000.
-
-This feature, generally considered, allows transactions to be made exclusive to
-certain predefined segments, or entire chains, by validating a match between a
-transaction-specified \textit{Chain ID} field value and that of a hardcoded
-(constant) network protocol configuration.
-The mechanism ascribes an arbitrary positive integer to a network configuration
-and transactions use this value when signing a transaction intended for that
-subset of chain state.
-Transactions are not required to specify a \textit{Chain ID} value for
-legacy-compatibility reasons.
-
-This feature was introduced after "The DAO Fork" (at block 1920000) caused
-Ethereum to become both Ethereum and Ethereum Classic by the network's partial rejection of an arbitrary chain state mutation.
-Until the introduction of Chain ID, transactions after this hardfork had no way
-of being exclusive to one of either of these two chains.
-Between blocks 1920000 and 2675000on ETH, transactions were ambiguously valid on either, or both.
-Today, Chain ID transactions specifying Chain ID \texttt{1} are only eligible
-on ETH, and those with Chain ID \texttt{61} are only eligible on ETC, per the
-respective configurations eventually introduced on both networks with their
-independent implementations of the EIP155 feature.
-
-
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\section{\normalsize{A Different Model}}
-
-The program \texttt{main} in \textit{go-block-step/main.go} does not use
-a Poisson library or algorithm.
-Instead, mining is simulated.
-Search efficacy per miner is parameterized by network relative hashrate.
-The code relies on an arbitrary interval as the space from which a random needle
-is drawn. See code comments for more information.
-
-This coded model can be used to simulate network block emission, constant latency\nolinebreak
-\footnote{This is less of a concern than it may seem at first glance.}, and
-block authorship data.
-
-The model coded does not generate a blockchain. The model, instead,
-generates sample information for a single step (block increment)
-in the subtree, where the (assumed) parent block is held constant.
-Each sample is called a \texttt{round}.
-
-%\begin{wrapfigure}{r}{0.3\textwidth}
-\begin{figure}[tph]
-    \centering
-    \includegraphics[height=3cm]{vis_theoretical_block-space.png}
-    \caption{
-        Visualizing theoretical outcomes for a block-space for some time interval
-        $t$. The assumed existing parent block is blue.
-    }
-\end{figure}
-
-For each round, the program is structured to assume a (any) sufficient $t$ such
-that at least one child block is produced. This $t$ value is pseudo-random, and
-is driven by the pseudo-randomness of the competing simulated miners.
-This $t$ value is recorded as, and here referred to, as the resulting
-\textit{interval} value.
-
-Notably, the model does not use $H_d$ (header difficulty) values.
-So long as we understand that the samples generated do not represent a continuous
-chain, we find that assuming a constant arbitrary $1$ value for the
-parent $TD$ value is reasonable.
-
-Our aim is to model block emissions in a pseudo-statistical way,
-focusing on game theoretical decisions for miners rather than
-block-network propagation or network shape.
-
-Latency is modeled only to the extent that it impacts block production
-intervals. A constant value is used; added to the recorded block interval
-for any miners who (probabilistically assigned) did not mine the
-parent block.
-
-%This is, for example:
-%
-%  - Parent/Nothing \\ %% Blockchain turns off. Probably happens often.
-%Unmeasured.
-%  - Parent/Child \\
-%  - Parent/Child,Child (twins/pending ommers|potential uncles,a fork,a
-%bifurcation
-%(of network consensus)) \\
-%  - Parent/Child,Child,Child (triplets...a trifurcation (right!?))
-%
-
-%Another way to think of this is that the model replays the occurrence of the
-%production of a single 'block-space' on the network (again, where the term
-%block-space signals that zero \emph{or more} blocks could occupy the space (for some
-%arbitrary interval unit, eg. $1$ second or $1$ milliscond, etc.). Necessary
-%block values are held constant for an otherwise imaginary parent block.
-%
-%The aim of this paper intends specifically to deflect itself such as to entirely
-%miss the mathematical aspects of graph theory or network algorithms, of which
-%the author of this paragraph happens to have nearly exactly zero knowledge.
-
-We could introduce a small bit of randomness to the latency value, but that
-would only produce noise.
-
-We can play with latency. The program wants it to be understood as a tuneable
-parameter. For now, the program knows that same-author rounds add a latency of
-zero, while everyone else adds a constant legacy value
-\texttt{RoundConfiguration.Latency}, which is, as you guessed, configurable per 
-round.
-
-We know that latency is an important thing.
-We assume, however, that the latency economy is efficient and nearly usally 
-optimized,
-and that non-negligible-hashpower-share miners will be able to cost-effectively
-purchase sufficiently competitive latency values. With this, we assume that
-these same miners have approximately probably pretty much the same latencies.
-
-The model could be extended or modified to do latency differently.
-
-The model could also be changed to do hashrates and puzzle interval
-approximation differently.
-
-Implementation of a stateful block difficulty characteristics would enable
-representation of random walk information concerning network relative hashrates
-for miners. This would be more realistic, but would also be more noisy.
-
-
-
-The information generated is not deterministic.
-
-\textbf{Data}
-
-
-\begin{figure}[tph]
-    \centering
-\includegraphics[width=1.0\textwidth]{go-poisson_A0_blockIntervals.png}
-    \caption{
-      Simulated block intervals for $\lambda=\frac{1}{14}$, $\eta=2.8$, with
-      $8$ miners, each with procedurally generated long-tail-ish shaping
-      relative hashrate shares.
-    }
-\end{figure}
-
-\pagebreak
-
-The first \texttt{Round} generates a print out:
-
-\begin{verbatim}
-CONFIG
-
-Name:             A, ConsensusAlgorithm: TD,
-NetworkLambda:    14, Latency:          2.80,
-TickMultiple:     1, Rounds:           10000,
-NumberOfMiners:   8, HashrateDistType: longtail,
-
-GENERATED MINERS
-
-Number: 8, Distribution: longtail, Hashrate Checksum OK:    true,
-Hashrates: [0.333 0.222 0.148 0.099 0.066 0.059 0.044 0.02]
-
-INTERVALS
-
-Mean: 15.8650,
-Med: 11.8000, Mode: [3.8000],
-Min: 1.0000, Max: 139.8000,
-
-ELIGIBLE AUTHORS PER BLOCK
-
-Mean: 1.0819,
-Med: 1.0000, Mode: [1.0000],
-Min: 1.0000, Max: 3.0000,
-
-MINER CANONICAL WINS
-
-miner=0 hashrate=0.333 winrate=0.338 winrate/hashrate=1.013 (3375)
-miner=1 hashrate=0.222 winrate=0.227 winrate/hashrate=1.020 (2266)
-miner=2 hashrate=0.148 winrate=0.143 winrate/hashrate=0.963 (1427)
-miner=3 hashrate=0.099 winrate=0.097 winrate/hashrate=0.979 (967)
-miner=4 hashrate=0.066 winrate=0.066 winrate/hashrate=0.998 (657)
-miner=5 hashrate=0.059 winrate=0.060 winrate/hashrate=1.022 (598)
-miner=6 hashrate=0.044 winrate=0.043 winrate/hashrate=0.982 (431)
-miner=7 hashrate=0.029 winrate=0.028 winrate/hashrate=0.953 (279)
-
-\end{verbatim}
-\pagebreak
-\begin{verbatim}
-
-ANALYSIS
-
-Ticks: 136550, Rounds (Blocks): 10000, Ticks/Block: 13.655
-AuthorSameParentChildTally/Block: 0.211
-ArbitrationDecisiveRate: 0.028, ArbitrationDecisiveTally: 277
-ArbitrationIndecisiveRate: 0.052, ArbitrationIndecisiveTally: 522
-
-\end{verbatim}
-
-
-\section{\normalsize{Interlude: In Consideration of the Tick}}
-
-We have, until now, taken arbitrary rates, specifically \emph{rate units} for 
-granted.
-
-Ethereum formally defines\footnote{Ethereum Yellow Paper} block timestamps as:
-
-\hypertarget{block_timestamp_H__s}{}$H_{\mathrm{s}}$ is the timestamp (in 
-Unix's time()) of block $H$ and must fulfil the relation:
-\marginpar{Ethereum Yellow Paper}
-\begin{equation}
-H_{\mathrm{s}} > {P(H)_{\mathrm{H}}}_{\mathrm{s}}
-\end{equation}
-
-This mechanism enforces a homeostasis in terms of the time between blocks; a 
-smaller period between the last two blocks results in an increase in the 
-difficulty level and thus additional computation required, lengthening the 
-likely next period. Conversely, if the period is too large, the difficulty, and 
-expected time to the next block, is reduced.
-
-Timestamps are otherwise arbitrary.
-
-Time in the real world moves with apparently infinite fluidity. An instant of
-time is as small as the instance of a Cartesian point.
-
-Time in computers is as small as the time it takes for information to move.
-This is a bigger number than the theoretical instant.
-
-Time in Ethereum gets as small as $1$ second.
-The \texttt{go-ethereum} network client program \texttt{geth}\footnote{The 
-majority share client on the Ethereum network}, ignores (does not process) 
-blocks having a timestamp $B_s > now() + 15$. This is a normally undocumented 
-subjective behavior, parameterized by some computer's clock. Running
-\texttt{geth} on a computer with a clock set 'late' (reading actually past 
-values) will fail to maintain synchronisation (consensus) with the network.
-
-In coding a simulation, we can arbitrarily scale a \textit{tick} interval,
-representing some arbitrary atomic unit of time corresponding to a program step 
-or loop. The tick parameterizes the time domain of the simulation.
-
-Since much of our work here assumes the job of fitting a model to the empirical
-information available, we need to acknowledge the limits of this approach.
-
-Our empirical knowledge is constrained (at this point in the research\footnote{
-For both practical and theoretical reasons.}) by using exlusively \emph{
-objective} measurements. Block timestamps are objective measurements.
-If we were to take our own readings of network latency, or of block production
-intervals (for example, by actually mining and recording measurements), these
-would be what this paper considers \emph{subjective} data.
-
-We do not consider any empirical information with time units less than $1$
-second. Our programming can be configured to represent a simulation of
-arbitrary time units. Evaluation of the degree of fit between model and
-data should take this into consideration.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

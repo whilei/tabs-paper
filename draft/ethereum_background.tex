@@ -1,0 +1,123 @@
+%! Author = ia
+%! Date = 4/22/22
+
+% Preamble
+\documentclass[11pt]{article}
+
+% Packages
+\usepackage{amsmath}
+
+% Document
+\begin{document}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+	\pagebreak
+	\section{\normalsize{Appendix: Ethereum Background}}\label{sec: appendix}
+
+	The parameters and logic of this paper's proposal take the existence of a
+	system equivalent with that of Ethereum's at the time of writing.
+	We strongly suggest that the Ethereum Yellow Paper\nolinebreak
+	\footnote{\url{https://github.com/ethereum/yellowpaper/tree/fabef2531a8f8e772a4bf5be23191044d0ce3569}}
+	be read and understood as a precondition for interpretation and evaluation
+	of the work of this project.
+%should we state the 'Berlin' version? ISAAC: Done.
+	Important and referenced concepts of Ethereum's protocol are discussed in this
+	section for the the informational value of redundancy.
+
+	\subsection{\small{Ethash}}
+
+	Ethereum's Proof-of-Work protocol "Ethash" governs block emissions. Solutions
+	to a constantly varying guessing game require time to discover -- via trial and
+	error -- and are a notably required field in block headers. Authors of blocks
+	providing valid solutions to these puzzles are called miners; mining is the
+	process of searching for puzzle solutions. \\
+	\\
+%should we define "block emissions" for the non-expert?
+	A very difficult puzzle (probably requiring many guesses) is expected to take
+	more time to solve than an easier puzzle (requiring fewer guesses).
+
+	\subsection{\small{Difficulty}}
+	Ethereum regulates its block emission rate using a header value called
+	$\mathrm{Difficulty}$ ($H_d$). This value is used by the Ethash protocol as a
+	parameter for puzzle solution validation. Generally speaking, the Difficulty
+	value for some block can be thought of as the number of wrong guesses
+	("hashes") expected before a valid puzzle solution for a child block is
+	found.\nolinebreak
+	\footnote{Formally, difficulty is governed by the relation of a fixed size
+	bit-field (called the 'nonce') in the domain of the block hash, into which a
+	miner writes its guess, and a fixed size bit-field in the output range of the
+	hash function, which takes on values induced by the miner's guess. The
+	difficulty is measured by the number of required zero entries in the output
+	bit-field, which defines the feasible output range.  The size of the set of
+	guesses that map into the feasible range expands and contracts with the size of
+	the feasible range. For a given rate of guesses per unit of time, the
+	difficulty induces a cumulative distribution function of the probability of a
+	solution being found by each point in time. From this an expected interval
+	between timestamps can be derived.}
+	An adjustment algorithm governs the rise and fall of this value, accepting a
+	block timestamp interval and parent difficulty as parameters;
+	this provides a feedback loop joining block emission rates (via sequential
+	block timestamps and thus relative intervals) with puzzle difficulty.
+	Given a target block interval, difficulty can be adjusted dynamically,
+	incrementally, such that the difficulty value will cause blocks to be authorable
+	at rates approaching the target rate.
+	In Ethereum the parameters are tuned to produce a median 9 seconds, or about 14
+	seconds on average.
+	Network block emission rates are typically modeled with a Poisson
+	distribution.\nolinebreak
+	\footnote{\url{https://ethresear.ch/t/deep-dive-into-current-pow-difficulty-adjustment-algorithm-and-a-possible-alternative/5267}}\nolinebreak
+	\footnote{\url{https://blog.ethereum.org/2015/09/14/on-slow-and-fast-block-times/}}\nolinebreak
+	\footnote{\url{https://en.wikipedia.org/wiki/Proof_of_work#Variants}}\nolinebreak
+	\footnote{\url{https://arxiv.org/pdf/1901.04620, Section III.A}}
+
+	\textit{e.g.} Given a block difficulty $H_d$ = 63115 and a network target
+	emission interval of 13 seconds, we deduce that the modeled network average
+	hashrate is 63115 hashes / 13 seconds = 4855 hashes/second. A block generated
+	in 3 seconds should cause the difficulty to rise; a block generated in 30
+	seconds should cause it to fall; making the next block respectively harder or
+	easier (slower or faster) to author.
+
+	\subsection{\small{Canonical Arbitration\footnote{\url{https://github.com/ethereum/go-ethereum/blob/f0328f241b7c3def217b0c2dce1a1b297f979a37/core/forkchoice.go#L77}}}}
+
+	The "Total Difficulty" value for any chain segment is the sum of the $H_d$
+	values of block headers in the segment.
+	The canon-arbitration algorithm used today by Ethereum defines
+	that preference is given with priority to any valid subtree having the greatest "Total Difficulty" value.
+	In the case of equivalent TD values, segments are preferred having lesser latest block numbers.
+	In the case of equivalent TD and block height (number) values, if a node acts
+	on behalf of the block's registered author, that block is preferred.
+	If there is no authorship beneficiary interest (as in a non-mining node, or
+	that of a non-winning miner), a figurative coin is tossed, per the protocol
+	described by Eyal and Sirer.\nolinebreak
+	\footnote{\url{http://www.cs.cornell.edu/~ie53/publications/btcProcFC.pdf}}
+
+	\subsection{\small{Chain ID}}
+
+	As specified by EIP155\nolinebreak
+	\footnote{\url{https://eips.ethereum.org/EIPS/eip-155}} a feature called
+	\textit{Chain ID} was introduced on the Ethereum network (ETH) at block
+	2675000, and on the Ethereum Classic network (ETC) at block 3000000.
+
+	This feature, generally considered, allows transactions to be made exclusive to
+	certain predefined segments, or entire chains, by validating a match between a
+	transaction-specified \textit{Chain ID} field value and that of a hardcoded
+	(constant) network protocol configuration.
+	The mechanism ascribes an arbitrary positive integer to a network configuration
+	and transactions use this value when signing a transaction intended for that
+	subset of chain state.
+	Transactions are not required to specify a \textit{Chain ID} value for
+	legacy-compatibility reasons.
+
+	This feature was introduced after "The DAO Fork" (at block 1920000) caused
+	Ethereum to become both Ethereum and Ethereum Classic by the network's partial rejection of an arbitrary chain state mutation.
+	Until the introduction of Chain ID, transactions after this hardfork had no way
+	of being exclusive to one of either of these two chains.
+	Between blocks 1920000 and 2675000on ETH, transactions were ambiguously valid on either, or both.
+	Today, Chain ID transactions specifying Chain ID \texttt{1} are only eligible
+	on ETH, and those with Chain ID \texttt{61} are only eligible on ETC, per the
+	respective configurations eventually introduced on both networks with their
+	independent implementations of the EIP155 feature.
+
+
+\end{document}
