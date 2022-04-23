@@ -1,0 +1,110 @@
+=== RUN   TestZ
+    main_test.go:655: Running td
+    main_test.go:886: RESULTS td
+    main_test.go:896: a=440154 c=TD hr=0.33 h/t=3333333333 
+        	head.i=5606 head.tabs=26473 
+        	k_mean=1.217 intervals_mean=15.350s d_mean.rel=0.838
+        	balance=40000 c/a=0.871 reorgs.mag_mean=2.181
+    main_test.go:896: a=365d8c c=TD hr=0.22 h/t=2222222222 
+        	head.i=5606 head.tabs=26473 
+        	k_mean=1.217 intervals_mean=15.350s d_mean.rel=0.838
+        	balance=26666 c/a=0.868 reorgs.mag_mean=2.530
+    main_test.go:896: a=248f8c c=TD hr=0.15 h/t=1481481481 
+        	head.i=5606 head.tabs=26473 
+        	k_mean=1.217 intervals_mean=15.350s d_mean.rel=0.838
+        	balance=17777 c/a=0.865 reorgs.mag_mean=1.614
+    main_test.go:896: a=50bb6b c=TD hr=0.10 h/t=987654320 
+        	head.i=5606 head.tabs=26473 
+        	k_mean=1.217 intervals_mean=15.350s d_mean.rel=0.838
+        	balance=11851 c/a=0.866 reorgs.mag_mean=1.376
+    main_test.go:896: a=8bd447 c=TD hr=0.07 h/t=658436213 
+        	head.i=5606 head.tabs=26473 
+        	k_mean=1.217 intervals_mean=15.350s d_mean.rel=0.838
+        	balance=7901 c/a=0.864 reorgs.mag_mean=1.265
+    main_test.go:896: a=b2dc33 c=TD hr=0.04 h/t=438957475 
+        	head.i=5606 head.tabs=26473 
+        	k_mean=1.217 intervals_mean=15.350s d_mean.rel=0.838
+        	balance=5267 c/a=0.864 reorgs.mag_mean=1.193
+    main_test.go:896: a=cbe12c c=TD hr=0.03 h/t=292638317 
+        	head.i=5606 head.tabs=26473 
+        	k_mean=1.217 intervals_mean=15.350s d_mean.rel=0.838
+        	balance=3511 c/a=0.864 reorgs.mag_mean=1.157
+    main_test.go:896: a=dce329 c=TD hr=0.02 h/t=195092211 
+        	head.i=5606 head.tabs=26473 
+        	k_mean=1.217 intervals_mean=15.350s d_mean.rel=0.838
+        	balance=2341 c/a=0.864 reorgs.mag_mean=1.148
+    main_test.go:896: a=e8e527 c=TD hr=0.01 h/t=130061474 
+        	head.i=5606 head.tabs=26473 
+        	k_mean=1.217 intervals_mean=15.350s d_mean.rel=0.838
+        	balance=1560 c/a=0.863 reorgs.mag_mean=1.137
+    main_test.go:896: a=eae527 c=TD hr=0.01 h/t=115610199 
+        	head.i=5606 head.tabs=26473 
+        	k_mean=1.217 intervals_mean=15.350s d_mean.rel=0.838
+        	balance=1387 c/a=0.863 reorgs.mag_mean=1.115
+    main_test.go:896: a=efe626 c=TD hr=0.01 h/t=86707649 
+        	head.i=5606 head.tabs=26473 
+        	k_mean=1.217 intervals_mean=15.350s d_mean.rel=0.838
+        	balance=1040 c/a=0.864 reorgs.mag_mean=1.112
+    main_test.go:896: a=f4e726 c=TD hr=0.01 h/t=57805099 
+        	head.i=5606 head.tabs=26473 
+        	k_mean=1.217 intervals_mean=15.350s d_mean.rel=0.838
+        	balance=693 c/a=0.863 reorgs.mag_mean=1.143
+    main_test.go:907: Making plots...
+    main_test.go:1081: Making movie...
+    main_test.go:1106: Making gif...
+    main_test.go:655: Running tdtabs
+    main_test.go:886: RESULTS tdtabs
+    main_test.go:896: a=440154 c=TDTABS hr=0.33 h/t=3333333333 
+        	head.i=5658 head.tabs=27192 
+        	k_mean=1.203 intervals_mean=15.265s d_mean.rel=0.853
+        	balance=40000 c/a=0.954 reorgs.mag_mean=2.175
+    main_test.go:896: a=365d8c c=TDTABS hr=0.22 h/t=2222222222 
+        	head.i=5658 head.tabs=27192 
+        	k_mean=1.203 intervals_mean=15.265s d_mean.rel=0.853
+        	balance=26663 c/a=0.950 reorgs.mag_mean=1.963
+    main_test.go:896: a=248f8c c=TDTABS hr=0.15 h/t=1481481481 
+        	head.i=5658 head.tabs=27192 
+        	k_mean=1.203 intervals_mean=15.265s d_mean.rel=0.853
+        	balance=17777 c/a=0.950 reorgs.mag_mean=1.404
+    main_test.go:896: a=50bb6b c=TDTABS hr=0.10 h/t=987654320 
+        	head.i=5658 head.tabs=27192 
+        	k_mean=1.203 intervals_mean=15.265s d_mean.rel=0.853
+        	balance=11851 c/a=0.949 reorgs.mag_mean=1.320
+    main_test.go:896: a=8bd447 c=TDTABS hr=0.07 h/t=658436213 
+        	head.i=5658 head.tabs=27192 
+        	k_mean=1.203 intervals_mean=15.265s d_mean.rel=0.853
+        	balance=7901 c/a=0.949 reorgs.mag_mean=1.263
+    main_test.go:896: a=b2dc33 c=TDTABS hr=0.04 h/t=438957475 
+        	head.i=5658 head.tabs=27192 
+        	k_mean=1.203 intervals_mean=15.265s d_mean.rel=0.853
+        	balance=5264 c/a=0.949 reorgs.mag_mean=1.191
+    main_test.go:896: a=cbe12c c=TDTABS hr=0.03 h/t=292638317 
+        	head.i=5658 head.tabs=27192 
+        	k_mean=1.203 intervals_mean=15.265s d_mean.rel=0.853
+        	balance=3511 c/a=0.949 reorgs.mag_mean=1.179
+    main_test.go:896: a=dce329 c=TDTABS hr=0.02 h/t=195092211 
+        	head.i=5658 head.tabs=27192 
+        	k_mean=1.203 intervals_mean=15.265s d_mean.rel=0.853
+        	balance=2341 c/a=0.949 reorgs.mag_mean=1.143
+    main_test.go:896: a=e8e527 c=TDTABS hr=0.01 h/t=130061474 
+        	head.i=5658 head.tabs=27192 
+        	k_mean=1.203 intervals_mean=15.265s d_mean.rel=0.853
+        	balance=1560 c/a=0.949 reorgs.mag_mean=1.139
+    main_test.go:896: a=eae527 c=TDTABS hr=0.01 h/t=115610199 
+        	head.i=5658 head.tabs=27192 
+        	k_mean=1.203 intervals_mean=15.265s d_mean.rel=0.853
+        	balance=1387 c/a=0.949 reorgs.mag_mean=1.145
+    main_test.go:896: a=efe626 c=TDTABS hr=0.01 h/t=86707649 
+        	head.i=5658 head.tabs=27192 
+        	k_mean=1.203 intervals_mean=15.265s d_mean.rel=0.853
+        	balance=1040 c/a=0.949 reorgs.mag_mean=1.153
+    main_test.go:896: a=f4e726 c=TDTABS hr=0.01 h/t=57805099 
+        	head.i=5658 head.tabs=27192 
+        	k_mean=1.203 intervals_mean=15.265s d_mean.rel=0.853
+        	balance=693 c/a=0.949 reorgs.mag_mean=1.136
+    main_test.go:907: Making plots...
+    main_test.go:1081: Making movie...
+    main_test.go:1106: Making gif...
+--- PASS: TestZ (328.83s)
+PASS
+ok  	github.com/whilei/go-miner-sim	328.833s
