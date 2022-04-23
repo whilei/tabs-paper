@@ -621,8 +621,12 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 	grad := colorgrad.Viridis()
 
 	for i := int64(0); i < countMiners; i++ {
+
+		// set up their starting view of the chain
 		bt := NewBlockTree()
 		bt.AppendBlockByNumber(genesisBlock)
+
+		// set up the miner
 
 		minerStartingBalance := deriveMinerStartingBalance(genesisBlock.tabs, hashrates[i])
 		hashes := deriveMinerRelativeDifficultyHashes(genesisBlock.d, hashrates[i])
@@ -838,7 +842,7 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 
 		reorgMagsMean, _ := stats.Mean(m.reorgMagnitudes())
 
-		t.Logf(`a=%s c=%s hr=%0.2f h/t=%d head.i=%d head.tabs=%d k_mean=%0.3f k_med=%0.3f k_mode=%v intervals_mean=%0.3fs d_mean.rel=%0.3f balance=%d c/a=%0.3f reorgs.mag_mean=%0.3f`,
+		t.Logf(`a=%s c=%s hr=%0.2f h/t=%d head.i=%d head.tabs=%d k_mean=%0.3f k_med=%0.3f k_mode=%v intervals_mean=%0.3fs d_mean.rel=%0.3f balance=%d objective_decs=%0.3f reorgs.mag_mean=%0.3f`,
 			m.Address, m.ConsensusAlgorithm, hashrates[i], m.HashesPerTick,
 			m.head.i, m.head.tabs,
 			kMean, kMed, kMode,
