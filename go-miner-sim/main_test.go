@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/fogleman/gg"
-	"github.com/lucasb-eyer/go-colorful"
+	colorful "github.com/lucasb-eyer/go-colorful"
 	"github.com/montanaflynn/stats"
 	"golang.org/x/image/colornames"
 	"gonum.org/v1/plot"
