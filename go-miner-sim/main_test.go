@@ -37,7 +37,7 @@ type Miner struct {
 	HashesPerTick int64 // per tick
 	Balance       int64 // Wei
 	BalanceCap    int64 // Max Wei this miner will hold. Use 0 for no limit hold 'em.
-	CostPerBlock  int64 // cost to miner, expended after each block win (via tx on text block)
+	// CostPerBlock  int64 // cost to miner, expended after each block win (via tx on text block)
 
 	Latency func() int64
 	Delay   func() int64
@@ -79,11 +79,9 @@ func getTABS(parent *Block, localTAB int64) int64 {
 		scalarNumerator = -1
 	}
 
-	denom := int64(4096)
+	numerator := tabsAdjustmentDenominator + scalarNumerator // [127|128|129]/128, [4095|4096|4097]/4096
 
-	numerator := denom + scalarNumerator // [127|128|129]
-
-	return int64(float64(parent.tabs) * float64(numerator) / float64(denom))
+	return int64(float64(parent.tabs) * float64(numerator) / float64(tabsAdjustmentDenominator))
 }
 
 func (m *Miner) mineTick() {
@@ -115,23 +113,23 @@ func (m *Miner) mineTick() {
 			s = parent.s + 1
 		}
 
-		// A naive model of uncle references.
+		// A naive model of uncle references: bool=yes if any orphan blocks exist in our miner's record of blocks
 		uncles := len(m.Blocks[parent.i]) > 1
 
 		blockDifficulty := getBlockDifficulty(parent /* interval: */, uncles, s-parent.s)
 		tabs := getTABS(parent, m.Balance)
 		tdtabs := tabs * blockDifficulty
 		b := &Block{
-			i:     parent.i + 1,
-			s:     s, // miners are always honest about their timestamps
-			si:    s - parent.s,
-			d:     blockDifficulty,
-			td:    parent.td + blockDifficulty,
-			tabs:  tabs,
-			ttabs: parent.ttabs + tdtabs,
-			miner: m.Address,
-			ph:    parent.h,
-			h:     fmt.Sprintf("%08x", rand.Int63()),
+			i:       parent.i + 1,
+			s:       s, // miners are always honest about their timestamps
+			si:      s - parent.s,
+			d:       blockDifficulty,
+			td:      parent.td + blockDifficulty,
+			tabs:    tabs,
+			ttdtabs: parent.ttdtabs + tdtabs,
+			miner:   m.Address,
+			ph:      parent.h,
+			h:       fmt.Sprintf("%08x", rand.Int63()),
 		}
 		m.processBlock(b)
 		m.broadcastBlock(b)
@@ -297,8 +295,8 @@ func (m *Miner) reorgMagnitudes() (magnitudes []float64) {
 
 // arbitrateBlocks selects one canonical block from any two blocks.
 func (m *Miner) arbitrateBlocks(a, b *Block) *Block {
-	m.ConsensusArbitrations++
-	m.ConsensusObjectiveArbitrations++
+	m.ConsensusArbitrations++          // its what we do here
+	m.ConsensusObjectiveArbitrations++ // an assumption that will be undone (--) if it does not hold
 
 	decisionCondition := "pow_score_high"
 	defer func() {
@@ -313,9 +311,9 @@ func (m *Miner) arbitrateBlocks(a, b *Block) *Block {
 			return b
 		}
 	} else if m.ConsensusAlgorithm == TDTABS {
-		if (a.ttabs) > (b.ttabs) {
+		if (a.ttdtabs) > (b.ttdtabs) {
 			return a
-		} else if (b.ttabs) > (a.ttabs) {
+		} else if (b.ttdtabs) > (a.ttdtabs) {
 			return b
 		}
 	}
@@ -379,7 +377,7 @@ type Block struct {
 	d         int64  // H_d: difficulty
 	td        int64  // H_td: total difficulty
 	tabs      int64  // H_k: TAB synthesis
-	ttabs     int64  // H_k: TTABSConsensusScore
+	ttdtabs   int64  // H_k: TTABSConsensusScore, aka Total TD*TABS
 	miner     string // H_c: coinbase/etherbase/author/beneficiary
 	h         string // H_h: hash
 	ph        string // H_p: parent hash
@@ -424,6 +422,7 @@ func (bt BlockTree) AppendBlockByNumber(b *Block) (dupe bool) {
 	return dupe
 }
 
+// TestBlockTree_AppendBlock is a unit test.
 func TestBlockTree_AppendBlock(t *testing.T) {
 	bt := NewBlockTree()
 	bt.AppendBlockByNumber(genesisBlock)
@@ -516,14 +515,17 @@ var blockReward int64 = 3
 var latencySecondsDefault float64 = 2.5
 var delaySecondsDefault float64 = 0
 
-var genesisBlockTABS int64 = 10_000
+const tabsAdjustmentDenominator = int64(128)
+const genesisBlockTABS int64 = 10_000 // tabs starting value
+const genesisDifficulty = 10_000_000_000
+
 var genesisBlock = &Block{
 	i:         0,
 	s:         0,
-	d:         10_000_000_000,
-	td:        10_000_000_000,
+	d:         genesisDifficulty,
+	td:        genesisDifficulty,
 	tabs:      genesisBlockTABS,
-	ttabs:     genesisBlockTABS * 10_000_000_000,
+	ttdtabs:   genesisBlockTABS * genesisDifficulty,
 	miner:     "X",
 	delay:     Delay{},
 	h:         fmt.Sprintf("%08x", rand.Int63()),
