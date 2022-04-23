@@ -182,17 +182,14 @@ func main() {
 
 		start := time.Now()
 
-		// Usage of the 1000 value suggests a time unit of milliseconds.
-		tickMultiple = config.TickMultiple // Modify the global for now. Ugly but whatever. Won't run in parallel.
+		logger := log.New(os.Stdout, "", 0)
+		logger.Println("-----------------------------------------------------")
+		logger.Println("CONFIG", config)
 
+		// tickMultiple: usage of the 1000 value suggests a time unit of milliseconds.
+		tickMultiple = config.TickMultiple                                 // Modify the global for now. Ugly but whatever. Won't run in parallel.
 		networkLambdaTicks := config.NetworkLambda * float64(tickMultiple) // ie. 13*1000ms = 13s
 		latencyTicks := config.Latency * float64(tickMultiple)             // eg. 350ms
-
-		logger := log.New(os.Stdout, "", 0)
-
-		logger.Println("-----------------------------------------------------")
-
-		logger.Println("CONFIG", config)
 
 		minersHashrates := generateMinerHashrates(config.HashrateDistType, config.NumberOfMiners)
 
@@ -217,6 +214,8 @@ func main() {
 	Hashrates: %s
 
 `, len(minersHashrates), config.HashrateDistType, minerHashrateChecksum > 0.999, printHashrates)
+
+		// Logging done. Program continues.
 
 		// miners by-hashrate wins
 		minerWinTicks := make([][]float64, len(minersHashrates))
@@ -331,7 +330,7 @@ func main() {
 			} else {
 				delay := latencyTicks
 				if config.SelfishDelay > 0 && minersHashrates[authorIndexes[winnerIndex]] > 0.25 {
-					delay +=config.SelfishDelay
+					delay += config.SelfishDelay
 				}
 				recordedInterval += delay
 			}
