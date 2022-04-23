@@ -79,7 +79,7 @@ func getTABS(parent *Block, localTAB int64) int64 {
 		scalarNumerator = -1
 	}
 
-	denom := int64(4028)
+	denom := int64(4096)
 
 	numerator := denom + scalarNumerator // [127|128|129]
 
