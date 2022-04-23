@@ -37,6 +37,7 @@ type Miner struct {
 	HashesPerTick int64 // per tick
 	Balance       int64 // Wei
 	BalanceCap    int64 // Max Wei this miner will hold. Use 0 for no limit hold 'em.
+	CostPerBlock  int64 // cost to miner, expended after each block win (via tx on text block)
 
 	Latency func() int64
 	Delay   func() int64
@@ -78,7 +79,7 @@ func getTABS(parent *Block, localTAB int64) int64 {
 		scalarNumerator = -1
 	}
 
-	denom := int64(128)
+	denom := int64(4028)
 
 	numerator := denom + scalarNumerator // [127|128|129]
 
