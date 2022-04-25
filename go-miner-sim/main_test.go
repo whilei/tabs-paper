@@ -37,7 +37,7 @@ type Miner struct {
 	HashesPerTick int64 // per tick
 	Balance       int64 // Wei
 	BalanceCap    int64 // Max Wei this miner will hold. Use 0 for no limit hold 'em.
-	// CostPerBlock  int64 // cost to miner, expended after each block win (via tx on text block)
+	CostPerBlock  int64 // cost to miner, expended after each block win (via tx on text block)
 
 	Latency func() int64
 	Delay   func() int64
@@ -89,7 +89,7 @@ func (m *Miner) mineTick() {
 
 	// - HashesPerTick / parent.difficulty gives relative network hashrate share
 	// - * m.Lambda gives relative trial share per tick
-	tickR := float64(m.HashesPerTick) / float64(parent.d) * networkLamda
+	tickR := float64(m.HashesPerTick) / float64(parent.d) * networkLambda
 	tickR = tickR / 2
 
 	// Do we solve it?
@@ -192,7 +192,7 @@ func (m *Miner) processBlock(b *Block) {
 	m.setHead(canon)
 }
 
-func (m *Miner) incrementMinerBalance(i int64) {
+func (m *Miner) balanceAdd(i int64) {
 	m.Balance += i
 	if m.BalanceCap != 0 && m.Balance > m.BalanceCap {
 		m.Balance = m.BalanceCap
@@ -211,6 +211,8 @@ func (m *Miner) setHead(head *Block) {
 		add, drop := 1, 0
 
 		ph := head.ph
+		// outer iterates backwards from the parent of the head block
+		// it breaks when it finds a common ancestor
 	outer:
 		for i := head.i - 1; i > 0; i-- {
 			for _, b := range m.Blocks[i] {
@@ -219,13 +221,13 @@ func (m *Miner) setHead(head *Block) {
 
 				} else if b.canonical {
 					if b.miner == m.Address {
-						m.incrementMinerBalance(-blockReward)
+						m.balanceAdd(-blockReward)
 					}
 					drop++
 					b.canonical = false
 				} else if !b.canonical && b.h == ph {
 					if b.miner == m.Address {
-						m.incrementMinerBalance(blockReward)
+						m.balanceAdd(blockReward)
 					}
 					add++
 					b.canonical = true
@@ -237,7 +239,7 @@ func (m *Miner) setHead(head *Block) {
 			if b.h != head.h {
 				if b.canonical {
 					if b.miner == m.Address {
-						m.incrementMinerBalance(-blockReward)
+						m.balanceAdd(-blockReward)
 					}
 					drop++
 					b.canonical = false
@@ -251,7 +253,7 @@ func (m *Miner) setHead(head *Block) {
 			for _, b := range m.Blocks[i] {
 				if b.canonical {
 					if b.miner == m.Address {
-						m.incrementMinerBalance(-blockReward)
+						m.balanceAdd(-blockReward)
 					}
 					drop++
 					b.canonical = false
@@ -269,7 +271,7 @@ func (m *Miner) setHead(head *Block) {
 
 	// Block reward. Block-transaction fees are held presumed constant.
 	if m.Address == head.miner {
-		m.incrementMinerBalance(blockReward)
+		m.balanceAdd(blockReward)
 	}
 
 	headI := head.i
@@ -398,8 +400,26 @@ func (d Delay) Total() int64 {
 type Blocks []*Block
 type BlockTree map[int64]Blocks
 
+func (bs Blocks) Len() int {
+	return len(bs)
+}
+
 func NewBlockTree() BlockTree {
 	return BlockTree(make(map[int64]Blocks))
+}
+
+func (bt BlockTree) String() string {
+	out := ""
+	for i := int64(0); i < int64(len(bt)); i++ {
+
+		out += fmt.Sprintf("n=%d ", i)
+		for _, b := range bt[i] {
+			out += fmt.Sprintf("[h=%s ph=%s c=%v]", b.h, b.ph, b.canonical)
+		}
+		out += "\n"
+	}
+
+	return out
 }
 
 func (bt BlockTree) AppendBlockByNumber(b *Block) (dupe bool) {
@@ -504,19 +524,31 @@ func (bt BlockTree) GetBlockByHash(h string) *Block {
 	return nil
 }
 
+func (bt BlockTree) Where(condition func(*Block) bool) (blocks Blocks) {
+	for _, v := range bt {
+		for _, bl := range v {
+			if !condition(bl) {
+				continue
+			}
+			blocks = append(blocks, bl)
+		}
+	}
+	return blocks
+}
+
 // Globals
 var ticksPerSecond int64 = 10
 var tickSamples = ticksPerSecond * int64((time.Hour * 24).Seconds())
-var networkLamda = (float64(1) / float64(13)) / float64(ticksPerSecond)
+var networkLambda = (float64(1) / float64(13)) / float64(ticksPerSecond)
 var countMiners = int64(12)
 var minerNeighborRate float64 = 0.5 // 0.7
 var blockReward int64 = 3
 
 var latencySecondsDefault float64 = 2.5
-var delaySecondsDefault float64 = 0
+var delaySecondsDefault float64 = 0 // miner hesitancy to broadcast solution
 
-const tabsAdjustmentDenominator = int64(128)
-const genesisBlockTABS int64 = 10_000 // tabs starting value
+const tabsAdjustmentDenominator = int64(128) // int64(4096) <-- 4096 is the 'equilibrium' value, lower values prefer richer miners more (devaluing hashrate)
+const genesisBlockTABS int64 = 10_000        // tabs starting value
 const genesisDifficulty = 10_000_000_000
 
 var genesisBlock = &Block{
@@ -612,9 +644,9 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 
 	// We use relative hashrate as a proxy for balance;
 	// more mining capital :: more currency capital.
-	deriveMinerStartingBalance := func(genesisTABS int64, r float64) int64 {
+	deriveMinerStartingBalance := func(genesisTABS int64, minerHashrate float64) int64 {
 		supply := genesisTABS * countMiners
-		return int64((float64(supply) * r))
+		return int64((float64(supply) * minerHashrate))
 	}
 
 	lastColor := colorful.Color{}
@@ -629,6 +661,7 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 		// set up the miner
 
 		minerStartingBalance := deriveMinerStartingBalance(genesisBlock.tabs, hashrates[i])
+		// minerStartingBalance := deriveMinerStartingBalance(genesisBlock.tabs, hashrates[countMiners - 1 - i]) // backwards
 		hashes := deriveMinerRelativeDifficultyHashes(genesisBlock.d, hashrates[i])
 
 		clr := grad.At(1 - (hashrates[i] * (1 / hashrates[0])))
@@ -645,11 +678,11 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 		m := &Miner{
 			// ConsensusAlgorithm: TDTABS,
 			// ConsensusAlgorithm: TD,
-			Index:                    i,
-			Address:                  minerName, // avoid collisions
-			HashesPerTick:            hashes,
-			Balance:                  minerStartingBalance,
-			BalanceCap:               minerStartingBalance,
+			Index:         i,
+			Address:       minerName, // avoid collisions
+			HashesPerTick: hashes,
+			Balance:       minerStartingBalance,
+			// BalanceCap:               minerStartingBalance,
 			Blocks:                   bt,
 			head:                     nil,
 			receivedBlocks:           BlockTree{},
@@ -842,8 +875,13 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 
 		reorgMagsMean, _ := stats.Mean(m.reorgMagnitudes())
 
-		t.Logf(`a=%s c=%s hr=%0.2f h/t=%d head.i=%d head.tabs=%d k_mean=%0.3f k_med=%0.3f k_mode=%v intervals_mean=%0.3fs d_mean.rel=%0.3f balance=%d objective_decs=%0.3f reorgs.mag_mean=%0.3f`,
-			m.Address, m.ConsensusAlgorithm, hashrates[i], m.HashesPerTick,
+		wins := m.Blocks.Where(func(b *Block) bool {
+			return b.canonical && b.miner == m.Address
+		}).Len()
+
+		// t.Logf(`a=%s c=%s hr=%0.2f h/t=%d head.i=%d head.tabs=%d k_mean=%0.3f k_med=%0.3f k_mode=%v intervals_mean=%0.3fs d_mean.rel=%0.3f balance=%d objective_decs=%0.3f reorgs.mag_mean=%0.3f`,
+		t.Logf(`a=%s c=%s hr=%0.2f winr=%0.3f wins=%d head.i=%d head.tabs=%d k_mean=%0.3f k_med=%0.3f k_mode=%v intervals_mean=%0.3fs d_mean.rel=%0.3f balance=%d objective_decs=%0.3f reorgs.mag_mean=%0.3f`,
+			m.Address, m.ConsensusAlgorithm, hashrates[i], float64(wins)/float64(m.head.i), wins, /* m.HashesPerTick, */
 			m.head.i, m.head.tabs,
 			kMean, kMed, kMode,
 			intervalsMean, difficultiesMean/float64(genesisBlock.d),
@@ -1154,4 +1192,62 @@ func generateMinerHashrates(ty HashrateDistType, n int) []float64 {
 	default:
 		panic("impossible")
 	}
+}
+
+func TestProcessBlock(t *testing.T) {
+	m := &Miner{
+		// ConsensusAlgorithm: TDTABS,
+		// ConsensusAlgorithm: TD,
+		Index:         0,
+		Address:       "exampleMiner", // avoid collisions
+		HashesPerTick: 42,
+		Balance:       42000000,
+		// BalanceCap:               minerStartingBalance,
+		Blocks:                   NewBlockTree(),
+		head:                     nil,
+		receivedBlocks:           BlockTree{},
+		neighbors:                []*Miner{},
+		reorgs:                   make(map[int64]struct{ add, drop int }),
+		decisionConditionTallies: make(map[string]int),
+		cord:                     make(chan minerEvent),
+		Delay: func() int64 {
+			return int64(delaySecondsDefault * float64(ticksPerSecond))
+			// return int64(hr * 3 * rand.Float64() * float64(ticksPerSecond))
+		},
+		Latency: func() int64 {
+			return int64(latencySecondsDefault * float64(ticksPerSecond))
+			// return int64(4 * float64(ticksPerSecond))
+			// return int64((4 * rand.Float64()) * float64(ticksPerSecond))
+		},
+	}
+
+	// goroutine reads miner events chan (cord)
+	go func() {
+		for range m.cord {
+		}
+	}()
+
+	m.processBlock(genesisBlock) // sets head to genesis
+
+	ph := genesisBlock.h
+	for i := int64(1); i < 10; i++ {
+		b := &Block{i: i, canonical: true, ph: ph, h: fmt.Sprintf("%08x", rand.Int63())}
+		ph = b.h
+		m.Blocks.AppendBlockByNumber(b)
+		m.setHead(b)
+	}
+
+	b := &Block{i: 8, canonical: true, ph: m.Blocks.GetBlockByNumber(7).h, h: fmt.Sprintf("%08x", rand.Int63())}
+	m.Blocks.AppendBlockByNumber(b)
+	m.setHead(b)
+
+	b = &Block{i: 9, canonical: true, ph: b.h, h: fmt.Sprintf("%08x", rand.Int63())}
+	m.Blocks.AppendBlockByNumber(b)
+	m.setHead(b)
+
+	b = &Block{i: 10, canonical: true, ph: b.h, h: fmt.Sprintf("%08x", rand.Int63())}
+	m.Blocks.AppendBlockByNumber(b)
+	m.setHead(b)
+
+	t.Log(m.Blocks.String())
 }

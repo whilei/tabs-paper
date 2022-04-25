@@ -646,7 +646,7 @@ block having a greater $\mathrm{TCS}$ value than the other should be selected fo
 the exclusive canonical state.
 
 
-\subsection{\small{Segment-Specific Transactions: Transactions with Ancestor Hash Appended}}
+\subsection{\small{Segment-Specific Transactions}}\label{subsec:small{segment-specific-transactions}}
 
 % Transaction/Segment exclusivity is important because differential TABS depends on differential txes.
 The effectiveness of Total Active Balance measurements on any chain (segment)
@@ -663,12 +663,14 @@ the proposal outlined below.
 Email or any other private messaging service could be used to send miners
 transaction information, which the sender would assume would be processed privately by the miner
 upon their winning of a next block.
-However, there could be no trustless guarantee that the miner would actually keep the transaction
-secret before including it in a block; it could be resold, publicized, ignored;
-all at the miner's discretion.
+However, in this example, there could be no trustless guarantee that the miner would hold the transaction exclusively
+before including it in a block.
+It could be resold, publicized, ignored -- all at the miner's discretion.
 
-The problem of enabling transactions to define chain-exclusivity (ie. segment-specificity)
-as a rule that would enforceable on-chain is addressed here.
+\subsection{\small{Transactions with Ancestor Hash Appended}}\label{subsec:small{transactions-with-ancestor-hash-appended}
+
+The task of enabling transactions to accommodate chain-exclusivity (ie. segment-specificity)
+as a protocol-level rule is addressed here.
 
 Transactions are afforded an additional field $T_\mathrm{a}$ (\textit{Ancestor
 Hash}) whose value either describes a block hash or is left undefined.\nolinebreak
@@ -1950,7 +1952,7 @@ Random walk re: TABS value algo, +/- 1/128 -- does this tend to median? Is it a
 random walk?
 Why 128?
 
----
+---\label{subsec:small{transactions-with-ancestor-hash-appended}\label{subsec:small{transactions-with-ancestor-hash-appended2}\label{subsec:small{transactions-with-ancestor-hash-appended}
 
 
 \end{document}
