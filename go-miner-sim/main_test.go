@@ -292,11 +292,12 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 
 	lastHighBlock := int64(0)
 	for s := int64(1); s <= tickSamples; s++ {
-		// Shuffle the order in which we tick the miners,
-		// just to make sure we keep things normalized.
-		perm := rand.Perm(len(miners))
-		for _, i := range perm {
-			miners[i].doTick(s)
+
+		// for _, i := range rand.Perm(len(miners)) {
+		// 	miners[i].doTick(s)
+		// }
+		for _, m := range miners {
+			m.doTick(s)
 		}
 		if s%ticksPerSecond == 0 {
 			// time.Sleep(time.Millisecond * 100)

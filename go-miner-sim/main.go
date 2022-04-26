@@ -275,7 +275,7 @@ func (m *Miner) setHead(head *Block) {
 			for _, b := range m.Blocks[i] {
 				if b.h == ph {
 					// This is in the common ancestor chain.
-					// There will only be one of these per height.
+					// There will only be one of these (b.h == ph) per height.
 					if b.canonical {
 						// Common canonical ancestor.
 						break chain
@@ -311,6 +311,7 @@ func (m *Miner) setHead(head *Block) {
 				// }
 			}
 		}
+		// All blocks at head height which are not the new head are not canonical.
 		for _, b := range m.Blocks[head.i] {
 			if b.h != head.h {
 				if b.canonical {
@@ -318,8 +319,11 @@ func (m *Miner) setHead(head *Block) {
 				}
 			}
 		}
+		// No block above the new head will be canonical.
 		for i := head.i + 1; ; i++ {
 			if len(m.Blocks[i]) == 0 {
+				// When reaching a height with no (zero) blocks,
+				// assume there are no greater heights with blocks either.
 				break
 			}
 			for _, b := range m.Blocks[i] {
