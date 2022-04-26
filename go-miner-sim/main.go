@@ -104,7 +104,7 @@ func getBlockDifficulty(parent *Block, uncles bool, interval int64) int64 {
 	return int64(float64(parent.d) + (float64(y) / 2048 * float64(parent.d)))
 }
 
-func getTABS(parent *Block, localTAB int64) int64 {
+func getTABS(parent *Block, localTAB int64) (incr, tabs int64) {
 	scalarNumerator := int64(0)
 	if localTAB > parent.tabs {
 		scalarNumerator = 1
@@ -114,7 +114,7 @@ func getTABS(parent *Block, localTAB int64) int64 {
 
 	numerator := tabsAdjustmentDenominator + scalarNumerator // [127|128|129]/128, [4095|4096|4097]/4096
 
-	return int64(float64(parent.tabs) * float64(numerator) / float64(tabsAdjustmentDenominator))
+	return scalarNumerator, int64(float64(parent.tabs) * float64(numerator) / float64(tabsAdjustmentDenominator))
 }
 
 func (m *Miner) mineTick() {
@@ -150,7 +150,7 @@ func (m *Miner) mineTick() {
 		uncles := len(m.Blocks[parent.i]) > 1
 
 		blockDifficulty := getBlockDifficulty(parent /* interval: */, uncles, s-parent.s)
-		tabs := getTABS(parent, m.Balance)
+		change, tabs := getTABS(parent, m.Balance)
 		tdtabs := tabs * blockDifficulty
 		b := &Block{
 			i:       parent.i + 1,
@@ -158,6 +158,7 @@ func (m *Miner) mineTick() {
 			si:      s - parent.s,
 			d:       blockDifficulty,
 			td:      parent.td + blockDifficulty,
+			reltabs: change,
 			tabs:    tabs,
 			ttdtabs: parent.ttdtabs + tdtabs,
 			miner:   m.Address,
@@ -180,7 +181,15 @@ func (m *Miner) broadcastBlock(b *Block) {
 }
 
 func (m *Miner) receiveBlock(b *Block) {
-	if d := b.delay.Total(); d > 0 {
+	maliciousPostpone := int64(0)
+	if m.ConsensusAlgorithm == TDTABS && b.miner == m.Address {
+		if m.Balance > b.tabs && b.reltabs < 0 {
+			// The miner knows they have a better TABS than the received block.
+			// This gives them an edge in potential consensus points.
+			maliciousPostpone = ticksPerSecond * (b.si % 9)
+		}
+	}
+	if d := b.delay.Total() + maliciousPostpone; d > 0 {
 		if len(m.receivedBlocks[b.s+d]) > 0 {
 			m.receivedBlocks[b.s+d] = append(m.receivedBlocks[b.s+d], b)
 		} else {
@@ -411,6 +420,7 @@ type Block struct {
 	si        int64  // interval
 	d         int64  // H_d: difficulty
 	td        int64  // H_td: total difficulty
+	reltabs   int64  // +/- TABS vs parent. Shortcut used for helping malicious miners figure out if they can try to beat a received block by postponing.
 	tabs      int64  // H_k: TAB synthesis
 	ttdtabs   int64  // H_k: TTABSConsensusScore, aka Total TD*TABS
 	miner     string // H_c: coinbase/etherbase/author/beneficiary
