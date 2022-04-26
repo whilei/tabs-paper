@@ -109,7 +109,7 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 		// set up the miner
 
 		minerStartingBalance := deriveMinerStartingBalance(genesisBlock.tabs, hashrates[i])
-		// minerStartingBalance := deriveMinerStartingBalance(genesisBlock.tabs, hashrates[countMiners - 1 - i]) // backwards
+		// minerStartingBalance := deriveMinerStartingBalance(genesisBlock.tabs, hashrates[countMiners-1-i]) // backwards
 		hashes := deriveMinerRelativeDifficultyHashes(genesisBlock.d, hashrates[i])
 
 		clr := grad.At(1 - (hashrates[i] * (1 / hashrates[0])))

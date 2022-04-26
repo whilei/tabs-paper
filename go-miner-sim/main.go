@@ -81,7 +81,7 @@ type Miner struct {
 	ConsensusArbitrations          int
 	ConsensusObjectiveArbitrations int
 
-	reorgs                   map[int64]struct{ add, drop int }
+	reorgs                   map[int64]reorg
 	decisionConditionTallies map[string]int
 
 	head *Block
@@ -294,7 +294,7 @@ func (m *Miner) setHead(head *Block) {
 			addCanon(p) // add the one parent to canon
 		}
 
-		m.reorgs[head.i] = struct{ add, drop int }{add, drop}
+		m.reorgs[head.i] = reorg{add, drop}
 
 		// fmt.Println("Reorg!", m.Address, head.i, "add", add, "drop", drop)
 	}
@@ -311,19 +311,17 @@ func (m *Miner) setHead(head *Block) {
 	}
 }
 
+type reorg struct {
+	add, drop int
+}
+
+func (r reorg) magnitude() float64 {
+	return float64(r.add + r.drop)
+}
+
 func (m *Miner) reorgMagnitudes() (magnitudes []float64) {
-	// for k := range m.Blocks {
-	// 	// This takes reorg magnitudes for ALL blocks,
-	// 	// not just the block numbers at which reorgs happened.
-	// 	// TODO
-	// 	if v, ok := m.reorgs[k]; ok {
-	// 		magnitudes = append(magnitudes, float64(v.add+v.drop))
-	// 	}
-	//
-	// }
-	// return magnitudes
 	for _, v := range m.reorgs {
-		magnitudes = append(magnitudes, float64(v.add+v.drop))
+		magnitudes = append(magnitudes, v.magnitude())
 	}
 	return
 }
