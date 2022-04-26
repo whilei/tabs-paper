@@ -250,7 +250,7 @@ func (m *Miner) setHead(head *Block) {
 		// Reorg!
 		add, drop := 1, 0
 
-		setBlockCanonical := func(b *Block) {
+		addCanon := func(b *Block) {
 			b.canonical = true
 			if b.miner == m.Address {
 				m.balanceAdd(blockReward)
@@ -258,7 +258,7 @@ func (m *Miner) setHead(head *Block) {
 			add++
 		}
 
-		dropBlockCanonical := func(b *Block) {
+		dropCanon := func(b *Block) {
 			b.canonical = false
 			if b.miner == m.Address {
 				m.balanceAdd(-blockReward)
@@ -281,14 +281,14 @@ func (m *Miner) setHead(head *Block) {
 						break chain
 					}
 
-					setBlockCanonical(b)
+					addCanon(b)
 					ph = b.ph // set iterator (ok since we know the other blocks at this height will be side, and wont match the ph value anyway)
 
 					continue height
 				}
 				// Not in the canonical common ancestor chain.
 				if b.canonical {
-					dropBlockCanonical(b)
+					dropCanon(b)
 				}
 
 				// if b.canonical && b.h == ph {
@@ -314,7 +314,7 @@ func (m *Miner) setHead(head *Block) {
 		for _, b := range m.Blocks[head.i] {
 			if b.h != head.h {
 				if b.canonical {
-					dropBlockCanonical(b)
+					dropCanon(b)
 				}
 			}
 		}
@@ -324,7 +324,7 @@ func (m *Miner) setHead(head *Block) {
 			}
 			for _, b := range m.Blocks[i] {
 				if b.canonical {
-					dropBlockCanonical(b)
+					dropCanon(b)
 				}
 			}
 		}
