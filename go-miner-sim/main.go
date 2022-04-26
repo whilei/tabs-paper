@@ -74,7 +74,7 @@ type Miner struct {
 
 	Latency        func() int64
 	BroadcastDelay func(block *Block) int64
-	WithholdDelay  func(block *Block) int64
+	PostponeDelay  func(block *Block) int64
 
 	ConsensusAlgorithm             ConsensusAlgorithm
 	ConsensusArbitrations          int
@@ -116,6 +116,24 @@ func getTABS(parent *Block, localTAB int64) (incr, tabs int64) {
 	numerator := tabsAdjustmentDenominator + scalarNumerator // [127|128|129]/128, [4095|4096|4097]/4096
 
 	return scalarNumerator, int64(float64(parent.tabs) * float64(numerator) / float64(tabsAdjustmentDenominator))
+}
+
+func (m *Miner) doTick(s int64) {
+	m.tick = s
+
+	// Get tick-expired received blocks and process them.
+	for k, v := range m.receivedBlocks {
+		if m.tick >= k && /* future block inhibition -> */ m.tick+(15*ticksPerSecond) > k {
+			// process blocks in order they were received (per time slot)
+			for _, b := range v {
+				m.processBlock(b)
+			}
+			delete(m.receivedBlocks, k)
+		}
+	}
+
+	// Mine.
+	m.mineTick()
 }
 
 func (m *Miner) mineTick() {
@@ -182,8 +200,8 @@ func (m *Miner) broadcastBlock(b *Block) {
 }
 
 func (m *Miner) receiveBlock(b *Block) {
-	if m.WithholdDelay != nil {
-		b.delay.postpone = m.WithholdDelay(b)
+	if m.PostponeDelay != nil {
+		b.delay.postpone = m.PostponeDelay(b)
 	}
 	if d := b.delay.Total(); d > 0 {
 		if len(m.receivedBlocks[b.s+d]) > 0 {
@@ -194,23 +212,6 @@ func (m *Miner) receiveBlock(b *Block) {
 		return
 	}
 	m.processBlock(b)
-}
-
-func (m *Miner) doTick(s int64) {
-	m.tick = s
-
-	// Get tick-expired received blocks and process them.
-	for k, v := range m.receivedBlocks {
-		if m.tick >= k && /* future block inhibition */ m.tick+(15*ticksPerSecond) > k {
-			for _, b := range v {
-				m.processBlock(b)
-			}
-			delete(m.receivedBlocks, k)
-		}
-	}
-
-	// Mine.
-	m.mineTick()
 }
 
 func (m *Miner) processBlock(b *Block) {
@@ -254,23 +255,49 @@ func (m *Miner) setHead(head *Block) {
 	outer:
 		for i := head.i - 1; i > 0; i-- {
 			for _, b := range m.Blocks[i] {
-				if b.canonical && b.h == ph {
-					break outer
-
-				} else if b.canonical {
-					if b.miner == m.Address {
-						m.balanceAdd(-blockReward)
+				if b.h == ph {
+					// This is in the common ancestor chain.
+					if b.canonical {
+						// Common canonical ancestor.
+						break outer
 					}
-					drop++
-					b.canonical = false
-				} else if !b.canonical && b.h == ph {
+
 					if b.miner == m.Address {
 						m.balanceAdd(blockReward)
 					}
 					add++
 					b.canonical = true
-					ph = b.ph
+					ph = b.ph // set iterator
+
+					continue
 				}
+				// Not in the canonical common ancestor chain.
+				if b.canonical {
+					if b.miner == m.Address {
+						m.balanceAdd(-blockReward)
+					}
+					drop++
+					b.canonical = false
+				}
+
+				// if b.canonical && b.h == ph {
+				// 	break outer
+				//
+				// } else if !b.canonical && b.h == ph {
+				// 	if b.miner == m.Address {
+				// 		m.balanceAdd(blockReward)
+				// 	}
+				// 	add++
+				// 	b.canonical = true
+				// 	ph = b.ph
+				//
+				// } else if b.canonical {
+				// 	if b.miner == m.Address {
+				// 		m.balanceAdd(-blockReward)
+				// 	}
+				// 	drop++
+				// 	b.canonical = false
+				// }
 			}
 		}
 		for _, b := range m.Blocks[head.i] {

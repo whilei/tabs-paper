@@ -148,7 +148,7 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 			},
 		}
 
-		m.WithholdDelay = func(b *Block) int64 {
+		m.PostponeDelay = func(b *Block) int64 {
 			maliciousPostpone := int64(0)
 			if m.ConsensusAlgorithm == TDTABS && m.Address != b.miner {
 				if m.Balance > b.tabs && b.reltabs <= 0 {
@@ -565,16 +565,12 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 		// 			imgBaseName := fmt.Sprintf("%04d_f.png", nextHighBlock)
 		base := filepath.Base(f)
 		numStr := base[:4]
-		i, err := strconv.Atoi(numStr)
-		if err != nil {
-			t.Log(err)
+		if i, err := strconv.Atoi(numStr); err != nil && i%blockRowsN == 0 {
 			continue
+		} else if err != nil {
+			t.Log(err)
 		}
-		if i%blockRowsN == 0 {
-			// do nothing; this is a unique frame and could be used for composition in a montage
-		} else {
-			os.Remove(f)
-		}
+		os.Remove(f)
 	}
 }
 
