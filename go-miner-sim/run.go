@@ -237,9 +237,9 @@ func runSimPlotting(name string, mut func(m *Miner)) {
 		for _, m := range miners {
 			m.doTick(s)
 		}
-		if s%ticksPerSecond == 0 {
-			// time.Sleep(time.Millisecond * 100)
-		}
+		// if s%ticksPerSecond == 0 {
+		// 	// time.Sleep(time.Millisecond * 100)
+		// }
 		if s%(tickSamples/100) == 0 {
 			log.Printf("progress: %0.0f%% (%d / %d)", float64(s)/float64(tickSamples)*100, s, tickSamples)
 		}

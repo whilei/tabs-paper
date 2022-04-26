@@ -38,7 +38,7 @@ func main() {
 
 // Globals
 var ticksPerSecond int64 = 10
-var tickSamples = ticksPerSecond * int64((time.Hour * 8).Seconds())
+var tickSamples = ticksPerSecond * int64((time.Hour * 24).Seconds())
 var networkLambda = (float64(1) / float64(13)) / float64(ticksPerSecond)
 var countMiners = int64(12)
 var minerNeighborRate float64 = 0.5 // 0.7
