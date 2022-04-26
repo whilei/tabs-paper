@@ -77,11 +77,16 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 
 	outDir := filepath.Join("out", name)
 	os.MkdirAll(outDir, os.ModePerm)
+
 	os.RemoveAll(filepath.Join(outDir, "anim"))
 	os.MkdirAll(filepath.Join(outDir, "anim"), os.ModePerm)
 
+	os.RemoveAll(filepath.Join(outDir, "montage"))
+	os.MkdirAll(filepath.Join(outDir, "montage"), os.ModePerm)
+
 	miners := []*Miner{}
 	minerEvents := make(chan minerEvent)
+	blockRowsN := 150
 
 	hashrates := generateMinerHashrates(HashrateDistLongtail, int(countMiners))
 	deriveMinerRelativeDifficultyHashes := func(genesisD int64, r float64) int64 {
@@ -181,7 +186,6 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 			xW := (c.Width() - (2 * marginX)) / int(countMiners)
 			x := event.minerI*xW + marginX
 
-			blockRowsN := 150
 			yH := (c.Height() - (2 * marginY)) / blockRowsN
 			var y int64
 			// if event.i > blockRowsN{
@@ -290,8 +294,13 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 		if nextHighBlock > lastHighBlock {
 			// if s%ticksPerSecond == 0 {
 
-			if err := c.SavePNG(filepath.Join(outDir, "anim", fmt.Sprintf("%04d_f.png", nextHighBlock))); err != nil {
+			imgBaseName := fmt.Sprintf("%04d_f.png", nextHighBlock)
+			if err := c.SavePNG(filepath.Join(outDir, "anim", imgBaseName)); err != nil {
 				t.Fatal("save png errored", err)
+			}
+
+			if nextHighBlock%int64(blockRowsN) == 0 {
+				mustCp(filepath.Join(outDir, "anim", imgBaseName), filepath.Join(outDir, "montage", imgBaseName))
 			}
 
 			lastHighBlock = nextHighBlock
@@ -555,6 +564,12 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 		}
 		os.Remove(f)
 	}
+
+	// make montage
+	// from the pngs (which become a gif), we can create
+	// a montage of unique frames based on how many blocks are shown per frame
+	// This gives us a static image overview of block progress.
+	// TODO
 }
 
 func ParseHexColor(s string) (c color.RGBA, err error) {
