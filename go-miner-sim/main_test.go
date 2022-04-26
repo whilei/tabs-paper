@@ -154,7 +154,7 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 				if m.Balance > b.tabs && b.reltabs <= 0 {
 					// The miner knows they have a better TABS than the received block.
 					// This gives them an edge in potential consensus points.
-					maliciousPostpone = ticksPerSecond * (b.si % 9) / 2
+					maliciousPostpone = ticksPerSecond
 				}
 			}
 			return maliciousPostpone

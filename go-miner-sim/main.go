@@ -172,7 +172,7 @@ func (m *Miner) mineTick() {
 
 func (m *Miner) broadcastBlock(b *Block) {
 	b.delay = Delay{
-		subjective: m.Delay(),
+		subjective: m.Delay(b),
 		material:   m.Latency(),
 	}
 	for _, n := range m.neighbors {
