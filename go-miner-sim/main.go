@@ -7,13 +7,38 @@ import (
 	"time"
 )
 
-func main() {
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
 
+func main() {
+	cases := []struct {
+		name          string
+		minerMutation func(m *Miner)
+	}{
+		{
+			name: "td",
+			minerMutation: func(m *Miner) {
+				m.ConsensusAlgorithm = TD
+			},
+		},
+		{
+			name: "tdtabs",
+			minerMutation: func(m *Miner) {
+				m.ConsensusAlgorithm = TDTABS
+			},
+		},
+	}
+
+	for _, c := range cases {
+		c := c
+		runSimPlotting(c.name, c.minerMutation)
+	}
 }
 
 // Globals
 var ticksPerSecond int64 = 10
-var tickSamples = ticksPerSecond * int64((time.Hour * 24).Seconds())
+var tickSamples = ticksPerSecond * int64((time.Hour * 8).Seconds())
 var networkLambda = (float64(1) / float64(13)) / float64(ticksPerSecond)
 var countMiners = int64(12)
 var minerNeighborRate float64 = 0.5 // 0.7
@@ -159,7 +184,7 @@ func (m *Miner) mineTick() {
 		// A naive model of uncle references: bool=yes if any orphan blocks exist in our miner's record of blocks
 		uncles := len(m.Blocks[parent.i]) > 1
 
-		blockDifficulty := detBlockDifficulty(parent, uncles, (s-parent.s)*ticksPerSecond)
+		blockDifficulty := getBlockDifficulty(parent, uncles, (s-parent.s)*ticksPerSecond)
 		tabs := getTABS(parent, m.Balance)
 		tdtabs := tabs * blockDifficulty
 		b := &Block{

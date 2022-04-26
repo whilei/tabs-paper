@@ -1,8 +1,8 @@
 package main
 
-// detBlockDifficulty calculates difficulty.
+// getBlockDifficulty calculates difficulty.
 // interval should be factored by tick rate already.
-func detBlockDifficulty(parent *Block, uncles bool, interval int64) int64 {
+func getBlockDifficulty(parent *Block, uncles bool, interval int64) int64 {
 	x := interval / (9) // 9 SECONDS
 	y := 1 - x
 	if uncles {
