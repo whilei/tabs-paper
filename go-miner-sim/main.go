@@ -22,8 +22,8 @@ var blockReward int64 = 3
 var latencySecondsDefault float64 = 2.5
 var delaySecondsDefault float64 = 0 // miner hesitancy to broadcast solution
 
-const tabsAdjustmentDenominator = int64(128) // int64(4096) <-- 4096 is the 'equilibrium' value, lower values prefer richer miners more (devaluing hashrate)
-const genesisBlockTABS int64 = 10_000        // tabs starting value
+const tabsAdjustmentDenominator = int64(4096) // int64(4096) <-- 4096 is the 'equilibrium' value, lower values prefer richer miners more (devaluing hashrate)
+const genesisBlockTABS int64 = 10_000         // tabs starting value
 const genesisDifficulty = 10_000_000_000
 
 var genesisBlock = &Block{
@@ -37,30 +37,6 @@ var genesisBlock = &Block{
 	delay:     Delay{},
 	h:         fmt.Sprintf("%08x", rand.Int63()),
 	canonical: true,
-}
-
-type ConsensusAlgorithm int
-
-const (
-	None ConsensusAlgorithm = iota
-	TD
-	TDTABS
-	TimeAsc
-	TimeDesc // FreshnessPreferred
-)
-
-func (c ConsensusAlgorithm) String() string {
-	switch c {
-	case TD:
-		return "TD"
-	case TDTABS:
-		return "TDTABS"
-	case TimeAsc:
-		return "TimeAsc"
-	case TimeDesc:
-		return "TimeDesc"
-	}
-	panic("impossible")
 }
 
 type Block struct {
@@ -134,29 +110,21 @@ type minerEvent struct {
 	blocks Blocks
 }
 
-func getBlockDifficulty(parent *Block, uncles bool, interval int64) int64 {
-	x := interval / (9 * ticksPerSecond) // 9 SECONDS
-	y := 1 - x
-	if uncles {
-		y = 2 - x
-	}
-	if y < -99 {
-		y = -99
-	}
-	return int64(float64(parent.d) + (float64(y) / 2048 * float64(parent.d)))
-}
+func (m *Miner) doTick(s int64) {
+	m.tick = s
 
-func getTABS(parent *Block, localTAB int64) int64 {
-	scalarNumerator := int64(0)
-	if localTAB > parent.tabs {
-		scalarNumerator = 1
-	} else if localTAB < parent.tabs {
-		scalarNumerator = -1
+	// Get tick-expired received blocks and process them.
+	for k, v := range m.receivedBlocks {
+		if m.tick >= k && /* future block inhibition */ m.tick+(15*ticksPerSecond) > k {
+			for _, b := range v {
+				m.processBlock(b)
+			}
+			delete(m.receivedBlocks, k)
+		}
 	}
 
-	numerator := tabsAdjustmentDenominator + scalarNumerator // [127|128|129]/128, [4095|4096|4097]/4096
-
-	return int64(float64(parent.tabs) * float64(numerator) / float64(tabsAdjustmentDenominator))
+	// Mine.
+	m.mineTick()
 }
 
 func (m *Miner) mineTick() {
@@ -191,7 +159,7 @@ func (m *Miner) mineTick() {
 		// A naive model of uncle references: bool=yes if any orphan blocks exist in our miner's record of blocks
 		uncles := len(m.Blocks[parent.i]) > 1
 
-		blockDifficulty := getBlockDifficulty(parent /* interval: */, uncles, s-parent.s)
+		blockDifficulty := detBlockDifficulty(parent, uncles, (s-parent.s)*ticksPerSecond)
 		tabs := getTABS(parent, m.Balance)
 		tdtabs := tabs * blockDifficulty
 		b := &Block{
@@ -233,23 +201,6 @@ func (m *Miner) receiveBlock(b *Block) {
 	m.processBlock(b)
 }
 
-func (m *Miner) doTick(s int64) {
-	m.tick = s
-
-	// Get tick-expired received blocks and process them.
-	for k, v := range m.receivedBlocks {
-		if m.tick >= k && /* future block inhibition */ m.tick+(15*ticksPerSecond) > k {
-			for _, b := range v {
-				m.processBlock(b)
-			}
-			delete(m.receivedBlocks, k)
-		}
-	}
-
-	// Mine.
-	m.mineTick()
-}
-
 func (m *Miner) processBlock(b *Block) {
 	dupe := m.Blocks.AppendBlockByNumber(b)
 	if !dupe {
@@ -267,13 +218,62 @@ func (m *Miner) processBlock(b *Block) {
 	m.setHead(canon)
 }
 
-func (m *Miner) balanceAdd(i int64) {
-	m.Balance += i
-	if m.BalanceCap != 0 && m.Balance > m.BalanceCap {
-		m.Balance = m.BalanceCap
+// arbitrateBlocks selects one canonical block from any two blocks.
+func (m *Miner) arbitrateBlocks(a, b *Block) *Block {
+	m.ConsensusArbitrations++          // its what we do here
+	m.ConsensusObjectiveArbitrations++ // an assumption that will be undone (--) if it does not hold
+
+	decisionCondition := "pow_score_high"
+	defer func() {
+		m.decisionConditionTallies[decisionCondition]++
+	}()
+
+	if m.ConsensusAlgorithm == TD {
+		// TD arbitration
+		if a.td > b.td {
+			return a
+		} else if b.td > a.td {
+			return b
+		}
+	} else if m.ConsensusAlgorithm == TDTABS {
+		if (a.ttdtabs) > (b.ttdtabs) {
+			return a
+		} else if (b.ttdtabs) > (a.ttdtabs) {
+			return b
+		}
 	}
+
+	// Number arbitration
+	decisionCondition = "height_low"
+	if a.i < b.i {
+		return a
+	} else if b.i < a.i {
+		return b
+	}
+
+	// If we've reached this point, the arbitration was not
+	// objective.
+	m.ConsensusObjectiveArbitrations--
+
+	// Self-interest arbitration
+	decisionCondition = "miner_selfish"
+	if a.miner == m.Address && b.miner != m.Address {
+		return a
+	} else if b.miner == m.Address && a.miner != m.Address {
+		return b
+	}
+
+	// Coin toss
+	decisionCondition = "random"
+	if rand.Float64() < 0.5 {
+		return a
+	}
+	return b
 }
 
+// setHead sets the given block as the miner's canonical head.
+// It assumes that canon-arbitration has already happened,
+// and that this head block is indeed canonical and should be the best block ever.
 func (m *Miner) setHead(head *Block) {
 	// Should never happen, but handle the case.
 	if m.head.h == head.h {
@@ -285,7 +285,9 @@ func (m *Miner) setHead(head *Block) {
 		// Reorg!
 		add, drop := 1, 0
 
+		// ph is an iterated value during common ancestor finding.
 		ph := head.ph
+
 		// outer iterates backwards from the parent of the head block
 		// it breaks when it finds a common ancestor
 	outer:
@@ -358,6 +360,13 @@ func (m *Miner) setHead(head *Block) {
 	}
 }
 
+func (m *Miner) balanceAdd(i int64) {
+	m.Balance += i
+	if m.BalanceCap != 0 && m.Balance > m.BalanceCap {
+		m.Balance = m.BalanceCap
+	}
+}
+
 func (m *Miner) reorgMagnitudes() (magnitudes []float64) {
 	for k := range m.Blocks {
 		// This takes reorg magnitudes for ALL blocks,
@@ -368,59 +377,6 @@ func (m *Miner) reorgMagnitudes() (magnitudes []float64) {
 		}
 	}
 	return magnitudes
-}
-
-// arbitrateBlocks selects one canonical block from any two blocks.
-func (m *Miner) arbitrateBlocks(a, b *Block) *Block {
-	m.ConsensusArbitrations++          // its what we do here
-	m.ConsensusObjectiveArbitrations++ // an assumption that will be undone (--) if it does not hold
-
-	decisionCondition := "pow_score_high"
-	defer func() {
-		m.decisionConditionTallies[decisionCondition]++
-	}()
-
-	if m.ConsensusAlgorithm == TD {
-		// TD arbitration
-		if a.td > b.td {
-			return a
-		} else if b.td > a.td {
-			return b
-		}
-	} else if m.ConsensusAlgorithm == TDTABS {
-		if (a.ttdtabs) > (b.ttdtabs) {
-			return a
-		} else if (b.ttdtabs) > (a.ttdtabs) {
-			return b
-		}
-	}
-
-	// Number arbitration
-	decisionCondition = "height_low"
-	if a.i < b.i {
-		return a
-	} else if b.i < a.i {
-		return b
-	}
-
-	// If we've reached this point, the arbitration was not
-	// objective.
-	m.ConsensusObjectiveArbitrations--
-
-	// Self-interest arbitration
-	decisionCondition = "miner_selfish"
-	if a.miner == m.Address && b.miner != m.Address {
-		return a
-	} else if b.miner == m.Address && a.miner != m.Address {
-		return b
-	}
-
-	// Coin toss
-	decisionCondition = "random"
-	if rand.Float64() < 0.5 {
-		return a
-	}
-	return b
 }
 
 func (d Delay) Total() int64 {
@@ -482,7 +438,7 @@ func (bt BlockTree) Ks() (ks []float64) {
 	return ks
 }
 
-// Intervals returns ALL block intervals for a tree (whether canonical or not).
+// CanonicalIntervals returns canonical block intervals for a tree.
 // Again, []float64 is used because its convenient in context.
 func (bt BlockTree) CanonicalIntervals() (intervals []float64) {
 	for _, v := range bt {
