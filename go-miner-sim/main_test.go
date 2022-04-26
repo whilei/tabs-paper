@@ -137,7 +137,7 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 			reorgs:                   make(map[int64]struct{ add, drop int }),
 			decisionConditionTallies: make(map[string]int),
 			cord:                     minerEvents,
-			Delay: func(block *Block) int64 {
+			BroadcastDelay: func(block *Block) int64 {
 				return int64(delaySecondsDefault * float64(ticksPerSecond))
 				// return int64(hr * 3 * rand.Float64() * float64(ticksPerSecond))
 			},
@@ -148,9 +148,9 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 			},
 		}
 
-		m.Delay = func(b *Block) int64 {
+		m.WithholdDelay = func(b *Block) int64 {
 			maliciousPostpone := int64(0)
-			if m.ConsensusAlgorithm == TDTABS && b.miner == m.Address {
+			if m.ConsensusAlgorithm == TDTABS && m.Address != b.miner {
 				if m.Balance > b.tabs && b.reltabs <= 0 {
 					// The miner knows they have a better TABS than the received block.
 					// This gives them an edge in potential consensus points.
@@ -594,7 +594,7 @@ func TestProcessBlock(t *testing.T) {
 		reorgs:                   make(map[int64]struct{ add, drop int }),
 		decisionConditionTallies: make(map[string]int),
 		cord:                     make(chan minerEvent),
-		Delay: func() int64 {
+		BroadcastDelay: func(*Block) int64 {
 			return int64(delaySecondsDefault * float64(ticksPerSecond))
 			// return int64(hr * 3 * rand.Float64() * float64(ticksPerSecond))
 		},

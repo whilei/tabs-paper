@@ -72,8 +72,9 @@ type Miner struct {
 	BalanceCap    int64 // Max Wei this miner will hold. Use 0 for no limit hold 'em.
 	CostPerBlock  int64 // cost to miner, expended after each block win (via tx on text block)
 
-	Latency func() int64
-	Delay   func(block *Block) int64
+	Latency        func() int64
+	BroadcastDelay func(block *Block) int64
+	WithholdDelay  func(block *Block) int64
 
 	ConsensusAlgorithm             ConsensusAlgorithm
 	ConsensusArbitrations          int
@@ -172,8 +173,8 @@ func (m *Miner) mineTick() {
 
 func (m *Miner) broadcastBlock(b *Block) {
 	b.delay = Delay{
-		subjective: m.Delay(b),
-		material:   m.Latency(),
+		withhold: m.BroadcastDelay(b),
+		material: m.Latency(),
 	}
 	for _, n := range m.neighbors {
 		n.receiveBlock(b)
@@ -181,6 +182,9 @@ func (m *Miner) broadcastBlock(b *Block) {
 }
 
 func (m *Miner) receiveBlock(b *Block) {
+	if m.WithholdDelay != nil {
+		b.delay.postpone = m.WithholdDelay(b)
+	}
 	if d := b.delay.Total(); d > 0 {
 		if len(m.receivedBlocks[b.s+d]) > 0 {
 			m.receivedBlocks[b.s+d] = append(m.receivedBlocks[b.s+d], b)
@@ -424,12 +428,13 @@ type Block struct {
 }
 
 type Delay struct {
-	subjective int64
-	material   int64
+	withhold int64 // selfishly withhold. This is controlled by the mining miner.
+	postpone int64 // postpone processing to give self more time to mine last block. Controlled by the receiving miner.
+	material int64 // ohms
 }
 
 func (d Delay) Total() int64 {
-	return d.subjective + d.material
+	return d.withhold + d.postpone + d.material
 }
 
 type Blocks []*Block
