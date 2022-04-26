@@ -513,7 +513,8 @@ func runSimPlotting(name string, mut func(m *Miner)) {
 		numStr := base[:4]
 		i, err := strconv.Atoi(numStr)
 		if err != nil {
-			log.Fatalln(err)
+			log.Println("failed to parse num", err)
+			continue
 		}
 		if i%blockRowsN == 0 {
 			// do nothing; this is a unique frame and could be used for composition in a montage
