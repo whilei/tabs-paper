@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"image/color"
+	"io/ioutil"
 	"math/rand"
 	"os"
 	"os/exec"
@@ -341,8 +342,7 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 			return b.canonical && b.miner == m.Address
 		}).Len()
 
-		// t.Logf(`a=%s c=%s hr=%0.2f h/t=%d head.i=%d head.tabs=%d k_mean=%0.3f k_med=%0.3f k_mode=%v intervals_mean=%0.3fs d_mean.rel=%0.3f balance=%d objective_decs=%0.3f reorgs.mag_mean=%0.3f`,
-		t.Logf(`a=%s c=%s hr=%0.2f winr=%0.3f wins=%d head.i=%d head.tabs=%d k_mean=%0.3f k_med=%0.3f k_mode=%v intervals_mean=%0.3fs d_mean.rel=%0.3f balance=%d objective_decs=%0.3f reorgs.mag_mean=%0.3f`,
+		minerLog := fmt.Sprintf(`a=%s c=%s hr=%0.2f winr=%0.3f wins=%d head.i=%d head.tabs=%d k_mean=%0.3f k_med=%0.3f k_mode=%v intervals_mean=%0.3fs d_mean.rel=%0.3f balance=%d objective_decs=%0.3f reorgs.mag_mean=%0.3f\n`,
 			m.Address, m.ConsensusAlgorithm, hashrates[i], float64(wins)/float64(m.head.i), wins, /* m.HashesPerTick, */
 			m.head.i, m.head.tabs,
 			kMean, kMed, kMode,
@@ -350,6 +350,11 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 			m.Balance,
 			float64(m.ConsensusObjectiveArbitrations)/float64(m.ConsensusArbitrations),
 			reorgMagsMean)
+
+		t.Log(minerLog)
+
+		ioutil.WriteFile(filepath.Join(outDir, fmt.Sprintf("miner_%d", i)), []byte(minerLog), os.ModePerm)
+		ioutil.WriteFile(filepath.Join(outDir, fmt.Sprintf("miner_%d_bt", i)), []byte(m.Blocks.String()), os.ModePerm)
 	}
 
 	t.Log("Making plots...")
