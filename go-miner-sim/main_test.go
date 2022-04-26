@@ -532,7 +532,7 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 	t.Log("Making movie...")
 	movieCmd := exec.Command("/usr/bin/ffmpeg",
 		"-f", "image2",
-		"-r", "10/1", // 10 images / 1 second (Hz)
+		"-r", "20/1", // 10 images / 1 second (Hz)
 		// "-vframes", fmt.Sprintf("%d", lastHighBlock),
 		"-pattern_type", "glob",
 		"-i", filepath.Join(outDir, "anim", "*.png"),
