@@ -135,7 +135,7 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 			head:                     nil,
 			receivedBlocks:           BlockTree{},
 			neighbors:                []*Miner{},
-			reorgs:                   make(map[int64]struct{ add, drop int }),
+			reorgs:                   make(map[int64]reorg),
 			decisionConditionTallies: make(map[string]int),
 			cord:                     minerEvents,
 			BroadcastDelay: func(block *Block) int64 {
@@ -557,7 +557,8 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 	t.Log("Making gif...")
 	gifCmd := exec.Command("/usr/bin/ffmpeg",
 		"-i", filepath.Join(outDir, "anim", "out.mp4"),
-		"-r", "10",
+		// "-r", "10", // Hz value
+		"-r", "20", // Hz value
 		"-vf", "scale=512:-1",
 		filepath.Join(outDir, "anim", "out.gif"),
 	)
@@ -595,7 +596,7 @@ func TestProcessBlock(t *testing.T) {
 		head:                     nil,
 		receivedBlocks:           BlockTree{},
 		neighbors:                []*Miner{},
-		reorgs:                   make(map[int64]struct{ add, drop int }),
+		reorgs:                   make(map[int64]reorg),
 		decisionConditionTallies: make(map[string]int),
 		cord:                     make(chan minerEvent),
 		BroadcastDelay: func(*Block) int64 {
