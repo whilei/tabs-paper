@@ -4,7 +4,12 @@ import (
 	"fmt"
 	"math/rand"
 	"testing"
+	"time"
 )
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
 
 // TestBlockTree_AppendBlock is a unit test.
 func TestBlockTree_AppendBlock(t *testing.T) {

@@ -47,8 +47,8 @@ var blockReward int64 = 3
 var latencySecondsDefault float64 = 2.5
 var delaySecondsDefault float64 = 0 // miner hesitancy to broadcast solution
 
-const tabsAdjustmentDenominator = int64(4096) // int64(4096) <-- 4096 is the 'equilibrium' value, lower values prefer richer miners more (devaluing hashrate)
-const genesisBlockTABS int64 = 10_000         // tabs starting value
+const tabsAdjustmentDenominator = int64(128) // int64(4096) <-- 4096 is the 'equilibrium' value, lower values prefer richer miners more (devaluing hashrate)
+const genesisBlockTABS int64 = 10_000        // tabs starting value
 const genesisDifficulty = 10_000_000_000
 
 var genesisBlock = &Block{
@@ -413,7 +413,7 @@ func (bs Blocks) Len() int {
 }
 
 func NewBlockTree() BlockTree {
-	return BlockTree(make(map[int64]Blocks))
+	return make(map[int64]Blocks)
 }
 
 func (bt BlockTree) String() string {
