@@ -183,7 +183,7 @@ func (m *Miner) broadcastBlock(b *Block) {
 func (m *Miner) receiveBlock(b *Block) {
 	maliciousPostpone := int64(0)
 	if m.ConsensusAlgorithm == TDTABS && b.miner == m.Address {
-		if m.Balance > b.tabs && b.reltabs < 0 {
+		if m.Balance > b.tabs && b.reltabs <= 0 {
 			// The miner knows they have a better TABS than the received block.
 			// This gives them an edge in potential consensus points.
 			maliciousPostpone = ticksPerSecond * (b.si % 9)
