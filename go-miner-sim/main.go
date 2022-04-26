@@ -37,15 +37,15 @@ func main() {
 }
 
 // Globals
-var ticksPerSecond int64 = 4
-var tickSamples = ticksPerSecond * int64((time.Hour * 8).Seconds())
+var ticksPerSecond int64 = 8
+var tickSamples = ticksPerSecond * int64((time.Hour).Seconds())
 var networkLambda = (float64(1) / float64(13)) / float64(ticksPerSecond)
 var countMiners = int64(12)
 var minerNeighborRate float64 = 0.5 // 0.7
 var blockReward int64 = 3
 
-var latencySecondsDefault float64 = 2.5
-var delaySecondsDefault float64 = 0 // miner hesitancy to broadcast solution
+var latencySecondsDefault float64 = 1.5 // 2.5
+var delaySecondsDefault float64 = 0     // miner hesitancy to broadcast solution
 
 const tabsAdjustmentDenominator = int64(4096) // int64(4096) <-- 4096 is the 'equilibrium' value, lower values prefer richer miners more (devaluing hashrate)
 const genesisBlockTABS int64 = 10_000         // tabs starting value
@@ -215,11 +215,11 @@ func (m *Miner) broadcastBlock(b *Block) {
 }
 
 func (m *Miner) receiveBlock(b *Block) {
-	if d := b.delay.Total(); d > 0 {
-		if len(m.receivedBlocks[b.s+d]) > 0 {
-			m.receivedBlocks[b.s+d] = append(m.receivedBlocks[b.s+d], b)
+	if delay := b.delay.Total(); delay > 0 {
+		if len(m.receivedBlocks[b.s+delay]) > 0 {
+			m.receivedBlocks[b.s+delay] = append(m.receivedBlocks[b.s+delay], b)
 		} else {
-			m.receivedBlocks[b.s+d] = Blocks{b}
+			m.receivedBlocks[b.s+delay] = Blocks{b}
 		}
 		return
 	}
