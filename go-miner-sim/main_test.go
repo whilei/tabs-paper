@@ -7,7 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
+	"strconv"
 	"testing"
 	"time"
 
@@ -95,6 +95,7 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 		return int64((float64(supply) * minerHashrate))
 	}
 
+	blockRowsN := 150
 	lastColor := colorful.Color{}
 	grad := colorgrad.Viridis()
 
@@ -181,7 +182,6 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 			xW := (c.Width() - (2 * marginX)) / int(countMiners)
 			x := event.minerI*xW + marginX
 
-			blockRowsN := 150
 			yH := (c.Height() - (2 * marginY)) / blockRowsN
 			var y int64
 			// if event.i > blockRowsN{
@@ -550,10 +550,19 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 		t.Fatal(err)
 	}
 	for _, f := range animSlides {
-		if strings.Contains(f, "0420") {
+		// 			imgBaseName := fmt.Sprintf("%04d_f.png", nextHighBlock)
+		base := filepath.Base(f)
+		numStr := base[:4]
+		i, err := strconv.Atoi(numStr)
+		if err != nil {
+			t.Log(err)
 			continue
 		}
-		os.Remove(f)
+		if i%blockRowsN == 0 {
+			// do nothing; this is a unique frame and could be used for composition in a montage
+		} else {
+			os.Remove(f)
+		}
 	}
 }
 
