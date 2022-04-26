@@ -180,7 +180,8 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 
 	c.SavePNG(filepath.Join(outDir, "anim", "out.png"))
 
-	videoBlackRedForks := true
+	videoBlackRedForks := false
+	// videoBlackRedForks := true
 
 	go func() {
 		c.Push() // unresolved state push
