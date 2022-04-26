@@ -149,17 +149,18 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 			},
 		}
 
-		m.PostponeDelay = func(b *Block) int64 {
-			maliciousPostpone := int64(0)
-			if m.ConsensusAlgorithm == TDTABS && m.Address != b.miner {
-				if m.Balance > b.tabs && b.reltabs <= 0 {
-					// The miner knows they have a better TABS than the received block.
-					// This gives them an edge in potential consensus points.
-					maliciousPostpone = ticksPerSecond
-				}
-			}
-			return maliciousPostpone
-		}
+		// #EVIL...
+		// m.PostponeDelay = func(b *Block) int64 {
+		// 	maliciousPostpone := int64(0)
+		// 	if m.ConsensusAlgorithm == TDTABS && m.Address != b.miner {
+		// 		if m.Balance > b.tabs && b.reltabs <= 0 {
+		// 			// The miner knows they have a better TABS than the received block.
+		// 			// This gives them an edge in potential consensus points.
+		// 			maliciousPostpone = ticksPerSecond * (b.si % 9)
+		// 		}
+		// 	}
+		// 	return maliciousPostpone
+		// }
 
 		mut(m)
 
@@ -297,9 +298,7 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 		for _, i := range rand.Perm(len(miners)) {
 			miners[i].doTick(s)
 		}
-		// for _, m := range miners {
-		// 	m.doTick(s)
-		// }
+
 		if s%ticksPerSecond == 0 {
 			// time.Sleep(time.Millisecond * 100)
 		}
@@ -351,7 +350,7 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 			float64(m.ConsensusObjectiveArbitrations)/float64(m.ConsensusArbitrations),
 			reorgMagsMean)
 
-		t.Log(minerLog)
+		t.Logf(minerLog)
 
 		ioutil.WriteFile(filepath.Join(outDir, fmt.Sprintf("miner_%d", i)), []byte(minerLog), os.ModePerm)
 		ioutil.WriteFile(filepath.Join(outDir, fmt.Sprintf("miner_%d_bt", i)), []byte(m.Blocks.String()), os.ModePerm)

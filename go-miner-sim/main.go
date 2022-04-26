@@ -19,7 +19,7 @@ func main() {
 
 // Globals
 var ticksPerSecond int64 = 10
-var tickSamples = ticksPerSecond * int64((time.Hour * 24).Seconds())
+var tickSamples = ticksPerSecond * int64((time.Hour * 6).Seconds())
 var networkLambda = (float64(1) / float64(13)) / float64(ticksPerSecond)
 var countMiners = int64(12)
 var minerNeighborRate float64 = 0.5 // 0.7
@@ -28,8 +28,8 @@ var blockReward int64 = 3
 var latencySecondsDefault float64 = 2.5
 var delaySecondsDefault float64 = 0 // miner hesitancy to broadcast solution
 
-const tabsAdjustmentDenominator = int64(4096) // int64(4096) <-- 4096 is the 'equilibrium' value, lower values prefer richer miners more (devaluing hashrate)
-const genesisBlockTABS int64 = 10_000         // tabs starting value
+const tabsAdjustmentDenominator = int64(128) // int64(4096) <-- 4096 is the 'equilibrium' value, lower values prefer richer miners more (devaluing hashrate)
+const genesisBlockTABS int64 = 10_000        // tabs starting value
 const genesisDifficulty = 10_000_000_000
 
 var genesisBlock = &Block{
@@ -42,6 +42,7 @@ var genesisBlock = &Block{
 	miner:     "X",
 	delay:     Delay{},
 	h:         fmt.Sprintf("%08x", rand.Int63()),
+	ph:        "00000000",
 	canonical: true,
 }
 
@@ -240,85 +241,31 @@ func (m *Miner) balanceAdd(i int64) {
 }
 
 func (m *Miner) setHead(head *Block) {
-	// Should never happen, but handle the case.
-	if m.head.h == head.h {
-		return
+
+	add, drop := 1, 0 // These will only be recorded if reorg is true. Otherwise noops.
+
+	addCanon := func(b *Block) {
+		b.canonical = true
+		if b.miner == m.Address {
+			m.balanceAdd(blockReward)
+		}
+		add++
+	}
+
+	dropCanon := func(b *Block) {
+		if !b.canonical {
+			return
+		}
+		if b.miner == m.Address {
+			m.balanceAdd(-blockReward)
+		}
+		b.canonical = false
+		drop++
 	}
 
 	doReorg := m.head.h != head.ph
 	if doReorg {
-		// Reorg!
-		add, drop := 1, 0
 
-		addCanon := func(b *Block) {
-			b.canonical = true
-			if b.miner == m.Address {
-				m.balanceAdd(blockReward)
-			}
-			add++
-		}
-
-		dropCanon := func(b *Block) {
-			b.canonical = false
-			if b.miner == m.Address {
-				m.balanceAdd(-blockReward)
-			}
-			drop++
-		}
-
-		ph := head.ph
-		// chain iterates backwards from the parent of the head block
-		// it breaks when it finds a common ancestor
-	chain:
-		for i := head.i - 1; i > 0; i-- {
-		height:
-			for _, b := range m.Blocks[i] {
-				if b.h == ph {
-					// This is in the common ancestor chain.
-					// There will only be one of these (b.h == ph) per height.
-					if b.canonical {
-						// Common canonical ancestor.
-						break chain
-					}
-
-					addCanon(b)
-					ph = b.ph // set iterator (ok since we know the other blocks at this height will be side, and wont match the ph value anyway)
-
-					continue height
-				}
-				// Not in the canonical common ancestor chain.
-				if b.canonical {
-					dropCanon(b)
-				}
-
-				// if b.canonical && b.h == ph {
-				// 	break chain
-				//
-				// } else if !b.canonical && b.h == ph {
-				// 	if b.miner == m.Address {
-				// 		m.balanceAdd(blockReward)
-				// 	}
-				// 	add++
-				// 	b.canonical = true
-				// 	ph = b.ph
-				//
-				// } else if b.canonical {
-				// 	if b.miner == m.Address {
-				// 		m.balanceAdd(-blockReward)
-				// 	}
-				// 	drop++
-				// 	b.canonical = false
-				// }
-			}
-		}
-		// All blocks at head height which are not the new head are not canonical.
-		for _, b := range m.Blocks[head.i] {
-			if b.h != head.h {
-				if b.canonical {
-					dropCanon(b)
-				}
-			}
-		}
 		// No block above the new head will be canonical.
 		for i := head.i + 1; ; i++ {
 			if len(m.Blocks[i]) == 0 {
@@ -327,10 +274,24 @@ func (m *Miner) setHead(head *Block) {
 				break
 			}
 			for _, b := range m.Blocks[i] {
-				if b.canonical {
-					dropCanon(b)
-				}
+				dropCanon(b)
 			}
+		}
+
+		// All blocks at head height which are not the new head are not canonical.
+		for _, b := range m.Blocks[head.i] {
+			if b.h != head.h {
+				dropCanon(b)
+			}
+		}
+
+		// Iterate backwards from the parent of the head block
+		// breaking when we find a common ancestor.
+		for p := m.Blocks.GetParent(head); p != nil && !p.canonical; p = m.Blocks.GetParent(p) {
+			for _, v := range m.Blocks[p.i] {
+				dropCanon(v) // drop all from canon
+			}
+			addCanon(p) // add the one parent to canon
 		}
 
 		m.reorgs[head.i] = struct{ add, drop int }{add, drop}
@@ -339,14 +300,9 @@ func (m *Miner) setHead(head *Block) {
 	}
 
 	m.head = head
-	// m.head.canonical = true
-
-	// Block reward. Block-transaction fees are held presumed constant.
-	if m.Address == head.miner {
-		m.balanceAdd(blockReward)
-	}
-
 	headI := head.i
+
+	addCanon(m.head)
 
 	m.cord <- minerEvent{
 		minerI: int(m.Index),
@@ -356,15 +312,20 @@ func (m *Miner) setHead(head *Block) {
 }
 
 func (m *Miner) reorgMagnitudes() (magnitudes []float64) {
-	for k := range m.Blocks {
-		// This takes reorg magnitudes for ALL blocks,
-		// not just the block numbers at which reorgs happened.
-		// TODO
-		if v, ok := m.reorgs[k]; ok {
-			magnitudes = append(magnitudes, float64(v.add+v.drop))
-		}
+	// for k := range m.Blocks {
+	// 	// This takes reorg magnitudes for ALL blocks,
+	// 	// not just the block numbers at which reorgs happened.
+	// 	// TODO
+	// 	if v, ok := m.reorgs[k]; ok {
+	// 		magnitudes = append(magnitudes, float64(v.add+v.drop))
+	// 	}
+	//
+	// }
+	// return magnitudes
+	for _, v := range m.reorgs {
+		magnitudes = append(magnitudes, float64(v.add+v.drop))
 	}
-	return magnitudes
+	return
 }
 
 // arbitrateBlocks selects one canonical block from any two blocks.
@@ -488,7 +449,7 @@ func (bt BlockTree) String() string {
 
 		out += fmt.Sprintf("n=%d ", i)
 		for _, b := range bt[i] {
-			out += fmt.Sprintf("[h=%s ph=%s c=%v]", b.h, b.ph, b.canonical)
+			out += fmt.Sprintf("[h=%s ph=%s c=%v]", b.h[:4], b.ph[:4], b.canonical)
 		}
 		out += "\n"
 	}
@@ -593,6 +554,15 @@ func (bt BlockTree) Where(condition func(*Block) bool) (blocks Blocks) {
 		}
 	}
 	return blocks
+}
+
+func (bt BlockTree) GetParent(b *Block) (parent *Block) {
+	for _, v := range bt[b.i-1] {
+		if v.h == b.ph {
+			return v
+		}
+	}
+	return nil
 }
 
 type minerResults struct {
