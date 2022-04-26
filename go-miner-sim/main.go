@@ -73,7 +73,7 @@ type Miner struct {
 	CostPerBlock  int64 // cost to miner, expended after each block win (via tx on text block)
 
 	Latency func() int64
-	Delay   func() int64
+	Delay   func(block *Block) int64
 
 	ConsensusAlgorithm             ConsensusAlgorithm
 	ConsensusArbitrations          int
@@ -181,15 +181,7 @@ func (m *Miner) broadcastBlock(b *Block) {
 }
 
 func (m *Miner) receiveBlock(b *Block) {
-	maliciousPostpone := int64(0)
-	if m.ConsensusAlgorithm == TDTABS && b.miner == m.Address {
-		if m.Balance > b.tabs && b.reltabs <= 0 {
-			// The miner knows they have a better TABS than the received block.
-			// This gives them an edge in potential consensus points.
-			maliciousPostpone = ticksPerSecond * (b.si % 9)
-		}
-	}
-	if d := b.delay.Total() + maliciousPostpone; d > 0 {
+	if d := b.delay.Total(); d > 0 {
 		if len(m.receivedBlocks[b.s+d]) > 0 {
 			m.receivedBlocks[b.s+d] = append(m.receivedBlocks[b.s+d], b)
 		} else {
