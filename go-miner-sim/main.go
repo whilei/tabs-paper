@@ -16,12 +16,12 @@ func main() {
 		name          string
 		minerMutation func(m *Miner)
 	}{
-		// {
-		// 	name: "td",
-		// 	minerMutation: func(m *Miner) {
-		// 		m.ConsensusAlgorithm = TD
-		// 	},
-		// },
+		{
+			name: "td",
+			minerMutation: func(m *Miner) {
+				m.ConsensusAlgorithm = TD
+			},
+		},
 		{
 			name: "tdtabs",
 			minerMutation: func(m *Miner) {
