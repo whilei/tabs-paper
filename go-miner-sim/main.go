@@ -228,6 +228,7 @@ func (m *Miner) processBlock(b *Block) {
 	}
 
 	canon := m.arbitrateBlocks(m.head, b)
+	canon.canonical = true
 	m.setHead(canon)
 }
 
@@ -249,39 +250,49 @@ func (m *Miner) setHead(head *Block) {
 		// Reorg!
 		add, drop := 1, 0
 
+		setBlockCanonical := func(b *Block) {
+			b.canonical = true
+			if b.miner == m.Address {
+				m.balanceAdd(blockReward)
+			}
+			add++
+		}
+
+		dropBlockCanonical := func(b *Block) {
+			b.canonical = false
+			if b.miner == m.Address {
+				m.balanceAdd(-blockReward)
+			}
+			drop++
+		}
+
 		ph := head.ph
-		// outer iterates backwards from the parent of the head block
+		// chain iterates backwards from the parent of the head block
 		// it breaks when it finds a common ancestor
-	outer:
+	chain:
 		for i := head.i - 1; i > 0; i-- {
+		height:
 			for _, b := range m.Blocks[i] {
 				if b.h == ph {
 					// This is in the common ancestor chain.
+					// There will only be one of these per height.
 					if b.canonical {
 						// Common canonical ancestor.
-						break outer
+						break chain
 					}
 
-					if b.miner == m.Address {
-						m.balanceAdd(blockReward)
-					}
-					add++
-					b.canonical = true
-					ph = b.ph // set iterator
+					setBlockCanonical(b)
+					ph = b.ph // set iterator (ok since we know the other blocks at this height will be side, and wont match the ph value anyway)
 
-					continue
+					continue height
 				}
 				// Not in the canonical common ancestor chain.
 				if b.canonical {
-					if b.miner == m.Address {
-						m.balanceAdd(-blockReward)
-					}
-					drop++
-					b.canonical = false
+					dropBlockCanonical(b)
 				}
 
 				// if b.canonical && b.h == ph {
-				// 	break outer
+				// 	break chain
 				//
 				// } else if !b.canonical && b.h == ph {
 				// 	if b.miner == m.Address {
@@ -303,11 +314,7 @@ func (m *Miner) setHead(head *Block) {
 		for _, b := range m.Blocks[head.i] {
 			if b.h != head.h {
 				if b.canonical {
-					if b.miner == m.Address {
-						m.balanceAdd(-blockReward)
-					}
-					drop++
-					b.canonical = false
+					dropBlockCanonical(b)
 				}
 			}
 		}
@@ -317,11 +324,7 @@ func (m *Miner) setHead(head *Block) {
 			}
 			for _, b := range m.Blocks[i] {
 				if b.canonical {
-					if b.miner == m.Address {
-						m.balanceAdd(-blockReward)
-					}
-					drop++
-					b.canonical = false
+					dropBlockCanonical(b)
 				}
 			}
 		}
@@ -332,7 +335,7 @@ func (m *Miner) setHead(head *Block) {
 	}
 
 	m.head = head
-	m.head.canonical = true
+	// m.head.canonical = true
 
 	// Block reward. Block-transaction fees are held presumed constant.
 	if m.Address == head.miner {
