@@ -659,13 +659,12 @@ If transactions are equally available for all chains, measurements based on them
 % In practice, this could be worked around, but without guarantees.
 There are existing ways that this is practically possible (or imitable),
 though this option and others like it are limited compared with the proposal outlined below.
-A private messaging service, like e-mail, could be used to send
-transaction information to miners.
-In this context, the sender would assume the bespoke transaction would be handled privately by the miner
-until their winning of a next block.
-However, in this example, there could be no guarantee that the miner would indeed handle
+A private messaging service, like e-mail, could be used to send transaction information to miners.
+In this context, the sender trusts a miner to handle a transaction privately
+until their next block composition.
+In this example, there can be no guarantee that the miner will indeed handle
 the transaction exclusively before including it in a block.
-The transaction may be resold, publicized, ignored -- all at the miner's discretion.
+The transaction could be resold, publicized, ignored -- all at the miner's discretion.
 
 Other options toward this task could include using smart contract logic to make
 chain data assertions before enabling some hypothetical, gas expenditure and/or further logic.
@@ -695,6 +694,8 @@ As proposed, transactions are not required to provide this value.
 However, discretionary use is not necessary.
 The field's annotation \textit{could} be demanded by the protocol.
 
+Practicality
+
 In the annotation of the proposed field, the transaction sender makes reference to an observed state of the blockchain.
 The observation of and reference to chain state is an incumbent pattern of practical use.
 Under the current protocol, transaction senders commonly reference an observed chain state to
@@ -708,8 +709,8 @@ The chain a transactor sees becomes a chain they can demand.
 
 Availability
 
-In database contexts, "availability" (aka "liveness" for some), is the likelihood that a valid transaction
-will actually be processed by the database.
+In database contexts, "availability" (aka "liveness" for some),
+is the likelihood that a valid transaction will actually be processed by the database.
 By definition, the application of AHA transactions restricts transaction availability
 because it limits the state(s) of the database to which the transaction can be applied.
 The limitation makes the interaction with invisible or otherwise unknown states impossible.
