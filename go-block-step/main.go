@@ -82,6 +82,30 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 
 	for pIndex, config := range []RoundConfiguration{
+		{
+			Name: "A", ConsensusAlgorithm: TD,
+			NetworkLambda: 13.48, Latency: 1.23, SelfishDelay: 0, // 1.4 ,
+			TickMultiple: 10, Rounds: 10000,
+			NumberOfMiners: 12, HashrateDistType: HashrateDistLongtail,
+		},
+		{
+			Name: "A", ConsensusAlgorithm: TDTABS,
+			NetworkLambda: 13.48, Latency: 1.23, SelfishDelay: 0, // 1.4 ,
+			TickMultiple: 10, Rounds: 10000,
+			NumberOfMiners: 12, HashrateDistType: HashrateDistLongtail,
+		},
+		{
+			Name: "A", ConsensusAlgorithm: TD,
+			NetworkLambda: 13.48, Latency: 2.46, SelfishDelay: 0, // 1.4 ,
+			TickMultiple: 10, Rounds: 10000,
+			NumberOfMiners: 12, HashrateDistType: HashrateDistLongtail,
+		},
+		{
+			Name: "A", ConsensusAlgorithm: TDTABS,
+			NetworkLambda: 13.48, Latency: 2.46, SelfishDelay: 0, // 1.4 ,
+			TickMultiple: 10, Rounds: 10000,
+			NumberOfMiners: 12, HashrateDistType: HashrateDistLongtail,
+		},
 		// {
 		// 	// Pretty realistic.
 		// 	Name: "A", ConsensusAlgorithm: TD,
@@ -96,13 +120,6 @@ func main() {
 		// 	TickMultiple: 1, Rounds: 10000,
 		// 	NumberOfMiners: 8, HashrateDistType: HashrateDistLongtail,
 		// },
-		{
-			// Pretty realistic.
-			Name: "A", ConsensusAlgorithm: TD,
-			NetworkLambda: 14, Latency: 2.4, SelfishDelay: 1, // 1.4 ,
-			TickMultiple: 10, Rounds: 10000,
-			NumberOfMiners: 8, HashrateDistType: HashrateDistLongtail,
-		},
 		// {
 		// 	// Pretty realistic.
 		// 	Name: "A", ConsensusAlgorithm: TDTABS,
@@ -614,15 +631,15 @@ func hashrateRace(hashrates []float64, maxTicks int, lambda float64) (authorInde
 
 		MISS
 		-----------------|-------
-		--__x__------------------
+		--__x__------------------  The guess window does NOT overlap with the needle.
 
 		MISS
 		-----------------|-------
-		x__--------------------__
+		x__--------------------__  Still no overlap.
 
 		HIT
 		-----------------|-------
-		--------------__x__------
+		--------------__x__------ Hit! Guess window overlaps with the needle.
 	*/
 	needle := rand.Float64()
 
@@ -633,7 +650,7 @@ func hashrateRace(hashrates []float64, maxTicks int, lambda float64) (authorInde
 			// The miner's share of the network's hashrate, per tick.
 			tickR := hr * (1 /*tick*/ / lambda)
 
-			// Divide by two because using absolute value (math only needs on half of the window).
+			// Divide by two because using absolute value (math only needs half of the window).
 			tickR = tickR / 2
 
 			// This miner found a solution.
@@ -650,6 +667,9 @@ func hashrateRace(hashrates []float64, maxTicks int, lambda float64) (authorInde
 	return
 }
 
+// getTD is a naive form of the total difficulty function.
+// It does not account for uncles, which, under EIP-100, if occurring,
+// bumps the denominator to 2, yielding 2/2048=1/1024.
 func getTD(elapse int) float64 {
 	x := (elapse / (9 * tickMultiple)) // int
 	y := 1 - x
@@ -665,12 +685,12 @@ func decideTD(tickElapses []int) (winnerIndex int) {
 	// Set default as undecided.
 	winnerIndex = -1
 
-	winningTD := float64(0)
+	maxTD := float64(0)
 
 	for i, v := range tickElapses {
 		td := getTD(v)
-		if td > winningTD {
-			winningTD = td
+		if td > maxTD {
+			maxTD = td
 			winnerIndex = i
 		}
 	}
@@ -680,7 +700,7 @@ func decideTD(tickElapses []int) (winnerIndex int) {
 	winnerTally := 0
 	for _, v := range tickElapses {
 		td := getTD(v)
-		if td == winningTD {
+		if td == maxTD {
 			winnerTally++
 		}
 	}
@@ -726,9 +746,9 @@ func getTABS(referenceTABS float64, balance float64) float64 {
 }
 
 // decideTDTABS is a naive estimation of TDTABS arbitration.
-// It will grow to be a sophisticated model, but for now its going to make some assumptions.
-// We'll assume that hashrate proportions ARE block capital proportions.
-// This implicitly assumes that TAB measurements contributed by transactions are a constant for all miners.
+// It assumes that the incumbent (pre-state) TABS value is the median of miner balances.
+// It assumes that hashrate proportions ARE block capital proportions.
+// It assumes that TAB magnitude attributable to transactions are constant for all miners (and thus are ignored).
 //
 func decideTDTABS(minerHashrates []float64, authorIndexes []int, tickElapses []int) (winnerIndex int) {
 	// Set default as undecided.
