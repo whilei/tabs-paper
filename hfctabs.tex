@@ -964,18 +964,19 @@ thereby equalizing total active balance values.
 There are ways under the existing protocol that segment-specificity is practically imitable,
 though this option and others like it are limited compared with the proposal outlined below.
 
-A private messaging service, like e-mail, could be used to send transaction information to miners.
-In this context, the sender trusts a miner to handle a transaction privately
-until their next block composition.
-But this example clearly depends on a unilateral trust between the transactor and their miner of choice.
+For example, a private messaging service, like e-mail,
+could be used to send transaction information exclusively to a subset of miners.
+In this context, the sender trusts some miner to handle a transaction privately until their next block composition.
+But this example depends on a unilateral trust between the transactor and their miner of choice.
 The transaction could be resold, publicized, ignored -- all at the miner's discretion.
 
 Another benefit of implementing segment-exclusivity at the protocol level
 is that it becomes an \textit{observable} expression of a chain state dependency.
-By adding a demand on some chain state at a block $H_n$, the transaction expresses
+On reading a demand on some chain state at a block $H_n$, the transaction expresses
 confidence in the finality of that state $H_n$.
 Taken together, transactions expressing these dependencies provide
 observable, objective traits that can be used for inferences about chain state finality in general.
+
 Since the usefulness of the proof-of-work blockchain depends on users
 having effective judgements about an always imperfect state finality, establishing an
 on-chain and observable value suggestive of assumed finality should help
@@ -993,8 +994,10 @@ transactors make better judgements about block delay intervals for off-chain ele
 
 \subsection{\normalsize{Chain-Growth}}
 
-Because the TABS adjustment rate is smaller than that of Difficulty in all cases,
-we can show that PoW mining remains the primary driver of chain-growth.
+
+
+\comment{Because the TABS adjustment rate is equal to or less than that of Difficulty in all cases,
+    we can show that PoW mining remains the primary driver of chain-growth.
 
 %Increased difficulty, increased TABS.
 %Increased difficulty, stable TABS.
@@ -1009,41 +1012,43 @@ we can show that PoW mining remains the primary driver of chain-growth.
 %Decreased difficulty, decreased TABS.
 
 % Relevant cases:
-A: Difficulty+, TABS-
+    A: Difficulty+, TABS-
 B: Difficulty0, TABS+
-=> B
+    => B
 
-\begin{equation}
-    (H_d + \frac{H_d}{2048}) \times (H_k - \frac{H_k}{2049}) > (H_d + 0) \times (H_k + \frac{H_k}{2049})
-\end{equation}
+    \begin{equation}
+    (H_d + \frac{H_d}{2048})
+        \times (H_k - \frac{H_k}{2049}) > (H_d + 0) \times (H_k + \frac{H_k}{2049})
+    \end{equation}
 
-\begin{equation}
-(H_d + \frac{H_d}{2048}) \times (H_k - \frac{H_k}{2049}) > (H_d + 0) \times (H_k + \frac{H_k}{2049})
-\end{equation}
+    \begin{equation}
+    (H_d + \frac{H_d}{2048})
+        \times (H_k - \frac{H_k}{2049}) > (H_d + 0) \times (H_k + \frac{H_k}{2049})
+    \end{equation}
 
 
-A: Difficulty+, TABS-
+    A: Difficulty+, TABS-
 B: Difficulty-, TABS+
-=> A
+    => A
 
 
-\begin{equation}
-    \mathrm{TCS} \equiv \sum_{H_\mathrm{i = 0}}^{\mathrm{i <= n}} H_d
-\end{equation}
+    \begin{equation}
+        \mathrm{TCS} \equiv \sum_{H_\mathrm{i = 0}}^{\mathrm{i <= n}} H_d
+    \end{equation}
 
 
-(12947922331000968 + 12947922331000968 * (1/2048)) * ()
+    (12947922331000968 + 12947922331000968 * (1/2048)) * ()
 
-\subsection{\normalsize{Decidability Matrix}}
+    \subsection{\normalsize{Decidability Matrix}}
 
-TABS is expected to increase network decidability (and thus finality) rates.
+    TABS is expected to increase network decidability (and thus finality) rates.
 % aka canon-arbitration asymmetry outcomes, aka decrease number of ties
 
-\begin{tabular}[pos]{cols}
-    table & content
-\end{tabular}
+    \begin{tabular}[pos]{cols}
+        table & content
+    \end{tabular}
 
-
+}
 \subsection{\normalsize{Network block emission rates}}
 % This should include fork (noncanonical) and canonical block production.
 
