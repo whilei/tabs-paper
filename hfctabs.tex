@@ -671,27 +671,6 @@ As proposed, transactions are not required to provide this value.
 However, discretionary use is not necessary.
 The field's annotation \textit{could} be demanded by the protocol.
 
-Practicality
-
-In the annotation of the proposed field, the transaction sender makes reference to an observed state of the blockchain.
-The observation of and reference to chain state is an incumbent pattern of practical use.
-Under the current protocol, transaction senders commonly reference an observed chain state to
-establish or validate their transaction's Nonce, the ChainId, their balance, current gas prices,
-and current gas fees (for smart contract composition).
-The citation of an observed block hash does not impose a novel demand on block state observation.
-
-Moreover, the ability for a transactor to declare a dependency on some observed block state
-enables them to make these established habits and practical assumptions explicit.
-The chain a transactor sees becomes a chain they can demand.
-
-Availability
-
-In database contexts, "availability" (aka "liveness" for some),
-is the likelihood that a valid transaction will actually be processed by the database.
-By definition, the application of AHA transactions restricts transaction availability
-because it limits the state(s) of the database to which the transaction can be applied.
-The limitation makes the interaction with invisible or otherwise unknown states impossible.
-
 % "The chain I see is the chain I get."
 
 
@@ -970,6 +949,8 @@ In this context, the sender trusts some miner to handle a transaction privately 
 But this example depends on a unilateral trust between the transactor and their miner of choice.
 The transaction could be resold, publicized, ignored -- all at the miner's discretion.
 
+\textbf{Observable Finality Confidence}
+
 Another benefit of implementing segment-exclusivity at the protocol level
 is that it becomes an \textit{observable} expression of a chain state dependency.
 On reading a demand on some chain state at a block $H_n$, the transaction expresses
@@ -981,6 +962,33 @@ Since the usefulness of the proof-of-work blockchain depends on users
 having effective judgements about an always imperfect state finality, establishing an
 on-chain and observable value suggestive of assumed finality should help
 transactors make better judgements about block delay intervals for off-chain elements of transactions, for example.
+
+\textbf{Practical Implementation}
+
+In the annotation of the proposed field, the transaction sender makes reference to an observed state of the blockchain.
+The observation of and reference to chain state is an incumbent pattern of practical use.
+Under the current protocol, transaction senders commonly reference an observed chain state to
+establish or validate their transaction's Nonce, the ChainId, their balance, current gas prices,
+and current gas fees (for smart contract composition).
+The citation of an observed block hash does not impose a novel demand on block state observation.
+
+Moreover, the ability for a transactor to declare a dependency on some observed block state
+enables them to make these established habits and practical assumptions explicit.
+The chain a transactor sees becomes a chain they can demand.
+
+\textbf{Lesser Availability, Same Throughput}
+
+In database contexts, "availability" (aka "liveness" for some),
+is the likelihood that a valid transaction will actually be processed by the database.
+
+By definition, the application of AHA transactions restricts transaction availability
+because it limits the state(s) of the database to which the transaction can be applied.
+The limitation makes the interaction with invisible or otherwise unknown states impossible.
+
+In this way, database availability is reduced in a desirable way, and without effect
+on "throughput" capacity under normal and assumed chain-growth.
+Throughput is only diminished when unexpected (eg private) states overtake public ones.
+
 
 % ----
 %
