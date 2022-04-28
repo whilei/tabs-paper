@@ -508,8 +508,8 @@ In this section we describe the elements of the $TABS$ modification to the
 % TABS must change more slowly than Difficulty, per block.
 % TABS should be able to fall more quickly than rise.
 
-Total Active Balance Synthesis (TABS) is a positive scalar value,
-a representative aggregate of all transaction sender accounts (and the miner) for a blockchain of some length.
+Total Active Balance Synthesis (TABS) is a positive scalar value.
+It is a representative aggregate of all transaction sender accounts (and the miner) for a blockchain of some length.
 Generally considered, it provides a representative measure of active capital on some chain state.
 It is denominated in Wei.\footnote{
     1000000000000000000 (1e18) Wei equal 1 Ether. % See \url{https://ethereum.stackexchange.com/questions/253}
@@ -585,6 +585,9 @@ balance at parent block $P(B)$ of account $s$} \\
 %Both values are tuneable constant parameters in the algorithm.
 $K_0$ expresses an arbitrary minimum value for $TABS$,
 while $x$ expresses an adjustment ratio of the $TABS$ value between two parent-child related blocks.
+
+%% TODO/Isaac maybe move me to a Discussion section,
+%% ie. Why we picked 4096 for this value, and what happens if the value were different (esp. smaller = bigger change).
 The constant $\tabsAdjustmentDenominator$ is defined relative to
 the minimum incumbent Ethereum difficulty adjustment factor (
     $\left\lfloor\frac{{P(H)_{\mathrm{H}}}_{\mathrm{d}}}{2048}\right\rfloor$
@@ -644,32 +647,6 @@ and in the segment case:
 In both the pre-existing algorithm and the proposed algorithm, a candidate
 block having a greater $\mathrm{TCS}$ value than the other should be selected for
 the exclusive canonical state.
-
-\subsection{\small{Segment-Specific Transactions}}\label{subsec:small{segment-specific-transactions}}
-
-% Transaction/Segment exclusivity is important because differential TABS depends on differential txes.
-The effectiveness of Total Active Balance measurements on any chain (segment)
-as a decisive factor in consensus scoring depends on an assumption of transactions having
-segment-specificity.
-Without segment-specificity (segment-agnosticism), we assume that in the scenario of a double-spend,
-an attacker would be able to replay all transactions from the public chain on their private
-attack chain, thereby making the measurements equivalent (or near to it).
-If transactions are equally available for all chains, measurements based on them become indecisive.
-
-% In practice, this could be worked around, but without guarantees.
-There are existing ways that this is practically possible (or imitable),
-though this option and others like it are limited compared with the proposal outlined below.
-A private messaging service, like e-mail, could be used to send transaction information to miners.
-In this context, the sender trusts a miner to handle a transaction privately
-until their next block composition.
-In this example, there can be no guarantee that the miner will indeed handle
-the transaction exclusively before including it in a block.
-The transaction could be resold, publicized, ignored -- all at the miner's discretion.
-
-Other options toward this task could include using smart contract logic to make
-chain data assertions before enabling some hypothetical, gas expenditure and/or further logic.
-This option, while perhaps limiting fee transfer in some undesirable contexts,
-has the drawbacks of burdensome complexity, cost, and still limited applicability to the problem.
 
 \subsection{\small{Transactions with Ancestor Hash Appended}}\label{subsec:small{transactions-with-ancestor-hash-appended}
 
@@ -970,13 +947,49 @@ the theoretical $\epsilon$ value is a positive, small, number.
 
 \section{\normalsize{Discussion}}
 
-The consensus properties of so-called Nakamoto Consensus are well studied.
-% TODO this is an actual quote from a so-called paper.
+\subsection{\small{Segment-Specific Transactions}}\label{subsec:small{segment-specific-transactions}}
 
-We seek to show that an implementation of the proposed AHA/TABS protocol for a PoW network
-either preserves or improves key characteristics of network behavior and usability.
+\textit{Ancestor Hash Appended} typed transactions are proposed
+as a scheme to implement a general task: limiting transaction availability
+such that public chains are prioritized to the exclusion of private chains.
 
-We provide the outcomes of two programmatic simulations as experimental evidence of our claims.
+% Transaction/Segment exclusivity is important because differential TABS depends on differential txes.
+The effectiveness of Total Active Balance measurements on any chain (segment)
+as a decisive factor in consensus scoring depends on transactions having segment-specificity.
+
+Without segment-specificity, in the scenario of a double-spend
+an attacker would be able to replay all transactions (save one) from the public chain on their private chain,
+thereby equalizing total active balance values.
+
+There are ways under the existing protocol that segment-specificity is practically imitable,
+though this option and others like it are limited compared with the proposal outlined below.
+
+A private messaging service, like e-mail, could be used to send transaction information to miners.
+In this context, the sender trusts a miner to handle a transaction privately
+until their next block composition.
+But this example clearly depends on a unilateral trust between the transactor and their miner of choice.
+The transaction could be resold, publicized, ignored -- all at the miner's discretion.
+
+Another benefit of implementing segment-exclusivity at the protocol level
+is that it becomes an \textit{observable} expression of a chain state dependency.
+By adding a demand on some chain state at a block $H_n$, the transaction expresses
+confidence in the finality of that state $H_n$.
+Taken together, transactions expressing these dependencies provide
+observable, objective traits that can be used for inferences about chain state finality in general.
+Since the usefulness of the proof-of-work blockchain depends on users
+having effective judgements about an always imperfect state finality, establishing an
+on-chain and observable value suggestive of assumed finality should help
+transactors make better judgements about block delay intervals for off-chain elements of transactions, for example.
+
+% ----
+%
+%The consensus properties of so-called Nakamoto Consensus are well studied.
+%% TODO this is an actual quote from a so-called paper.
+%
+%We seek to show that an implementation of the proposed AHA/TABS protocol for a PoW network
+%either preserves or improves key characteristics of network behavior and usability.
+%
+%We provide the outcomes of two programmatic simulations as experimental evidence of our claims.
 
 \subsection{\normalsize{Chain-Growth}}
 
