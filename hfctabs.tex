@@ -1008,6 +1008,62 @@ Throughput is only diminished when unexpected (ie. private) states overtake publ
 
 \subsection{\normalsize{Chain-Growth}}
 
+Under Nakamoto Consensus, aggregate block difficulty ($H_d$) plays two roles:
+pacing block production and nominating canon eligibility.
+Since this the proposed TABS consensus arbitration algorithm modifies the role of difficulty in canon-arbitration,
+it must be shown that chain-growth pacing and the incentives which drive it remain intact.
+
+First we look at the incumbent assumption and behavior around Total Difficulty, specifically tie (symmetric) scenarios.
+
+The step function which describes chain difficulty is parametrized by
+parent difficulty, current block time, and if the current block cites any uncles.
+
+For the sake of this argument, we exclude parent difficulty from consideration, presuming it being held constant.
+
+The steps of the difficulty function are parameterized solely by current block time.
+Each step has a domain of 8 seconds.
+    So, parent and uncles constant, blocks produced in the 1-8 second range yield equivalent difficulties.
+    Same for blocks with 9-17 second intervals, 18-26 seconds, and so forth.
+
+From this, we can deduce that for the game of the block race,
+a block's publication time priority is critically important to its chance of canonicalization.
+Around fifty percent of all blocks occur in the $[1,8]$ second interval,
+giving them equivalent Difficulties and equivalent Total Difficulties.
+
+% ---
+
+/comment{
+        expected profit = miner.hashrateshare X prob of block production X prob of canonical X block rev
+        S = miner hashrate share
+        R = block revenue
+        p(t) = S/1 X p(e, t) X p(c)~0.96 X R
+
+        current:
+        t=0
+        minerA finds block at t=0
+        minerA -> p(t) = p(c)~0.96 X R [block.t=0] + p(t) [block.t>0]
+        minerB -> p(t) = S/1 X p(e, t) X p(c)~0.96 X R [block.t>0]
+
+        The best minerB can do is tie. minerA has a 1 block head start.
+        By mining on block.t=0, minerB removes the (most of) minerA's head start (though minerA still has latency head start)
+
+        proposed:
+        t=0
+        minerA finds block at t=0
+        minerA -> p(t) = p(c)~0.96 X R [block.t=0] + p(t) [block.t>0]
+        minerB -> p(t) = p(t) [block.t>0]
+
+
+        real numbers
+
+        t=0
+        minerA finds block at t=0
+        they have 93\% chance of keeping that block
+        minerB: 50\% network hashrate, receive block 0.5 seconds later (latency),
+
+
+    }
+
 
 
 \comment{Because the TABS adjustment rate is equal to or less than that of Difficulty in all cases,

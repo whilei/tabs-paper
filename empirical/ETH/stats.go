@@ -15,7 +15,7 @@ func main() {
 
 	// How many intervals are in first bucket?
 	bucketMin := float64(1)
-	bucketMax := float64(9)
+	bucketMax := float64(8)
 
 	hits := float64(0)
 	for _, interval := range intervals {
