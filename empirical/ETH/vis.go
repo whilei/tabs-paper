@@ -1,14 +1,12 @@
 package main
 
 import (
-	"encoding/csv"
 	"fmt"
 	"log"
-	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/montanaflynn/stats"
+	d "github.com/whilei/empirical-ETH/data"
 	"gonum.org/v1/plot"
 	"gonum.org/v1/plot/plotter"
 )
@@ -22,47 +20,12 @@ func main() {
 	data := map[int]int{}  // interval buckets
 	dataP := plotter.XYs{} // typed buckets for plotting
 
-	dataFilePath := filepath.Join("bq-results-20220417-161552-1650212199157.csv")
-	fi, err := os.OpenFile(dataFilePath, os.O_RDONLY, os.ModePerm)
+	intervals, err := d.ReadDatasetIntervals()
 	if err != nil {
 		log.Fatalln(err)
 	}
-	csvReader := csv.NewReader(fi)
-	csvReader.FieldsPerRecord = 4
-	records, err := csvReader.ReadAll()
 
-	datasetIntervalsFloat64s := []float64{}
-
-	var lastRecordTime time.Time
-	for i, record := range records {
-		if i == 0 {
-			continue // skip header row
-		}
-		// if i > 100 {
-		// 	break // development/debug
-		// }
-		/*
-			number,hash,timestamp,difficulty
-			13000000,0x736048fc56ee5570d18fce0fbad513f8a3cc1de2b18bfecfc8b3663e0bee1570,2021-08-10 21:53:39 UTC,8050151966801941
-			13000001,0x26ff7321f0c5642b73c35dbd334c93a98585b2f7cc7122dcf89f693d4503f85c,2021-08-10 21:53:41 UTC,8054084852550629
-			13000002,0x688484f241251654f382bdd6343f174e38eddd633336a15b2154af81a8c1ac10,2021-08-10 21:54:09 UTC,8046221682795459
-		*/
-		dateField := record[2]
-		timestamp, err := time.Parse("2006-01-02 15:04:05 UTC", dateField)
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		// Set up the first calculation.
-		if lastRecordTime.IsZero() {
-			lastRecordTime = timestamp
-			continue
-		}
-
-		// Calculate the time offset interval.
-		interval := timestamp.Sub(lastRecordTime).Seconds()
-		datasetIntervalsFloat64s = append(datasetIntervalsFloat64s, interval)
-
+	for _, interval := range intervals {
 		intervalInt := int(interval)
 
 		// Add it to our bucket map.
@@ -71,12 +34,7 @@ func main() {
 		} else {
 			data[intervalInt] = v + 1
 		}
-
-		// Set up the next block in mem.
-		lastRecordTime = timestamp
 	}
-
-	fi.Close()
 
 	// Typed XY values from the data for the plotter lib.
 	seconds := 0
@@ -102,10 +60,10 @@ func main() {
 	fmt.Println("mean interval", mean)
 	// => mean interval 13.482376
 
-	min, _ := stats.Min(datasetIntervalsFloat64s)
-	max, _ := stats.Max(datasetIntervalsFloat64s)
-	med, _ := stats.Median(datasetIntervalsFloat64s)
-	mmean, _ := stats.Mean(datasetIntervalsFloat64s)
+	min, _ := stats.Min(intervals)
+	max, _ := stats.Max(intervals)
+	med, _ := stats.Median(intervals)
+	mmean, _ := stats.Mean(intervals)
 	fmt.Println("min", min, "max", max, "med", med, "mean", mmean)
 	// => min 1 max 208 med 9 mean 13.482376
 }
