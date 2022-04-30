@@ -1,4 +1,4 @@
-package data
+package main
 
 import (
 	"bytes"
@@ -9,10 +9,13 @@ import (
 	"time"
 )
 
-//go:embed bq-results-20220417-161552-1650212199157.csv.gz
-var data []byte
+//go:embed data/ETH/bq-results-20220417-161552-1650212199157.csv.gz
+var ETHData []byte
 
-func ReadDatasetIntervals() ([]float64, error) {
+//go:embed data/ETC/block-intervals.js.output.intervals.json
+var ETCData []byte
+
+func ReadDatasetIntervals(data []byte) ([]float64, error) {
 	reader := bytes.NewReader(data)
 	greader, err := gzip.NewReader(reader)
 	if err != nil {

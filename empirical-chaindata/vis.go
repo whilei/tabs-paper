@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/montanaflynn/stats"
-	d "github.com/whilei/empirical-ETH/data"
+	d "github.com/whilei/empirical-ETH/ETHData"
 	"gonum.org/v1/plot"
 	"gonum.org/v1/plot/plotter"
 )
@@ -36,7 +36,7 @@ func main() {
 		}
 	}
 
-	// Typed XY values from the data for the plotter lib.
+	// Typed XY values from the ETHData for the plotter lib.
 	seconds := 0
 	blocks := 0
 	for k, v := range data {
