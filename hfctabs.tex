@@ -1016,7 +1016,7 @@ it must be shown that chain-growth pacing and the incentives which drive it rema
 First we look at the incumbent assumption and behavior around Total Difficulty, specifically tie (symmetric) scenarios.
 
 The step function which describes chain difficulty is parametrized by
-parent difficulty, current block time, and if the current block cites any uncles.
+parent difficulty, current block time, and whether the current block cites any uncles.
 
 For the sake of this argument, we exclude parent difficulty from consideration, presuming it being held constant.
 
@@ -1027,8 +1027,31 @@ Each step has a domain of 8 seconds.
 
 From this, we can deduce that for the game of the block race,
 a block's publication time priority is critically important to its chance of canonicalization.
-Around fifty percent of all blocks occur in the $[1,8]$ second interval,
-giving them equivalent Difficulties and equivalent Total Difficulties.
+Around fifty percent of all blocks occur in the $[1-8]$ second interval,
+giving them equivalent Difficulties and equivalent Total Difficulties.\nolinebreak
+\footnote{TODO: Cite me. Currently empirical/ETH/stats.go}
+
+The minimum adjustment factor for Difficulty is $\pm\frac{1}{2048}$.
+The proposed adjustment factor for TABS is $\pm\frac{1}{4096}$.
+In the case of a block A produced within a Difficulty interval X with a decremented TABS score
+and
+a block B produced within a Difficulty interval X+1 with an incremented TABS score,
+the resulting Consensus Scores of these block will be equal.
+
+We consider these relative adjustment factor values to represent an equilibrium.
+Remembering that under the current protocol, blocks may be produced in a sequence within 8 seconds of each
+other and result also in a Consensus Score tie, we hone our intuition to see that these theoretical
+ties in cases of sequential (non-simultaneous) blocks are disincentivized and thus practically edge cases.
+Miners are incentivized to work on the latest block available to them despite an available consensus tie scenario,
+so we do not expect rich miners to chase authorship of slow-rich blocks following the observance of fast-poor blocks.
+
+
+
+\begin{equation}
+
+\end{equation}
+
+
 
 % ---
 
