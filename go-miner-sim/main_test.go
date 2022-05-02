@@ -92,7 +92,8 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 	// We use relative hashrate as a proxy for balance;
 	// more mining capital :: more currency capital.
 	deriveMinerStartingBalance := func(genesisTABS int64, minerHashrate float64) int64 {
-		supply := genesisTABS * countMiners
+		// supply := genesisTABS * countMiners
+		supply := genesisTABS / presumeMinerShareBalancePerBlockDenominator * countMiners
 		return int64((float64(supply) * minerHashrate))
 	}
 
@@ -153,7 +154,7 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 		// m.PostponeDelay = func(b *Block) int64 {
 		// 	maliciousPostpone := int64(0)
 		// 	if m.ConsensusAlgorithm == TDTABS && m.Address != b.miner {
-		// 		if m.Balance > b.tabs && b.reltabs <= 0 {
+		// 		if m.Balance > b.tabs && b.tabsRel <= 0 {
 		// 			// The miner knows they have a better TABS than the received block.
 		// 			// This gives them an edge in potential consensus points.
 		// 			maliciousPostpone = ticksPerSecond * (b.si % 9)

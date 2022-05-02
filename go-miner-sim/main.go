@@ -7,6 +7,9 @@ import (
 	"math/rand"
 	"sort"
 	"time"
+
+	exprand "golang.org/x/exp/rand"
+	"gonum.org/v1/gonum/stat/distuv"
 )
 
 func init() {
@@ -15,6 +18,14 @@ func init() {
 
 func main() {
 
+}
+
+// We'll use this for TAB score generation for each block.
+// A normal distribution may not be the best fit. TODO.
+var normalDist = distuv.Normal{
+	Mu:    float64(genesisBlockTABS),
+	Sigma: float64(genesisBlockTABS) / 4, // I just made this up. TODO.
+	Src:   exprand.NewSource(uint64(time.Now().UnixNano())),
 }
 
 // Globals
@@ -31,6 +42,13 @@ var delaySecondsDefault float64 = 0 // miner hesitancy to broadcast solution
 const tabsAdjustmentDenominator = int64(128) // int64(4096) <-- 4096 is the 'equilibrium' value, lower values prefer richer miners more (devaluing hashrate)
 const genesisBlockTABS int64 = 10_000        // tabs starting value
 const genesisDifficulty = 10_000_000_000
+
+// presumeMinerShareBalancePerBlockDenominator being 300 means that we assume that a miner's balance accounts for 1/300
+// of the overall genesis block TAB score. This implies 300 transactions per block.
+// This value is used to set the starting balance for miners.
+const presumeMinerShareBalancePerBlockDenominator = 100
+
+var txPoolBlockTABs = make(map[int64]int64)
 
 var genesisBlock = &Block{
 	i:         0,
@@ -166,11 +184,20 @@ func (m *Miner) mineTick() {
 			s = parent.s + 1
 		}
 
+		// Get a random value (from a normal distribution) as a representation of this block's TAB.
+		// This is a global value that, once set, all miners will use.
+		blockTxPoolTABs, ok := txPoolBlockTABs[parent.i+1]
+		if !ok {
+			blockTxPoolTABs = int64(normalDist.Rand())
+			txPoolBlockTABs[parent.i+1] = blockTxPoolTABs
+		}
+		blockTAB := blockTxPoolTABs + m.Balance
+
 		// A naive model of uncle references: bool=yes if any orphan blocks exist in our miner's record of blocks
 		uncles := len(m.Blocks[parent.i]) > 1
 
 		blockDifficulty := getBlockDifficulty(parent /* interval: */, uncles, s-parent.s)
-		change, tabs := getTABS(parent, m.Balance)
+		change, tabs := getTABS(parent, blockTAB)
 		tdtabs := tabs * blockDifficulty
 		b := &Block{
 			i:       parent.i + 1,
@@ -178,7 +205,7 @@ func (m *Miner) mineTick() {
 			si:      s - parent.s,
 			d:       blockDifficulty,
 			td:      parent.td + blockDifficulty,
-			reltabs: change,
+			tabsRel: change,
 			tabs:    tabs,
 			ttdtabs: parent.ttdtabs + tdtabs,
 			miner:   m.Address,
@@ -409,7 +436,7 @@ type Block struct {
 	si        int64  // interval
 	d         int64  // H_d: difficulty
 	td        int64  // H_td: total difficulty
-	reltabs   int64  // +/- TABS vs parent. Shortcut used for helping malicious miners figure out if they can try to beat a received block by postponing.
+	tabsRel   int64  // +/- TABS vs parent. Shortcut used for helping malicious miners figure out if they can try to beat a received block by postponing.
 	tabs      int64  // H_k: TAB synthesis
 	ttdtabs   int64  // H_k: TTABSConsensusScore, aka Total TD*TABS
 	miner     string // H_c: coinbase/etherbase/author/beneficiary
