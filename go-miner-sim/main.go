@@ -39,8 +39,8 @@ var blockReward int64 = 3
 var latencySecondsDefault float64 = 2.5
 var delaySecondsDefault float64 = 0 // miner hesitancy to broadcast solution
 
-const tabsAdjustmentDenominator = int64(128) // int64(4096) <-- 4096 is the 'equilibrium' value, lower values prefer richer miners more (devaluing hashrate)
-const genesisBlockTABS int64 = 10_000        // tabs starting value
+var tabsAdjustmentDenominator = int64(128) // int64(4096) <-- 4096 is the 'equilibrium' value, lower values prefer richer miners more (devaluing hashrate)
+const genesisBlockTABS int64 = 10_000      // tabs starting value
 const genesisDifficulty = 10_000_000_000
 
 // presumeMinerShareBalancePerBlockDenominator being 300 means that we assume that a miner's balance accounts for 1/300
@@ -205,7 +205,7 @@ func (m *Miner) mineTick() {
 			si:      s - parent.s,
 			d:       blockDifficulty,
 			td:      parent.td + blockDifficulty,
-			tabsRel: change,
+			tabsCmp: change,
 			tabs:    tabs,
 			ttdtabs: parent.ttdtabs + tdtabs,
 			miner:   m.Address,
@@ -436,7 +436,7 @@ type Block struct {
 	si        int64  // interval
 	d         int64  // H_d: difficulty
 	td        int64  // H_td: total difficulty
-	tabsRel   int64  // +/- TABS vs parent. Shortcut used for helping malicious miners figure out if they can try to beat a received block by postponing.
+	tabsCmp   int64  // +/- TABS vs parent. Shortcut used for helping malicious miners figure out if they can try to beat a received block by postponing.
 	tabs      int64  // H_k: TAB synthesis
 	ttdtabs   int64  // H_k: TTABSConsensusScore, aka Total TD*TABS
 	miner     string // H_c: coinbase/etherbase/author/beneficiary

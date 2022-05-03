@@ -46,6 +46,7 @@ func TestBlockTree_AppendBlock(t *testing.T) {
 func TestPlotting(t *testing.T) {
 	cases := []struct {
 		name          string
+		globalTweaks  func()
 		minerMutation func(m *Miner)
 	}{
 		{
@@ -55,9 +56,49 @@ func TestPlotting(t *testing.T) {
 			},
 		},
 		{
-			name: "tdtabs",
+			name: "tdtabs_4096",
+			globalTweaks: func() {
+				tabsAdjustmentDenominator = 4096 // what Isaac considers "equilibrium", most conservative
+
+			},
 			minerMutation: func(m *Miner) {
 				m.ConsensusAlgorithm = TDTABS
+			},
+		},
+		{
+			name: "tdtabs_64",
+			globalTweaks: func() {
+				tabsAdjustmentDenominator = 64 // aggressive
+
+			},
+			minerMutation: func(m *Miner) {
+				m.ConsensusAlgorithm = TDTABS
+			},
+		},
+		{
+			name: "tdtabs_64_postpone_attack",
+			globalTweaks: func() {
+				tabsAdjustmentDenominator = 64
+			},
+			minerMutation: func(m *Miner) {
+				m.ConsensusAlgorithm = TDTABS
+
+				// Evil.
+				//
+				m.PostponeDelay = func(b *Block) int64 {
+					maliciousPostpone := int64(0)
+					if m.ConsensusAlgorithm == TDTABS && m.Address != b.miner {
+						localTabs := m.Balance + txPoolBlockTABs[b.i]
+						if b.tabsCmp <= 0 && localTabs > b.tabs {
+							// The miner knows they have a better TABS than the received block.
+							// This gives them an edge in potential consensus points.
+
+							// maliciousPostpone = ticksPerSecond * (b.si % 9)
+							maliciousPostpone = ticksPerSecond
+						}
+					}
+					return maliciousPostpone
+				}
 			},
 		},
 	}
@@ -149,19 +190,6 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 				// return int64((4 * rand.Float64()) * float64(ticksPerSecond))
 			},
 		}
-
-		// #EVIL...
-		// m.PostponeDelay = func(b *Block) int64 {
-		// 	maliciousPostpone := int64(0)
-		// 	if m.ConsensusAlgorithm == TDTABS && m.Address != b.miner {
-		// 		if m.Balance > b.tabs && b.tabsRel <= 0 {
-		// 			// The miner knows they have a better TABS than the received block.
-		// 			// This gives them an edge in potential consensus points.
-		// 			maliciousPostpone = ticksPerSecond * (b.si % 9)
-		// 		}
-		// 	}
-		// 	return maliciousPostpone
-		// }
 
 		mut(m)
 
