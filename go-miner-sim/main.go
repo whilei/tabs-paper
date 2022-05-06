@@ -358,7 +358,7 @@ func (m *Miner) arbitrateBlocks(a, b *Block) *Block {
 	m.ConsensusArbitrations++          // its what we do here
 	m.ConsensusObjectiveArbitrations++ // an assumption that will be undone (--) if it does not hold
 
-	decisionCondition := "pow_score_high"
+	decisionCondition := "consensus_score_high"
 	defer func() {
 		m.decisionConditionTallies[decisionCondition]++
 	}()

@@ -325,9 +325,13 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 	lastHighBlock := int64(0)
 	for s := int64(1); s <= tickSamples; s++ {
 
-		for _, i := range rand.Perm(len(miners)) {
-			miners[i].doTick(s)
+		for _, m := range miners {
+			m.doTick(s)
 		}
+
+		// for _, i := range rand.Perm(len(miners)) {
+		// 	miners[i].doTick(s)
+		// }
 
 		if s%ticksPerSecond == 0 {
 			// time.Sleep(time.Millisecond * 100)
@@ -371,7 +375,8 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 			return b.canonical && b.miner == m.Address
 		}).Len()
 
-		minerLog := fmt.Sprintf(`a=%s c=%s hr=%0.2f winr=%0.3f wins=%d head.i=%d head.tabs=%d k_mean=%0.3f k_med=%0.3f k_mode=%v intervals_mean=%0.3fs d_mean.rel=%0.3f balance=%d objective_decs=%0.3f reorgs.mag_mean=%0.3f\n`,
+		minerLog := fmt.Sprintf(`a=%s c=%s hr=%0.2f winr=%0.3f wins=%d head.i=%d head.tabs=%d k_mean=%0.3f k_med=%0.3f k_mode=%v intervals_mean=%0.3fs d_mean.rel=%0.3f balance=%d objective_decs=%0.3f reorgs.mag_mean=%0.3f
+`,
 			m.Address, m.ConsensusAlgorithm, hashrates[i], float64(wins)/float64(m.head.i), wins, /* m.HashesPerTick, */
 			m.head.i, m.head.tabs,
 			kMean, kMed, kMode,
@@ -380,9 +385,24 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 			float64(m.ConsensusObjectiveArbitrations)/float64(m.ConsensusArbitrations),
 			reorgMagsMean)
 
-		t.Logf(minerLog)
+		arbitrationConditionTallyLine := ""
+		// I iterate these copypasta strings because I want order.
+		for _, name := range []string{"consensus_score_high", "height_low", "miner_selfish", "random"} {
+			v, ok := m.decisionConditionTallies[name]
+			if !ok {
+				continue
+			}
+			fv := float64(v) / float64(m.ConsensusArbitrations)
+			arbitrationConditionTallyLine += fmt.Sprintf(`%s=%0.2f `, name, fv)
+		}
 
+		minerLog += arbitrationConditionTallyLine + "\n"
+
+		t.Log(minerLog)
+
+		// Log the stats of the miner
 		ioutil.WriteFile(filepath.Join(outDir, fmt.Sprintf("miner_%d", i)), []byte(minerLog), os.ModePerm)
+		// Log the block tree belonging to this miner
 		ioutil.WriteFile(filepath.Join(outDir, fmt.Sprintf("miner_%d_bt", i)), []byte(m.Blocks.String()), os.ModePerm)
 	}
 
