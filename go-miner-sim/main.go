@@ -474,12 +474,16 @@ func (bt BlockTree) String() string {
 
 		out += fmt.Sprintf("n=%d ", i)
 		for _, b := range bt[i] {
-			out += fmt.Sprintf("[h=%s ph=%s c=%v]", b.h[:4], b.ph[:4], b.canonical)
+			out += b.String()
 		}
 		out += "\n"
 	}
 
 	return out
+}
+
+func (b *Block) String() string {
+	return fmt.Sprintf("[i=%d s=%v(+%d) h=%s ph=%s d=%v td=%v c=%v]", b.i, b.s, b.si, b.h[:4], b.ph[:4], b.d, b.td, b.canonical)
 }
 
 func (bt BlockTree) AppendBlockByNumber(b *Block) (dupe bool) {
