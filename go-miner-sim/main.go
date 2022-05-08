@@ -355,6 +355,11 @@ func (m *Miner) reorgMagnitudes() (magnitudes []float64) {
 
 // arbitrateBlocks selects one canonical block from any two blocks.
 func (m *Miner) arbitrateBlocks(a, b *Block) *Block {
+	// dedupe
+	if a.h == b.h {
+		return a
+	}
+
 	m.ConsensusArbitrations++          // its what we do here
 	m.ConsensusObjectiveArbitrations++ // an assumption that will be undone (--) if it does not hold
 

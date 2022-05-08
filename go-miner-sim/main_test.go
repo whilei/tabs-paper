@@ -310,13 +310,16 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 	lastHighBlock := int64(0)
 	for s := int64(1); s <= tickSamples; s++ {
 
-		for _, m := range miners {
-			m.doTick(s)
-		}
-
-		// for _, i := range rand.Perm(len(miners)) {
-		// 	miners[i].doTick(s)
+		// for _, m := range miners {
+		// 	m.doTick(s)
 		// }
+
+		// Randomize miner ticking.
+		// This shouldn't do much, but should help a little smoothing any influence that
+		// the arbitrary assignment ordering would have on block discovery outcomes.
+		for _, i := range rand.Perm(len(miners)) {
+			miners[i].doTick(s)
+		}
 
 		if s%ticksPerSecond == 0 {
 			// time.Sleep(time.Millisecond * 100)
@@ -360,7 +363,7 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 			return b.canonical && b.miner == m.Address
 		}).Len()
 
-		minerLog := fmt.Sprintf(`a=%s c=%s hr=%0.2f winr=%0.3f wins=%d head.i=%d head.tabs=%d k_mean=%0.3f k_med=%0.3f k_mode=%v intervals_mean=%0.3fs d_mean.rel=%0.3f balance=%d objective_decs=%0.3f reorgs.mag_mean=%0.3f
+		minerLog := fmt.Sprintf(`a=%s c=%s hr=%0.2f winr=%0.3f wins=%d head.i=%d head.tabs=%d k_mean=%0.3f k_med=%0.3f k_mode=%v intervals_mean=%0.3fs d_mean.rel=%0.3f balance=%d objective_decs=%0.3f arbs=%d reorgs.mag_mean=%0.3f
 `,
 			m.Address, m.ConsensusAlgorithm, hashrates[i], float64(wins)/float64(m.head.i), wins, /* m.HashesPerTick, */
 			m.head.i, m.head.tabs,
@@ -368,7 +371,12 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 			intervalsMean, difficultiesMean/float64(genesisBlock.d),
 			m.Balance,
 			float64(m.ConsensusObjectiveArbitrations)/float64(m.ConsensusArbitrations),
+			m.ConsensusArbitrations,
 			reorgMagsMean)
+
+		// m.ConsensusArbitrations/m.head.i should be the kMean
+		// This is: how many block decisions were arbitrated (ie how many total blocks were seen)
+		// versus   how many blocks were canonical (how high the tree was).
 
 		arbitrationConditionTallyLine := ""
 		// I iterate these copypasta strings because I want order.
