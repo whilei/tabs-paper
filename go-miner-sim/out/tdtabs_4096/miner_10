@@ -1,2 +1,2 @@
-a=efe626 c=TDTABS hr=0.01 winr=0.004 wins=7 head.i=1559 head.tabs=17816 k_mean=1.117 k_med=1.000 k_mode=[1] intervals_mean=13.835s d_mean.rel=0.986 balance=223 objective_decs=0.840 arbs=2480 reorgs.mag_mean=1.006
-consensus_score_high=0.84 random=0.16 
+a=efe626 c=TDTABS hr=0.01 winr=0.006 wins=9 head.i=1575 head.tabs=20851 k_mean=1.124 k_med=1.000 k_mode=[1] intervals_mean=13.698s d_mean.rel=1.003 balance=223 objective_decs=0.826 arbs=2395 reorgs.mag_mean=1.006
+consensus_score_high=0.83 random=0.17 

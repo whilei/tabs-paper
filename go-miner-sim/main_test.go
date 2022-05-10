@@ -51,6 +51,16 @@ func TestPlotting(t *testing.T) {
 			},
 		},
 		{
+			name: "tdtabs_128",
+			globalTweaks: func() {
+				tabsAdjustmentDenominator = 128
+
+			},
+			minerMutation: func(m *Miner) {
+				m.ConsensusAlgorithm = TDTABS
+			},
+		},
+		{
 			name: "tdtabs_64",
 			globalTweaks: func() {
 				tabsAdjustmentDenominator = 64 // aggressive
@@ -70,19 +80,19 @@ func TestPlotting(t *testing.T) {
 
 				// Evil.
 				//
-				m.PostponeDelay = func(b *Block) int64 {
-					maliciousPostpone := int64(0)
+				m.ReceiveDelay = func(b *Block) int64 {
+					postpone := int64(receivePostponeSecondsDefault * float64(ticksPerSecond))
 					if m.ConsensusAlgorithm == TDTABS && m.Address != b.miner {
 						localTabs := m.Balance + txPoolBlockTABs[b.i]
 						if b.tabsCmp <= 0 && localTabs > b.tabs {
 							// The miner knows they have a better TABS than the received block.
 							// This gives them an edge in potential consensus points.
 
-							// maliciousPostpone = ticksPerSecond * (b.si % 9)
-							maliciousPostpone = ticksPerSecond
+							// postpone = ticksPerSecond * (b.si % 9)
+							postpone += ticksPerSecond * 1 /* second */
 						}
 					}
-					return maliciousPostpone
+					return postpone
 				}
 			},
 		},
@@ -165,7 +175,7 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 			reorgs:                   make(map[int64]reorg),
 			decisionConditionTallies: make(map[string]int),
 			cord:                     minerEvents,
-			BroadcastDelay: func(block *Block) int64 {
+			SendDelay: func(block *Block) int64 {
 				return int64(delaySecondsDefault * float64(ticksPerSecond))
 				// return int64(hr * 3 * rand.Float64() * float64(ticksPerSecond))
 			},
@@ -642,7 +652,7 @@ func TestProcessBlock(t *testing.T) {
 		reorgs:                   make(map[int64]reorg),
 		decisionConditionTallies: make(map[string]int),
 		cord:                     make(chan minerEvent),
-		BroadcastDelay: func(*Block) int64 {
+		SendDelay: func(*Block) int64 {
 			return int64(delaySecondsDefault * float64(ticksPerSecond))
 			// return int64(hr * 3 * rand.Float64() * float64(ticksPerSecond))
 		},

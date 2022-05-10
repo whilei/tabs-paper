@@ -37,7 +37,8 @@ var minerNeighborRate float64 = 0.5 // 0.7
 var blockReward int64 = 3
 
 var latencySecondsDefault float64 = 2.5
-var delaySecondsDefault float64 = 0 // miner hesitancy to broadcast solution
+var delaySecondsDefault float64 = 0                    // miner hesitancy to broadcast solution
+var receivePostponeSecondsDefault float64 = 100 / 1000 // 80 milliseconds, ish
 
 var tabsAdjustmentDenominator = int64(128) // int64(4096) <-- 4096 is the 'equilibrium' value, lower values prefer richer miners more (devaluing hashrate)
 const genesisBlockTABS int64 = 10_000      // tabs starting value
@@ -91,9 +92,15 @@ type Miner struct {
 	BalanceCap    int64 // Max Wei this miner will hold. Use 0 for no limit hold 'em.
 	CostPerBlock  int64 // cost to miner, expended after each block win (via tx on text block)
 
-	Latency        func() int64
-	BroadcastDelay func(block *Block) int64
-	PostponeDelay  func(block *Block) int64
+	Latency func() int64
+
+	// SendDelay represents a miner withholding a discovered puzzle solution, ie. "selfish mining"
+	SendDelay func(block *Block) int64
+
+	// ReceiveDelay represents a miner's reluctance to mine a latest-available head block.
+	// This could be because they are rich and try to produce a block with a higher TABS than a known low-TABS block.
+	// This is experimental; is this scheme profitable?
+	ReceiveDelay func(block *Block) int64
 
 	ConsensusAlgorithm             ConsensusAlgorithm
 	ConsensusArbitrations          int
@@ -155,71 +162,75 @@ func (m *Miner) doTick(s int64) {
 	m.mineTick()
 }
 
-func (m *Miner) mineTick() {
-	parent := m.head
-
-	// - HashesPerTick / parent.difficulty gives relative network hashrate share
-	// - * m.Lambda gives relative trial share per tick
-	tickR := float64(m.HashesPerTick) / float64(parent.d) * networkLambda
+func fakeHashimoto(hashratePerTick, parentDifficulty, networkLambda float64) bool {
+	tickR := hashratePerTick / parentDifficulty * networkLambda
 	tickR = tickR / 2
 
 	// Do we solve it?
 	needle := rand.Float64()
 	trial := rand.Float64()
 
-	if math.Abs(trial-needle) <= tickR ||
-		math.Abs(trial-needle) >= 1-tickR {
+	return math.Abs(trial-needle) <= tickR ||
+		math.Abs(trial-needle) >= 1-tickR
+}
 
-		// Naively, the block tick is the miner's real tick.
-		s := m.tick
+func (m *Miner) mineTick() {
+	parent := m.head
 
-		// But if the tickInterval allows multiple ticks / second,
-		// we need to enforce that the timestamp is a unit-second value.
-		s = s / ticksPerSecond // floor
-		s = s * ticksPerSecond // back to interval units
-
-		// In order for the block to be valid, the tick must be greater
-		// than that of its parent.
-		if s == parent.s {
-			s = parent.s + 1
-		}
-
-		// Get a random value (from a normal distribution) as a representation of this block's TAB.
-		// This is a global value that, once set, all miners will use.
-		blockTxPoolTABs, ok := txPoolBlockTABs[parent.i+1]
-		if !ok {
-			blockTxPoolTABs = int64(normalDist.Rand())
-			txPoolBlockTABs[parent.i+1] = blockTxPoolTABs
-		}
-		blockTAB := blockTxPoolTABs + m.Balance
-
-		// A naive model of uncle references: bool=yes if any orphan blocks exist in our miner's record of blocks
-		uncles := len(m.Blocks[parent.i]) > 1
-
-		blockDifficulty := getBlockDifficulty(parent /* interval: */, uncles, s-parent.s)
-		change, tabs := getTABS(parent, blockTAB)
-		tdtabs := tabs * blockDifficulty
-		b := &Block{
-			i:       parent.i + 1,
-			s:       s, // miners are always honest about their timestamps
-			si:      s - parent.s,
-			d:       blockDifficulty,
-			td:      parent.td + blockDifficulty,
-			tabsCmp: change,
-			tabs:    tabs,
-			ttdtabs: parent.ttdtabs + tdtabs,
-			miner:   m.Address,
-			ph:      parent.h,
-			h:       fmt.Sprintf("%08x", rand.Int63()),
-		}
-		m.processBlock(b)
-		m.broadcastBlock(b)
+	solved := fakeHashimoto(float64(m.HashesPerTick), float64(parent.d), networkLambda)
+	if !solved {
+		return
 	}
+
+	// Naively, the block tick (timestamp) is the miner's real tick.
+	s := m.tick
+
+	// But if the tickInterval allows multiple ticks / second,
+	// we need to enforce that the timestamp is a unit-second value.
+	s = s / ticksPerSecond // floor
+	s = s * ticksPerSecond // back to interval units
+
+	// In order for the block to be valid, the tick must be greater
+	// than that of its parent.
+	if s == parent.s {
+		s = parent.s + 1
+	}
+
+	// Get a random value (from a normal distribution) as a representation of this block's TAB.
+	// This is a global value that, once set, all miners will use.
+	blockTxPoolTABs, ok := txPoolBlockTABs[parent.i+1]
+	if !ok {
+		blockTxPoolTABs = int64(normalDist.Rand())
+		txPoolBlockTABs[parent.i+1] = blockTxPoolTABs
+	}
+	blockTAB := blockTxPoolTABs + m.Balance
+
+	// A naive model of uncle citations: block has uncles if any orphan blocks exist in our miner's record of the parent height
+	uncles := len(m.Blocks[parent.i-1]) > 1
+
+	blockDifficulty := getBlockDifficulty(parent /* interval: */, uncles, s-parent.s)
+	change, tabs := getTABS(parent, blockTAB)
+	tdtabs := tabs * blockDifficulty
+	b := &Block{
+		i:       parent.i + 1,
+		s:       s, // miners are always honest about their timestamps
+		si:      s - parent.s,
+		d:       blockDifficulty,
+		td:      parent.td + blockDifficulty,
+		tabsCmp: change,
+		tabs:    tabs,
+		ttdtabs: parent.ttdtabs + tdtabs,
+		miner:   m.Address,
+		ph:      parent.h,
+		h:       fmt.Sprintf("%08x", rand.Int63()),
+	}
+	m.processBlock(b)
+	m.broadcastBlock(b)
 }
 
 func (m *Miner) broadcastBlock(b *Block) {
 	b.delay = Delay{
-		withhold: m.BroadcastDelay(b),
+		withhold: m.SendDelay(b),
 		material: m.Latency(),
 	}
 	for _, n := range m.neighbors {
@@ -228,8 +239,8 @@ func (m *Miner) broadcastBlock(b *Block) {
 }
 
 func (m *Miner) receiveBlock(b *Block) {
-	if m.PostponeDelay != nil {
-		b.delay.postpone = m.PostponeDelay(b)
+	if m.ReceiveDelay != nil {
+		b.delay.postpone = m.ReceiveDelay(b)
 	}
 	if d := b.delay.Total(); d > 0 {
 		if len(m.receivedBlocks[b.s+d]) > 0 {
@@ -258,6 +269,64 @@ func (m *Miner) processBlock(b *Block) {
 	canon := m.arbitrateBlocks(m.head, b)
 	canon.canonical = true
 	m.setHead(canon)
+}
+
+// arbitrateBlocks selects one canonical block from any two blocks.
+func (m *Miner) arbitrateBlocks(a, b *Block) *Block {
+	// dedupe
+	if a.h == b.h {
+		return a
+	}
+
+	m.ConsensusArbitrations++          // its what we do here
+	m.ConsensusObjectiveArbitrations++ // an assumption that will be undone (--) if it does not hold
+
+	decisionCondition := "consensus_score_high"
+	defer func() {
+		m.decisionConditionTallies[decisionCondition]++
+	}()
+
+	if m.ConsensusAlgorithm == TD {
+		// TD arbitration
+		if a.td > b.td {
+			return a
+		} else if b.td > a.td {
+			return b
+		}
+	} else if m.ConsensusAlgorithm == TDTABS {
+		if (a.ttdtabs) > (b.ttdtabs) {
+			return a
+		} else if (b.ttdtabs) > (a.ttdtabs) {
+			return b
+		}
+	}
+
+	// Number arbitration
+	decisionCondition = "height_low"
+	if a.i < b.i {
+		return a
+	} else if b.i < a.i {
+		return b
+	}
+
+	// If we've reached this point, the arbitration was not
+	// objective.
+	m.ConsensusObjectiveArbitrations--
+
+	// Self-interest arbitration
+	decisionCondition = "miner_selfish"
+	if a.miner == m.Address && b.miner != m.Address {
+		return a
+	} else if b.miner == m.Address && a.miner != m.Address {
+		return b
+	}
+
+	// Coin toss
+	decisionCondition = "random"
+	if rand.Float64() < 0.5 {
+		return a
+	}
+	return b
 }
 
 func (m *Miner) balanceAdd(i int64) {
@@ -351,64 +420,6 @@ func (m *Miner) reorgMagnitudes() (magnitudes []float64) {
 		magnitudes = append(magnitudes, v.magnitude())
 	}
 	return
-}
-
-// arbitrateBlocks selects one canonical block from any two blocks.
-func (m *Miner) arbitrateBlocks(a, b *Block) *Block {
-	// dedupe
-	if a.h == b.h {
-		return a
-	}
-
-	m.ConsensusArbitrations++          // its what we do here
-	m.ConsensusObjectiveArbitrations++ // an assumption that will be undone (--) if it does not hold
-
-	decisionCondition := "consensus_score_high"
-	defer func() {
-		m.decisionConditionTallies[decisionCondition]++
-	}()
-
-	if m.ConsensusAlgorithm == TD {
-		// TD arbitration
-		if a.td > b.td {
-			return a
-		} else if b.td > a.td {
-			return b
-		}
-	} else if m.ConsensusAlgorithm == TDTABS {
-		if (a.ttdtabs) > (b.ttdtabs) {
-			return a
-		} else if (b.ttdtabs) > (a.ttdtabs) {
-			return b
-		}
-	}
-
-	// Number arbitration
-	decisionCondition = "height_low"
-	if a.i < b.i {
-		return a
-	} else if b.i < a.i {
-		return b
-	}
-
-	// If we've reached this point, the arbitration was not
-	// objective.
-	m.ConsensusObjectiveArbitrations--
-
-	// Self-interest arbitration
-	decisionCondition = "miner_selfish"
-	if a.miner == m.Address && b.miner != m.Address {
-		return a
-	} else if b.miner == m.Address && a.miner != m.Address {
-		return b
-	}
-
-	// Coin toss
-	decisionCondition = "random"
-	if rand.Float64() < 0.5 {
-		return a
-	}
-	return b
 }
 
 type ConsensusAlgorithm int
