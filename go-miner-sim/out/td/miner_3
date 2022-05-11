@@ -1,2 +1,2 @@
-a=50bb6b c=TD hr=0.10 winr=0.111 wins=170 head.i=1528 head.tabs=14370 k_mean=1.126 k_med=1.000 k_mode=[1] intervals_mean=14.111s d_mean.rel=0.991 balance=4996 objective_decs=0.717 arbs=2471 reorgs.mag_mean=1.025
-consensus_score_high=0.72 miner_selfish=0.09 random=0.19 
+a=50bb6b c=TD hr=0.10 winr=0.092 wins=140 head.i=1527 head.tabs=18986 k_mean=1.122 k_med=1.000 k_mode=[1] intervals_mean=14.128s d_mean.rel=1.010 balance=3598 objective_decs=0.719 arbs=2285 reorgs.mag_mean=1.013
+consensus_score_high=0.72 miner_selfish=0.08 random=0.20 
