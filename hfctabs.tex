@@ -534,11 +534,11 @@ where:
 \begin{equation}
 \mathrm{TABS}(H) \equiv \begin{cases}
 
-\minTABS & \text{if} \quad H_{\mathrm{i}} = 0 \, \vert\vert \, P(H)_{H_k}
-\text{is undefined} \\
+%\minTABS & \text{if} \quad %% H_{\mathrm{i}} = 0 \, \vert\vert \,P(H)_{H_k} \text{ is undefined} \\
+\minTABS & \text{if} \, P(H)_{H_k} \, \text{is undefined} \\
 
 \text{max}\!\left(\minTABS, {P(H)_{\mathrm{H}}}_{\mathrm{k}} +
-\diffadjustment\times\mynumerator \right) & \text{otherwise} \\
+\diffadjustment \mynumerator \right) & \text{otherwise} \\
 \end{cases}
 \end{equation}
 
