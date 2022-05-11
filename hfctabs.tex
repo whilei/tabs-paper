@@ -598,7 +598,7 @@ the minimum incumbent Ethereum difficulty adjustment factor (
     $\left\lfloor\frac{{P(H)_{\mathrm{H}}}_{\mathrm{d}}}{2048}\right\rfloor$
 )
 with $\tabsAdjustmentDenominator$'s definition designed
-to maintain the precedence of the difficulty value in the resulting Consensus Score product.
+to maintain the precedence of the difficulty value in the resulting Canon Score product.
 This ensures that difficulty remains the primary driver of chain growth,
 keeping miner incentives invariant.
 
@@ -1035,11 +1035,11 @@ The proposed adjustment factor for TABS is $\pm\frac{1}{4096}$.
 In the case of a block A produced within a Difficulty interval X with a decremented TABS score
 and
 a block B produced within a Difficulty interval X+1 with an incremented TABS score,
-the resulting Consensus Scores of these block will be equal.
+the resulting Canon Scores of these block will be equal.
 
 We consider these relative adjustment factor values to represent an equilibrium.
 Remembering that under the current protocol, blocks may be produced in a sequence within 8 seconds of each
-other and result also in a Consensus Score tie, we hone our intuition to see that these theoretical
+other and result also in a Canon Score tie, we hone our intuition to see that these theoretical
 ties in cases of sequential (non-simultaneous) blocks are disincentivized and thus practically edge cases.
 Miners are incentivized to work on the latest block available to them despite an available consensus tie scenario,
 so we do not expect rich miners to chase authorship of slow-rich blocks following the observance of fast-poor blocks.
@@ -1187,7 +1187,7 @@ We can thereby expect that puzzle solutions will continue to be
 the primary driving factor for chain-growth.
 
 Do we expect any additional vulnerabilities to malicious behavior?
-Can the TABS Consensus Score be exploited to allow slower blocks produced by rich miners to win?
+Can the TABS Canon Score be exploited to allow slower blocks produced by rich miners to win?
 
 When could a slower block produced by a rich miner win?
 Block difficulty function is a step function parameterized by block interval.
