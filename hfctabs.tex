@@ -515,7 +515,7 @@ In this section we describe the elements of the $TABS$ modification to the
 % TABS should be able to fall more quickly than rise.
 
 Total Active Balance Synthesis (TABS) is a positive scalar value.
-It is a representative aggregate of all transaction sender accounts (and the miner) for a blockchain of some length.
+It is a representative aggregate of all transacting-originating accounts for a blockchain of some length.
 Generally considered, it provides a representative measure of active capital on some chain state.
 It is denominated in Wei.\footnote{
     1000000000000000000 (1e18) Wei equal 1 Ether. % See \url{https://ethereum.stackexchange.com/questions/253}
@@ -569,9 +569,8 @@ y \equiv
 \end{cases}
 \end{equation}
 
-The \mathrm{TAB(B)} value of a block is defined as the sum of the miner balance
-and all of the sender balances for transactions with an assertive $T_a$
-ancestor hash field:
+The \mathrm{TAB(B)} value of a block is defined as the sum of all the sender balances
+for transactions:
 
 \begin{equation}
 TAB(B) \equiv L(B, B_c) \, + \, \sum_{T \in B_{\mathrm{txes}}}
