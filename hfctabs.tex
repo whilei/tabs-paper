@@ -176,9 +176,9 @@ information and its reception. \\~\\
 
 $B_i$ & A block with number $i$. \\~\\
 $H_i$ & A block header with number $i$. \\~\\
-
 $H_d$ & Block (and header) annotated difficulty. \\~\\
 $H_k$ & Block (and header) annotated $\mathrm{TABS}$ value. \\~\\
+$H_t$ & Block (and header) annotated timestamp value. \\~\\
 
 $TAB(B)$ & A scalar value representing aggregated account balances for a given
 block $B$. "TAB" stands for Total Active Balance. \\~\\
@@ -569,11 +569,11 @@ y \equiv
 \end{cases}
 \end{equation}
 
-The \mathrm{TAB(B)} value of a block is defined as the sum of all the sender balances
-for transactions:
+The \mathrm{TAB(B)} value of a block is defined as the sum of balances
+of transaction-sending accounts for a block:
 
 \begin{equation}
-TAB(B) \equiv L(B, B_c) \, + \, \sum_{T \in B_{\mathrm{txes}}}
+TAB(B) \equiv \sum_{T \in B_{\mathrm{txes}}}
 L(B,T_{\mathrm{sender}})
 \end{equation}
 
@@ -1015,23 +1015,48 @@ it must be shown that chain-growth pacing and the incentives which drive it rema
 First we look at the incumbent assumption and behavior around Total Difficulty, specifically tie (symmetric) scenarios.
 
 The step function which describes chain difficulty is parametrized by
-parent difficulty, current block time, and whether the current block cites any uncles.
+parent difficulty, current block time, and whether the current block cites any uncles.\footnote{
+        The difficulty function analysed is that of the current Ethereum Protocol at the time of writing,
+        and includes EIP-100.
+    }
 
-For the sake of this argument, we exclude parent difficulty from consideration, presuming it being held constant.
-
-The steps of the difficulty function are parameterized solely by current block time.
 Each step has a domain of 8 seconds.
     So, parent and uncles constant, blocks produced in the 1-8 second range yield equivalent difficulties.
     Same for blocks with 9-17 second intervals, 18-26 seconds, and so forth.
 
-From this, we can deduce that for the game of the block race,
-a block's publication time priority is critically important to its chance of canonicalization.
-Around fifty percent of all blocks occur in the $[1-8]$ second interval,
-giving them equivalent Difficulties and equivalent Total Difficulties.\nolinebreak
+\begin{figure}[tph]
+    \centering
+    \includegraphics[width=1.0\textwidth]{imgs/vis_ethash_difficulty_adjustment.png}
+    \caption{
+        Parent-relative difficulty adjustment rates over timestamped interval.
+        Under the incumbent \mghost protocol, these scores are equivalent with our so-called Canon Score value.
+        This chart was produced by the function \texttt{TestPlotDifficultyAdjustments} in the \texttt{go-tabs-charts} module.
+    }
+    \label{fig:vis_ethash_difficulty_adjustment}
+\end{figure}
+
+\begin{figure}[tph]
+    \centering
+    \includegraphics[width=1.0\textwidth]{imgs/tdtabs_canon_scores.png}
+    \caption{
+        Proposed parent-relative canon score rates over timestamped interval.
+        Cases where TABS remains constant between parent and child blocks are not included
+        because these cases are taken for granted to be extremely rare.
+    }
+    \label{fig:tdtabs_canon_scores}
+\end{figure}
+
+%From this, we can deduce that for the game of the block race,
+%a block's publication time priority is critically important to its chance of canonicalization.
+
+Empirically, around fifty percent of all blocks produced occur in the $[1-8]$ second interval,
+giving them equivalent Total Difficulties.\nolinebreak
 \footnote{TODO: Cite me. Currently empirical/ETH/stats.go}
 
 The minimum adjustment factor for Difficulty is $\pm\frac{1}{2048}$.
 The proposed adjustment factor for TABS is $\pm\frac{1}{4096}$.
+
+    
 In the case of a block A produced within a Difficulty interval X with a decremented TABS score
 and
 a block B produced within a Difficulty interval X+1 with an incremented TABS score,
