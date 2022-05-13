@@ -1016,13 +1016,17 @@ First we look at the incumbent assumption and behavior around Total Difficulty, 
 
 The step function which describes chain difficulty is parametrized by
 parent difficulty, current block time, and whether the current block cites any uncles.\footnote{
-        The difficulty function analysed is that of the current Ethereum Protocol at the time of writing,
-        and includes EIP-100.
-    }
+    The difficulty function analysed is that of the current Ethereum Protocol at the time of writing,
+    and includes EIP-100.
+}
 
 Each step has a domain of 8 seconds.
-    So, parent and uncles constant, blocks produced in the 1-8 second range yield equivalent difficulties.
-    Same for blocks with 9-17 second intervals, 18-26 seconds, and so forth.
+So, parent and uncles constant, blocks produced in the 1-8 second range yield equivalent difficulties.
+Same for blocks with 9-17 second intervals, 18-26 seconds, and so forth.
+
+Empirically, around fifty percent of all blocks produced occur in the $[1-8]$ second interval,
+giving them equivalent Total Difficulties.\nolinebreak
+\footnote{TODO: Cite me. Currently empirical/ETH/stats.go}
 
 \begin{figure}[tph]
     \centering
@@ -1040,34 +1044,49 @@ Each step has a domain of 8 seconds.
     \includegraphics[width=1.0\textwidth]{imgs/tdtabs_canon_scores.png}
     \caption{
         Proposed parent-relative canon score rates over timestamped interval.
-        Cases where TABS remains constant between parent and child blocks are not included
+        Cases where TABS remains constant between parent and child blocks are not represented
         because these cases are taken for granted to be extremely rare.
     }
     \label{fig:tdtabs_canon_scores}
 \end{figure}
 
+\clearpage
+\textbf{Race Event Likelihoods}
+
+What is the likelihood that a miner is able to be differentially competitive as a result of TABS?
+
+We first need to assume some number of transactions per block, and an average balance for those transactions.
+
+Let's assume block space is scare (there are sufficient public transactions available to fill any block).
+We model an average number of transactions per block as the block's gas limit allowance divided by the average
+gas use per transaction.
+Let's say this gives us an average of 300 transactions per block.
+
+
+
+
+
+
 %From this, we can deduce that for the game of the block race,
 %a block's publication time priority is critically important to its chance of canonicalization.
 
-Empirically, around fifty percent of all blocks produced occur in the $[1-8]$ second interval,
-giving them equivalent Total Difficulties.\nolinebreak
-\footnote{TODO: Cite me. Currently empirical/ETH/stats.go}
 
-The minimum adjustment factor for Difficulty is $\pm\frac{1}{2048}$.
-The proposed adjustment factor for TABS is $\pm\frac{1}{4096}$.
 
-    
-In the case of a block A produced within a Difficulty interval X with a decremented TABS score
-and
-a block B produced within a Difficulty interval X+1 with an incremented TABS score,
-the resulting Canon Scores of these block will be equal.
 
-We consider these relative adjustment factor values to represent an equilibrium.
-Remembering that under the current protocol, blocks may be produced in a sequence within 8 seconds of each
-other and result also in a Canon Score tie, we hone our intuition to see that these theoretical
-ties in cases of sequential (non-simultaneous) blocks are disincentivized and thus practically edge cases.
-Miners are incentivized to work on the latest block available to them despite an available consensus tie scenario,
-so we do not expect rich miners to chase authorship of slow-rich blocks following the observance of fast-poor blocks.
+
+
+%
+%In the case of a block A produced within a Difficulty interval X with a decremented TABS score
+%and
+%a block B produced within a Difficulty interval X+1 with an incremented TABS score,
+%the resulting Canon Scores of these block will be equal.
+%
+%We consider these relative adjustment factor values to represent an equilibrium.
+%Remembering that under the current protocol, blocks may be produced in a sequence within 8 seconds of each
+%other and result also in a Canon Score tie, we hone our intuition to see that these theoretical
+%ties in cases of sequential (non-simultaneous) blocks are disincentivized and thus practically edge cases.
+%Miners are incentivized to work on the latest block available to them despite an available consensus tie scenario,
+%so we do not expect rich miners to chase authorship of slow-rich blocks following the observance of fast-poor blocks.
 
 
 
@@ -1079,7 +1098,7 @@ so we do not expect rich miners to chase authorship of slow-rich blocks followin
 
 % ---
 
-/comment{
+\comment{
         expected profit = miner.hashrateshare X prob of block production X prob of canonical X block rev
         S = miner hashrate share
         R = block revenue
@@ -1175,13 +1194,14 @@ as an indicator of what some domain literature considers "symmetry" during "chai
 The coincidence of block emission occurrences is an event of chain-growth symmetry.
 Since only one block may be ultimately selected for the canon, we consider the rate of orphan production
 a measure of network \emph{efficiency}.
-Orphan blocks represent wasted electricity on behalf of the orphan miner.\footnote{
+Orphan blocks represent wasted electricity on behalf of the orphan miner,
+as well on behalf of miners who mine on top of it.\footnote{
     Compensating for orphans is the main objective of the GHOST protocol,
     which specifies increasing difficulty for blocks with uncle citations.
 }
 
 The AHA/TABS protocol is expected to reduce the orphan rate of the network by increasing decidability (asymmetry)
-during canon-arbitration by virtue of an assumed asymmetry in respective block Total Active Balances.
+during canon-arbitration by virtue of an assumed asymmetry between sequential block Total Active Balance values.
 
 Block emission rates will not change.
 Emission rates are a function of difficulty, which is codependent with block intervals.
