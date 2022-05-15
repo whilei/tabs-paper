@@ -75,6 +75,14 @@ func TestChartPoissonGame(t *testing.T) {
 	// eventsScatter.Radius = 3
 	// p.Add(eventsScatter)
 
+	fn := plotter.NewFunction(func(f float64) float64 {
+		return
+	})
+	// fn.Samples = 10
+	fn.Color = colornames.Black
+	p.Add(fn)
+	p.Legend.Add("name", fn)
+
 	if err := p.Save(800, 600, "poisson_game_redblue.png"); err != nil {
 		t.Fatal(err)
 	}

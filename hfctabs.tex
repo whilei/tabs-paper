@@ -177,6 +177,7 @@ information and its reception. \\~\\
 $B_i$ & A block with number $i$. \\~\\
 $H_i$ & A block header with number $i$. \\~\\
 $H_d$ & Block (and header) annotated difficulty. \\~\\
+$H_{td}$ & Block (and header) annotated total difficulty. \\~\\
 $H_k$ & Block (and header) annotated $\mathrm{TABS}$ value. \\~\\
 $H_t$ & Block (and header) annotated timestamp value. \\~\\
 
@@ -975,9 +976,9 @@ transactors make better judgements about block delay intervals for off-chain ele
 In the annotation of the proposed field, the transaction sender makes reference to an observed state of the blockchain.
 The observation of and reference to chain state is an incumbent pattern of practical use.
 Under the current protocol, transaction senders commonly reference an observed chain state to
-establish or validate their transaction's Nonce, the ChainId, their balance, current gas prices,
+establish or validate their transaction's Nonce, the current \textit{Chain ID}, their balance, current gas prices,
 and current gas fees (for smart contract composition).
-The citation of an observed block hash does not impose a novel demand on block state observation.
+The citation of an observed block hash does not impose a practically novel demand on block state observation.
 
 Moreover, the ability for a transactor to declare a dependency on some observed block state
 enables them to make these established habits and practical assumptions explicit.
@@ -1036,7 +1037,7 @@ Throughput is only diminished when unexpected (ie. private) states overtake publ
 
 Under Nakamoto Consensus, aggregate block difficulty ($H_d$) plays two roles:
 pacing block production and nominating canon eligibility.
-Since this the proposed TABS consensus arbitration algorithm modifies the role of difficulty in canon-arbitration,
+Since the proposed TABS consensus arbitration algorithm modifies the role of difficulty in canon-arbitration,
 it must be shown that chain-growth pacing and the incentives which drive it remain intact.
 
 We follow a \textit{reductio ad absurdam} argument to demonstrate that the proposed modification
@@ -1064,9 +1065,10 @@ extends the domain (time intervals) of equivalent outcomes to 16 seconds.
 Since a block produced at $t=1$ and a subsequent, competitive block produced at $t=4$ would be assigned
 \textit{at least} the same canon-arbitration score, and yet it does not appear to be the case that block heights are intentionally
 mined for the duration of their competitive interval for some block height,
-we must infer that an incentive exists for the miner to mine the \textit{next} block;
-to build from the latest best available block to them, rather than pursue a later-occurring but equivalent (or better)
-canon-scoring block.
+we must infer that some incentive exists for the miner to mine the \textit{next} block;
+rather than pursue a later-occurring but equivalent (or better) canon-scoring block.
+
+We provide a rationale for this phenomenon in the following charts.
 
 %Empirically, around fifty percent of all blocks produced occur in the $[1-8]$ second interval,
 %giving them equivalent Total Difficulties.\nolinebreak
@@ -1078,6 +1080,7 @@ canon-scoring block.
     \caption{
         Parent-relative difficulty adjustment rates over timestamped interval.
         Under the incumbent \mghost protocol, these scores are equivalent with our so-called Canon Score value.
+        One can see that a block produced at any time may have one of two Canon Scores.
         This chart was produced by the function \texttt{TestPlotDifficultyAdjustments} in the \texttt{go-tabs-charts} module.
     }
     \label{fig:vis_ethash_difficulty_adjustment}
@@ -1088,20 +1091,19 @@ canon-scoring block.
     \includegraphics[width=1.0\textwidth]{imgs/tdtabs_canon_scores.png}
     \caption{
         Proposed parent-relative canon score rates over timestamped interval.
-%        Cases where TABS remains constant between parent and child blocks are not represented
-%        because these cases are taken for granted to be extremely rare.
+        One can see that a block produced at any time may have one of five Canon Scores.
+        However, these Canon Scores are not all equally likely.
+        This chart was produced by the function \texttt{TestPlotCanonScores\_TDTABS} in the \texttt{go-tabs-charts} module.
     }
     \label{fig:tdtabs_canon_scores}
 \end{figure}
 
-\begin{figure}[tph]
-    \centering
-    \includegraphics[width=1.0\textwidth]{imgs/vis_poisson_lambda.png}
-    \caption{
-        Scaling expectations for block(s) discovery by modifying the Poisson \textit{lambda} value.
-    }
-    \label{fig:vis_poisson_lambda}
-\end{figure}
+\clearpage
+What is the incentive driving the game's pursuit of the next block, rather than pursuing a (symmetric) competitor?
+
+We define these strategies respectively as ADOPT and ORPHAN.
+The ADOPT strategy begins work on a new round, asserting some valid proposed block.
+The ORPHAN strategy continues work on the parent round, disregarding some valid proposed block.
 
 \begin{figure}[tph]
     \centering
@@ -1113,33 +1115,79 @@ canon-scoring block.
         or they begin a new round.
         The probability of their discovery of a block in the new round (ADOPT strategy) diminishes less
         (has a greater slope) than the persistent alternative (ORPHAN strategy),
-        indicating that it is probably more profitable for them to begin a new round.
+        indicating that it is more profitable in expectation for them to begin a new round.
     }
     \label{fig:vis_poisson_game_redblue}
 \end{figure}
 
-IMPORTANT
+\clearpage
 
-TABS rewards richer miners more than poorer miner, irrespective of their block production.
-    We want to incentivize canonical block production.
-    However, this reward imbalance is probably small.
+    \begin{figure}[tph]
+        \centering
+        \includegraphics[width=1.0\textwidth]{imgs/vis_poisson_lambda.png}
+        \caption{
+            Scaling expectations for block(s) discovery by modifying the Poisson \textit{lambda} value.
+            One notes that the probability value of 0.5 is met at time $t=9$,
+            and that empirically about 50\% of blocks are produced within the $1 < t < 9$ second domain
+            for the original $1/13 (second)$ lambda value.
+        }
+        \label{fig:vis_poisson_lambda}
+    \end{figure}
 
 
 
 
+%
+%IMPORTANT
+%
+%TABS rewards richer miners more than poorer miner, irrespective of their block production.
+%    We want to incentivize canonical block production.
+%    However, this reward imbalance is probably small.
+%
+%
 \clearpage
 \textbf{Race Event Likelihoods}
 
-What is the likelihood that a miner is able to be differentially competitive as a result of TABS?
+Under the current $\mghost$ protocol, we consider the rate of chain growth symmetry as more-or-less
+equivalent to the chance of the network's generation of near-simultaneous competitive blocks.
+The characteristic of being near-simultaneous gives the blocks equivalent Total Difficulty scores.
 
-We first need to assume some number of transactions per block, and an average balance for those transactions.
+The probability of these coincidences are defined above.
 
-Let's assume block space is scare (there are sufficient public transactions available to fill any block).
-We model an average number of transactions per block as the block's gas limit allowance divided by the average
-gas use per transaction.
-Let's say this gives us an average of 300 transactions per block.
+Under the proposed TDTABS protocol, this rate of ties
+(which are ultimately deferred to later arbitration conditions)
+is expected to drop.
 
 
+
+
+%\begin{tabularx}{1.0\textwidth} {
+%     >{\raggedright\arraybackslash}X
+%     >{\raggedright\arraybackslash}X
+%     >{\raggedright\arraybackslash}X  }
+%%        \hline
+%    Arbitration Condition & Likelihood Decided & Notes \\
+%%        \hline
+%    $B_{td} > B_{td}$   & 0.8  & Total difficulty comparison  \\
+%    $B_{n} < B_{n}$   & 0.0  & Lower height (usually inoperative)  \\
+%    $B_{c}$ is self   & 0.1  & Prefer self-authored blocks  \\
+%    $50/50$   & 0.1  & Coin toss  \\
+%%        \hline
+%\end{tabularx}
+%
+
+
+%
+%What is the likelihood that a miner is able to be differentially competitive as a result of TABS?
+%
+%We first need to assume some number of transactions per block, and an average balance for those transactions.
+%
+%Let's assume block space is scare (there are sufficient public transactions available to fill any block).
+%We model an average number of transactions per block as the block's gas limit allowance divided by the average
+%gas use per transaction.
+%Let's say this gives us an average of 300 transactions per block.
+%
+%
 
 
 

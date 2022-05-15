@@ -40,6 +40,13 @@ func TestPlotting(t *testing.T) {
 				m.ConsensusAlgorithm = TD
 			},
 		},
+		// {
+		// 	name: "td_skiprandom",
+		// 	minerMutation: func(m *Miner) {
+		// 		m.ConsensusAlgorithm = TD
+		// 		m.StrategySkipRandom = true
+		// 	},
+		// },
 		{
 			name: "tdtabs_4096",
 			globalTweaks: func() {

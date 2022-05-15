@@ -36,7 +36,7 @@ var countMiners = int64(12)
 var minerNeighborRate float64 = 0.5 // 0.7
 var blockReward int64 = 3
 
-var latencySecondsDefault float64 = 1.23               // 2.5
+var latencySecondsDefault float64 = 2.5                // 1.23               // 2.5
 var delaySecondsDefault float64 = 0                    // miner hesitancy to broadcast solution
 var receivePostponeSecondsDefault float64 = 100 / 1000 // 80 milliseconds, ish
 
@@ -105,6 +105,10 @@ type Miner struct {
 	ConsensusAlgorithm             ConsensusAlgorithm
 	ConsensusArbitrations          int
 	ConsensusObjectiveArbitrations int
+
+	// StrategySkipRandom tells the miner whether to skip the final coin toss arbitration.
+	// When true, the miner will prefer the first block available to it at that height.
+	StrategySkipRandom bool
 
 	reorgs                   map[int64]reorg
 	decisionConditionTallies map[string]int
@@ -272,6 +276,8 @@ func (m *Miner) processBlock(b *Block) {
 }
 
 // arbitrateBlocks selects one canonical block from any two blocks.
+// It assumes that 'a' block is the incumbent, and that 'b' is later proposed;
+// which is to say that the order is expected to be the availability order for the miner.
 func (m *Miner) arbitrateBlocks(a, b *Block) *Block {
 	// dedupe
 	if a.h == b.h {
@@ -322,6 +328,10 @@ func (m *Miner) arbitrateBlocks(a, b *Block) *Block {
 	}
 
 	// Coin toss
+	if m.StrategySkipRandom {
+		decisionCondition = "first_seen"
+		return a
+	}
 	decisionCondition = "random"
 	if rand.Float64() < 0.5 {
 		return a
