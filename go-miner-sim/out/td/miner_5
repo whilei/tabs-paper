@@ -1,2 +1,2 @@
-a=b2dc33 c=TD hr=0.04 winr=0.048 wins=81 head.i=1692 head.tabs=15649 k_mean=1.000 k_med=1.000 k_mode=[1] intervals_mean=12.744s d_mean.rel=0.997 balance=2239 objective_decs=1.000 arbs=1692 reorgs.mag_mean=1.000
-consensus_score_high=1.00 
+a=b2dc33 c=TD hr=0.04 winr=0.044 wins=70 head.i=1586 head.tabs=15841 k_mean=1.051 k_med=1.000 k_mode=[1] intervals_mean=13.606s d_mean.rel=0.974 balance=1589 objective_decs=0.822 arbs=1938 reorgs.mag_mean=1.014
+consensus_score_high=0.82 miner_selfish=0.03 random=0.15 

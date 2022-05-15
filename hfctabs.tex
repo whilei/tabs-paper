@@ -609,10 +609,12 @@ keeping miner incentives invariant.
 %then the TABS value should move by a factor of $<\pm1/2048$.
 %}
 
-\subsection{\small{Canon Scoring}}
+\subsection{\small{Canon Arbitration}}
 
-Canon-arbitration algorithms are assumed to compare two blocks and to
-indicate decisively which one of the two ought to receive canonical status.
+Canon-arbitration is the keystone of network consensus.
+
+Canon-arbitration is defined as the comparison of two blocks, eventually yielding only one.
+The resulting block is understood to be canonical, while any others competitive with it are not.
 This section formally defines a value Canon Score \textit{CS}, which is used as
 the \textit{initial condition} for a canon-arbitration algorithm.
 
@@ -995,6 +997,31 @@ on "throughput" capacity under normal chain-growth.
 Throughput is only diminished when unexpected (ie. private) states overtake public ones.
 
 
+% Model:
+%    x = The number of transactions, expressed as a ratio of gas used over gas limit. Mean.
+%    y = The depth of transaction dependency, expressed as a difference between block heights. Mean.
+%    z = The value of the transactions toward the consensus arbitration algo, eg. sum balances. Median.
+
+%    \begin{center}
+%        \begin{tabular}{ c c c }
+%            cell1 & cell2 & cell3 \\
+%            cell4 & cell5 & cell6 \\
+%            cell7 & cell8 & cell9
+%        \end{tabular}
+%    \end{center}
+%
+%    \begin{tabularx}{1.0\textwidth} {
+%         >{\raggedright\arraybackslash}X
+%         >{\centering\arraybackslash}X
+%         >{\raggedleft\arraybackslash}X  }
+%%        \hline
+%        item 11 & item 12 & item 13 \\
+%%        \hline
+%        item 21  & item 22  & item 23  \\
+%%        \hline
+%    \end{tabularx}
+
+
 % ----
 %
 %The consensus properties of so-called Nakamoto Consensus are well studied.
@@ -1035,7 +1062,7 @@ extends the domain (time intervals) of equivalent outcomes to 16 seconds.
     a block produced at $t=17$ with uncles.
 
 Since a block produced at $t=1$ and a subsequent, competitive block produced at $t=4$ would be assigned
-the same canon-arbitration score, and yet it does not appear to be the case that block heights are intentionally
+\textit{at least} the same canon-arbitration score, and yet it does not appear to be the case that block heights are intentionally
 mined for the duration of their competitive interval for some block height,
 we must infer that an incentive exists for the miner to mine the \textit{next} block;
 to build from the latest best available block to them, rather than pursue a later-occurring but equivalent (or better)

@@ -36,7 +36,7 @@ var countMiners = int64(12)
 var minerNeighborRate float64 = 0.5 // 0.7
 var blockReward int64 = 3
 
-var latencySecondsDefault float64 = 0                  // 2.5
+var latencySecondsDefault float64 = 1.23               // 2.5
 var delaySecondsDefault float64 = 0                    // miner hesitancy to broadcast solution
 var receivePostponeSecondsDefault float64 = 100 / 1000 // 80 milliseconds, ish
 
