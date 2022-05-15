@@ -246,8 +246,10 @@ func TestPlotCanonScores_TDTABS(t *testing.T) {
 	// matrix: uncles y|n :: tabs up|dn
 	dataDn := plotter.XYs{}
 	dataUp := plotter.XYs{}
+	dataSame := plotter.XYs{}
 	dataUnclesDn := plotter.XYs{}
 	dataUnclesUp := plotter.XYs{}
+	dataUnclesSame := plotter.XYs{}
 
 	uniqs := []float64{} // for labeling y axis ticks
 
@@ -265,7 +267,7 @@ func TestPlotCanonScores_TDTABS(t *testing.T) {
 		// As proposed these values correspond to the condition of whether the current block's TAB
 		// exceeds, ties, or is lesser than the parent block's TABS.
 		// Ties are not charted because they will only happen extremely rarely.
-		for _, j := range []float64{-1, 1} {
+		for _, j := range []float64{-1, 0, 1} {
 			// This program uses floats for convenience.
 			// The actual implementation will need to use only integers.
 			tabs := parentTABSf * (j + tabsAdjustmentDenominator) / tabsAdjustmentDenominator
@@ -281,8 +283,10 @@ func TestPlotCanonScores_TDTABS(t *testing.T) {
 
 			if j < 0 {
 				dataDn = append(dataDn, plotter.XY{X: float64(i), Y: fl})
-			} else {
+			} else if j > 0 {
 				dataUp = append(dataUp, plotter.XY{X: float64(i), Y: fl})
+			} else {
+				dataSame = append(dataSame, plotter.XY{X: float64(i), Y: fl})
 			}
 
 			t.Log(i, fl)
@@ -298,8 +302,10 @@ func TestPlotCanonScores_TDTABS(t *testing.T) {
 
 			if j < 0 {
 				dataUnclesDn = append(dataUnclesDn, plotter.XY{X: float64(i), Y: fl})
-			} else {
+			} else if j > 0 {
 				dataUnclesUp = append(dataUnclesUp, plotter.XY{X: float64(i), Y: fl})
+			} else {
+				dataUnclesSame = append(dataUnclesSame, plotter.XY{X: float64(i), Y: fl})
 			}
 
 			// dataUnclesDn = append(dataUnclesDn, plotter.XY{X: float64(i), Y: fl})
@@ -338,6 +344,15 @@ func TestPlotCanonScores_TDTABS(t *testing.T) {
 	plotUp.GlyphStyle.Color = colornames.Blue
 	p.Add(plotUp)
 
+	plotSame, err := plotter.NewScatter(dataSame)
+	if err != nil {
+		t.Fatal(err)
+	}
+	plotSame.GlyphStyle.Shape = draw.CrossGlyph{}
+	plotSame.GlyphStyle.Radius = 2
+	plotSame.GlyphStyle.Color = colornames.Gray
+	p.Add(plotSame)
+
 	plotUnclesDn, err := plotter.NewScatter(dataUnclesDn)
 	if err != nil {
 		t.Fatal(err)
@@ -356,10 +371,21 @@ func TestPlotCanonScores_TDTABS(t *testing.T) {
 	plotUnclesUp.GlyphStyle.Color = colornames.Red
 	p.Add(plotUnclesUp)
 
+	plotUnclesSame, err := plotter.NewScatter(dataUnclesSame)
+	if err != nil {
+		t.Fatal(err)
+	}
+	plotUnclesSame.GlyphStyle.Shape = draw.PlusGlyph{}
+	plotUnclesSame.GlyphStyle.Radius = 2
+	plotUnclesSame.GlyphStyle.Color = colornames.Gray
+	p.Add(plotUnclesSame)
+
 	p.Legend.Add("no uncles, tabs falls", plot)
 	p.Legend.Add("no uncles, tabs rises", plotUp)
+	p.Legend.Add("no uncles, tabs same", plotSame)
 	p.Legend.Add("uncles, tabs falls", plotUnclesDn)
 	p.Legend.Add("uncles, tabs rises", plotUnclesUp)
+	p.Legend.Add("uncles, tabs same", plotUnclesSame)
 	p.Legend.Top = true
 
 	p.X.Tick.Marker = DifficultyModTickerInterval{}

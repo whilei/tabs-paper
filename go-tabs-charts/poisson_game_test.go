@@ -38,24 +38,42 @@ func TestChartPoissonGame(t *testing.T) {
 	p.Y.Max = 1
 
 	var data = plotter.XYs{}
+	// var events = plotter.XYs{}
 
-	for i, minerShare := range []float64{redMinerShare, blueMinerShare} {
-		for interval := float64(0); interval <= intervalSamples; interval++ {
-			var poissonDist = distuv.Poisson{
-				Lambda: interval * networkEventRate * minerShare,
-				Src:    exprand.NewSource(uint64(time.Now().UnixNano())),
+	// 0: first/genesis round
+	// 14: an event happens at t=14, a new round begins
+	for _, roundStartTime := range []float64{0, 14} {
+
+		for i, minerShare := range []float64{redMinerShare, blueMinerShare} {
+			for interval := float64(0); interval <= intervalSamples; interval++ {
+				var poissonDist = distuv.Poisson{
+					Lambda: interval * networkEventRate * minerShare,
+					Src:    exprand.NewSource(uint64(time.Now().UnixNano())),
+				}
+				y := 1 - poissonDist.CDF(0)
+				data = append(data, plotter.XY{X: interval + roundStartTime, Y: y})
+
+				// if interval == roundStartTime {
+				// 	events = append(events, plotter.XY{X: interval, Y: y})
+				// }
 			}
-			data = append(data, plotter.XY{X: interval, Y: 1 - poissonDist.CDF(0)})
+
+			line, _ := plotter.NewLine(data)
+			line.Color = minerColors[i]
+
+			p.Add(line)
+			p.Legend.Add(fmt.Sprintf("0+%d %0.3f", int(roundStartTime), minerShare), line)
+
+			data = plotter.XYs{}
+
 		}
-
-		line, _ := plotter.NewLine(data)
-		line.Color = minerColors[i]
-
-		p.Add(line)
-		p.Legend.Add(fmt.Sprintf("%0.2f", minerShare), line)
-
-		data = plotter.XYs{}
 	}
+	//
+	// eventsScatter, _ := plotter.NewScatter(events)
+	// eventsScatter.Color = colornames.Black
+	// eventsScatter.Shape = draw.CircleGlyph{}
+	// eventsScatter.Radius = 3
+	// p.Add(eventsScatter)
 
 	if err := p.Save(800, 600, "poisson_game_redblue.png"); err != nil {
 		t.Fatal(err)

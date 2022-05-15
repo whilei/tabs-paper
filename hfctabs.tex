@@ -1012,21 +1012,38 @@ pacing block production and nominating canon eligibility.
 Since this the proposed TABS consensus arbitration algorithm modifies the role of difficulty in canon-arbitration,
 it must be shown that chain-growth pacing and the incentives which drive it remain intact.
 
-First we look at the incumbent assumption and behavior around Total Difficulty, specifically tie (symmetric) scenarios.
+We follow a \textit{reductio ad absurdam} argument to demonstrate that the proposed modification
+of the consensus protocol does not violate any pre-existing assumptions or conditions about the
+physics or economic incentives of the block production race.
 
-The step function which describes chain difficulty is parametrized by
+%First we look at the incumbent assumption and behavior around Total Difficulty, specifically tie (symmetric) scenarios.
+
+The step function which describes chain difficulty and the incumbent consensus arbitration is parametrized by
 parent difficulty, current block time, and whether the current block cites any uncles.\footnote{
     The difficulty function analysed is that of the current Ethereum Protocol at the time of writing,
     and includes EIP-100.
 }
 
 Each step has a domain of 8 seconds.
-So, parent and uncles constant, blocks produced in the 1-8 second range yield equivalent difficulties.
+So, holding parent and uncles constant, blocks produced in the 1-8 second range yield equivalent difficulties.
 Same for blocks with 9-17 second intervals, 18-26 seconds, and so forth.
 
-Empirically, around fifty percent of all blocks produced occur in the $[1-8]$ second interval,
-giving them equivalent Total Difficulties.\nolinebreak
-\footnote{TODO: Cite me. Currently empirical/ETH/stats.go}
+We note also that the variable inclusion of whether a block includes uncle references
+extends the domain (time intervals) of equivalent outcomes to 16 seconds.
+    A block produced at $t=3$ without uncles is canonically-equivalent to
+    a block produced at $t=8$ without uncles and
+    a block produced at $t=17$ with uncles.
+
+Since a block produced at $t=1$ and a subsequent, competitive block produced at $t=4$ would be assigned
+the same canon-arbitration score, and yet it does not appear to be the case that block heights are intentionally
+mined for the duration of their competitive interval for some block height,
+we must infer that an incentive exists for the miner to mine the \textit{next} block;
+to build from the latest best available block to them, rather than pursue a later-occurring but equivalent (or better)
+canon-scoring block.
+
+%Empirically, around fifty percent of all blocks produced occur in the $[1-8]$ second interval,
+%giving them equivalent Total Difficulties.\nolinebreak
+%\footnote{TODO: Cite me. Currently empirical/ETH/stats.go}
 
 \begin{figure}[tph]
     \centering
@@ -1044,11 +1061,44 @@ giving them equivalent Total Difficulties.\nolinebreak
     \includegraphics[width=1.0\textwidth]{imgs/tdtabs_canon_scores.png}
     \caption{
         Proposed parent-relative canon score rates over timestamped interval.
-        Cases where TABS remains constant between parent and child blocks are not represented
-        because these cases are taken for granted to be extremely rare.
+%        Cases where TABS remains constant between parent and child blocks are not represented
+%        because these cases are taken for granted to be extremely rare.
     }
     \label{fig:tdtabs_canon_scores}
 \end{figure}
+
+\begin{figure}[tph]
+    \centering
+    \includegraphics[width=1.0\textwidth]{imgs/vis_poisson_lambda.png}
+    \caption{
+        Scaling expectations for block(s) discovery by modifying the Poisson \textit{lambda} value.
+    }
+    \label{fig:vis_poisson_lambda}
+\end{figure}
+
+\begin{figure}[tph]
+    \centering
+    \includegraphics[width=1.0\textwidth]{imgs/vis_poisson_game_redblue.png}
+    \caption{
+        Two rounds are presented for two miners with varying hashrate shares.
+        At time $t=14$ a block is discovered.
+        Miners choose to either continue play on the current challenge height,
+        or they begin a new round.
+        The probability of their discovery of a block in the new round (ADOPT strategy) diminishes less
+        (has a greater slope) than the persistent alternative (ORPHAN strategy),
+        indicating that it is probably more profitable for them to begin a new round.
+    }
+    \label{fig:vis_poisson_game_redblue}
+\end{figure}
+
+IMPORTANT
+
+TABS rewards richer miners more than poorer miner, irrespective of their block production.
+    We want to incentivize canonical block production.
+    However, this reward imbalance is probably small.
+
+
+
 
 \clearpage
 \textbf{Race Event Likelihoods}
