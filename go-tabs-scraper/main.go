@@ -74,6 +74,11 @@ func main() {
 	signer := types.NewLondonSigner(chainID)
 
 	for blockN := *spanStart; blockN <= *spanStart+*spanRange; blockN++ {
+		blockFilePath := filepath.Join(*datadir, fmt.Sprintf("block_%v", blockN))
+		if fi, err := os.Stat(blockFilePath); err == nil || os.IsExist(err) {
+			log.Println("Data exists, skipping", fi.Name())
+			continue
+		}
 
 		if rand.Float64() > *spanRate {
 			continue
@@ -122,18 +127,20 @@ func main() {
 				log.Fatalln(err)
 			}
 
+			prettyBal := prettyBalance(bal)
 			ap.TABWithoutMiner.Add(ap.TABWithoutMiner, bal)
-			ap.TABWithoutMinerPretty.Add(ap.TABWithoutMinerPretty, prettyBalance(bal))
+			ap.TABWithoutMinerPretty.Add(ap.TABWithoutMinerPretty, prettyBal)
 
 			ap.TABWithMiner.Add(ap.TABWithMiner, bal)
-			ap.TABWithMinerPretty.Add(ap.TABWithMinerPretty, prettyBalance(bal))
+			ap.TABWithMinerPretty.Add(ap.TABWithMinerPretty, prettyBal)
 
 			// Bundle it up nice in our app data type.
 			at := AppTx{
-				CTransaction:    tx,
-				Index:           txi,
-				From:            from,
-				BalanceAtParent: bal,
+				CTransaction:          tx,
+				Index:                 txi,
+				From:                  from,
+				BalanceAtParent:       bal,
+				BalanceAtParentPretty: prettyBal,
 			}
 			ap.AppTxes = append(ap.AppTxes, at)
 		}
@@ -146,7 +153,7 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		blockFilePath := filepath.Join(*datadir, fmt.Sprintf("block_%v", blockN))
+
 		if err := ioutil.WriteFile(blockFilePath, j, os.ModePerm); err != nil {
 			log.Fatalln(err)
 		}
