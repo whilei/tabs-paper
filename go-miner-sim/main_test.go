@@ -34,12 +34,12 @@ func TestPlotting(t *testing.T) {
 		globalTweaks  func()
 		minerMutation func(m *Miner)
 	}{
-		{
-			name: "td",
-			minerMutation: func(m *Miner) {
-				m.ConsensusAlgorithm = TD
-			},
-		},
+		// {
+		// 	name: "td",
+		// 	minerMutation: func(m *Miner) {
+		// 		m.ConsensusAlgorithm = TD
+		// 	},
+		// },
 		// {
 		// 	name: "td_skiprandom",
 		// 	minerMutation: func(m *Miner) {
@@ -57,52 +57,62 @@ func TestPlotting(t *testing.T) {
 				m.ConsensusAlgorithm = TDTABS
 			},
 		},
-		{
-			name: "tdtabs_128",
-			globalTweaks: func() {
-				tabsAdjustmentDenominator = 128
-
-			},
-			minerMutation: func(m *Miner) {
-				m.ConsensusAlgorithm = TDTABS
-			},
-		},
-		{
-			name: "tdtabs_64",
-			globalTweaks: func() {
-				tabsAdjustmentDenominator = 64 // aggressive
-
-			},
-			minerMutation: func(m *Miner) {
-				m.ConsensusAlgorithm = TDTABS
-			},
-		},
-		{
-			name: "tdtabs_64_postpone_attack",
-			globalTweaks: func() {
-				tabsAdjustmentDenominator = 64
-			},
-			minerMutation: func(m *Miner) {
-				m.ConsensusAlgorithm = TDTABS
-
-				// Evil.
-				//
-				m.ReceiveDelay = func(b *Block) int64 {
-					postpone := int64(receivePostponeSecondsDefault * float64(ticksPerSecond))
-					if m.ConsensusAlgorithm == TDTABS && m.Address != b.miner {
-						localTabs := m.Balance + txPoolBlockTABs[b.i]
-						if b.tabsCmp <= 0 && localTabs > b.tabs {
-							// The miner knows they have a better TABS than the received block.
-							// This gives them an edge in potential consensus points.
-
-							// postpone = ticksPerSecond * (b.si % 9)
-							postpone += ticksPerSecond * 1 /* second */
-						}
-					}
-					return postpone
-				}
-			},
-		},
+		// {
+		// 	name: "tdtabs_4096_tabsStep",
+		// 	globalTweaks: func() {
+		// 		tabsAdjustmentDenominator = 4096 // what Isaac considers "equilibrium", most conservative
+		//
+		// 	},
+		// 	minerMutation: func(m *Miner) {
+		// 		m.ConsensusAlgorithm = TDTABS_step
+		// 	},
+		// },
+		// {
+		// 	name: "tdtabs_128",
+		// 	globalTweaks: func() {
+		// 		tabsAdjustmentDenominator = 128
+		//
+		// 	},
+		// 	minerMutation: func(m *Miner) {
+		// 		m.ConsensusAlgorithm = TDTABS
+		// 	},
+		// },
+		// {
+		// 	name: "tdtabs_64",
+		// 	globalTweaks: func() {
+		// 		tabsAdjustmentDenominator = 64 // aggressive
+		//
+		// 	},
+		// 	minerMutation: func(m *Miner) {
+		// 		m.ConsensusAlgorithm = TDTABS
+		// 	},
+		// },
+		// {
+		// 	name: "tdtabs_64_postpone_attack",
+		// 	globalTweaks: func() {
+		// 		tabsAdjustmentDenominator = 64
+		// 	},
+		// 	minerMutation: func(m *Miner) {
+		// 		m.ConsensusAlgorithm = TDTABS
+		//
+		// 		// Evil.
+		// 		//
+		// 		m.ReceiveDelay = func(b *Block) int64 {
+		// 			postpone := int64(receivePostponeSecondsDefault * float64(ticksPerSecond))
+		// 			if m.ConsensusAlgorithm == TDTABS && m.Address != b.miner {
+		// 				localTabs := m.Balance + txPoolBlockTABs[b.i]
+		// 				if b.tabsCmp <= 0 && localTabs > b.tabs {
+		// 					// The miner knows they have a better TABS than the received block.
+		// 					// This gives them an edge in potential consensus points.
+		//
+		// 					// postpone = ticksPerSecond * (b.si % 9)
+		// 					postpone += ticksPerSecond * 1 /* second */
+		// 				}
+		// 			}
+		// 			return postpone
+		// 		}
+		// 	},
+		// },
 	}
 
 	for _, c := range cases {
@@ -285,7 +295,7 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 					// Get the block color from the block's authoring miner.
 					clr, err := ParseHexColor("#" + b.miner)
 					if err != nil {
-						t.Log("bad color", err.Error())
+						t.Log("bad color", err.Error(), b.miner)
 						panic("test")
 					}
 					c.SetColor(clr)

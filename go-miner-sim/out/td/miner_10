@@ -1,2 +1,2 @@
-a=efe626 c=TD hr=0.01 winr=0.012 wins=19 head.i=1541 head.tabs=17230 k_mean=1.121 k_med=1.000 k_mode=[1] intervals_mean=13.989s d_mean.rel=0.996 balance=830 objective_decs=0.769 arbs=2208 reorgs.mag_mean=1.023
-consensus_score_high=0.77 miner_selfish=0.02 random=0.21 
+a=efe626 c=TD hr=0.01 winr=0.010 wins=15 head.i=1533 head.tabs=18098 k_mean=1.119 k_med=1.000 k_mode=[1] intervals_mean=14.059s d_mean.rel=0.995 balance=647 objective_decs=0.760 arbs=2271 reorgs.mag_mean=1.020
+consensus_score_high=0.76 miner_selfish=0.00 random=0.24 

@@ -58,7 +58,7 @@ var genesisBlock = &Block{
 	td:        genesisDifficulty,
 	tabs:      genesisBlockTABS,
 	ttdtabs:   genesisBlockTABS * genesisDifficulty,
-	miner:     "X",
+	miner:     "00F00F",
 	delay:     Delay{},
 	h:         fmt.Sprintf("%08x", rand.Int63()),
 	ph:        "00000000",
@@ -135,17 +135,30 @@ func getBlockDifficulty(parent *Block, uncles bool, interval int64) int64 {
 	return int64(float64(parent.d) + (float64(y) / 2048 * float64(parent.d)))
 }
 
-func getTABS(parent *Block, localTAB int64) (incr, tabs int64) {
+func getTABS(parentTabs, localTAB int64) (tabs int64) {
 	scalarNumerator := int64(0)
-	if localTAB > parent.tabs {
+	if localTAB > parentTabs {
 		scalarNumerator = 1
-	} else if localTAB < parent.tabs {
+	} else if localTAB < parentTabs {
 		scalarNumerator = -1
 	}
 
 	numerator := tabsAdjustmentDenominator + scalarNumerator // [127|128|129]/128, [4095|4096|4097]/4096
 
-	return scalarNumerator, int64(float64(parent.tabs) * float64(numerator) / float64(tabsAdjustmentDenominator))
+	return int64(float64(parentTabs) * float64(numerator) / float64(tabsAdjustmentDenominator))
+}
+
+func getTABS_step(parentTabs, tabFallCount, localTAB int64) (tabs int64) {
+	scalarNumerator := int64(0)
+	if localTAB > parentTabs {
+		scalarNumerator = 1
+	} else if localTAB < parentTabs {
+		scalarNumerator = -1 - (tabFallCount / 9) // floor divide
+	}
+
+	numerator := tabsAdjustmentDenominator + scalarNumerator // [127|128|129]/128, [4095|4096|4097]/4096
+
+	return int64(float64(parentTabs) * float64(numerator) / float64(tabsAdjustmentDenominator))
 }
 
 func (m *Miner) doTick(s int64) {
@@ -208,25 +221,43 @@ func (m *Miner) mineTick() {
 		txPoolBlockTABs[parent.i+1] = blockTxPoolTABs
 	}
 	blockTAB := blockTxPoolTABs + m.Balance
+	tabChange := int64(0)
+	if blockTAB > parent.tabs {
+		tabChange = 1
+	} else if blockTAB < parent.tabs {
+		tabChange = -1
+	}
+
+	tabFalls := parent.tabsFallCount
+	if tabChange < 0 {
+		tabFalls++
+	} else {
+		tabFalls = 0
+	}
 
 	// A naive model of uncle citations: block has uncles if any orphan blocks exist in our miner's record of the parent height
 	uncles := len(m.Blocks[parent.i-1]) > 1
-
 	blockDifficulty := getBlockDifficulty(parent /* interval: */, uncles, s-parent.s)
-	change, tabs := getTABS(parent, blockTAB)
+
+	tabs := getTABS(parent.tabs, blockTAB)
+	if m.ConsensusAlgorithm == TDTABS_step {
+		tabs = getTABS_step(parent.tabs, tabFalls, blockTAB)
+	}
+
 	tdtabs := tabs * blockDifficulty
 	b := &Block{
-		i:       parent.i + 1,
-		s:       s, // miners are always honest about their timestamps
-		si:      s - parent.s,
-		d:       blockDifficulty,
-		td:      parent.td + blockDifficulty,
-		tabsCmp: change,
-		tabs:    tabs,
-		ttdtabs: parent.ttdtabs + tdtabs,
-		miner:   m.Address,
-		ph:      parent.h,
-		h:       fmt.Sprintf("%08x", rand.Int63()),
+		i:             parent.i + 1,
+		s:             s, // miners are always honest about their timestamps
+		si:            s - parent.s,
+		d:             blockDifficulty,
+		td:            parent.td + blockDifficulty,
+		tabsFallCount: tabFalls,
+		tabsCmp:       tabChange,
+		tabs:          tabs,
+		ttdtabs:       parent.ttdtabs + tdtabs,
+		miner:         m.Address,
+		ph:            parent.h,
+		h:             fmt.Sprintf("%08x", rand.Int63()),
 	}
 	m.processBlock(b)
 	m.broadcastBlock(b)
@@ -299,7 +330,7 @@ func (m *Miner) arbitrateBlocks(a, b *Block) *Block {
 		} else if b.td > a.td {
 			return b
 		}
-	} else if m.ConsensusAlgorithm == TDTABS {
+	} else if m.ConsensusAlgorithm == TDTABS || m.ConsensusAlgorithm == TDTABS_step {
 		if (a.ttdtabs) > (b.ttdtabs) {
 			return a
 		} else if (b.ttdtabs) > (a.ttdtabs) {
@@ -438,8 +469,8 @@ const (
 	None ConsensusAlgorithm = iota
 	TD
 	TDTABS
-	TimeAsc
-	TimeDesc // FreshnessPreferred
+	TDTABS_step // sequence-derived step algorithm for tabs numerator
+	TimeDesc    // FreshnessPreferred
 )
 
 func (c ConsensusAlgorithm) String() string {
@@ -448,8 +479,10 @@ func (c ConsensusAlgorithm) String() string {
 		return "TD"
 	case TDTABS:
 		return "TDTABS"
-	case TimeAsc:
-		return "TimeAsc"
+	case TDTABS_step:
+		return "TDTABS_step"
+	// case TimeAsc:
+	// 	return "TimeAsc"
 	case TimeDesc:
 		return "TimeDesc"
 	}
@@ -457,18 +490,19 @@ func (c ConsensusAlgorithm) String() string {
 }
 
 type Block struct {
-	i         int64  // H_i: number
-	s         int64  // H_s: timestamp
-	si        int64  // interval
-	d         int64  // H_d: difficulty
-	td        int64  // H_td: total difficulty
-	tabsCmp   int64  // +/- TABS vs parent. Shortcut used for helping malicious miners figure out if they can try to beat a received block by postponing.
-	tabs      int64  // H_k: TAB synthesis
-	ttdtabs   int64  // H_k: TTABSConsensusScore, aka Total TD*TABS
-	miner     string // H_c: coinbase/etherbase/author/beneficiary
-	h         string // H_h: hash
-	ph        string // H_p: parent hash
-	canonical bool
+	i             int64  // H_i: number
+	s             int64  // H_s: timestamp
+	si            int64  // interval
+	d             int64  // H_d: difficulty
+	td            int64  // H_td: total difficulty
+	tabsFallCount int64  // scalar value tracking how many blocks in sequence have had falling TABS scores
+	tabsCmp       int64  // +/- TABS vs parent. Shortcut used for helping malicious miners figure out if they can try to beat a received block by postponing.
+	tabs          int64  // H_k: TAB synthesis
+	ttdtabs       int64  // H_k: TTABSConsensusScore, aka Total TD*TABS
+	miner         string // H_c: coinbase/etherbase/author/beneficiary
+	h             string // H_h: hash
+	ph            string // H_p: parent hash
+	canonical     bool
 
 	delay Delay
 }
