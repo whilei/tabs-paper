@@ -125,17 +125,7 @@ func TestPlotting(t *testing.T) {
 	// })
 }
 
-func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
-
-	t.Log("Running", name)
-
-	outDir := filepath.Join("out", name)
-	os.MkdirAll(outDir, os.ModePerm)
-	os.RemoveAll(filepath.Join(outDir, "anim"))
-	os.MkdirAll(filepath.Join(outDir, "anim"), os.ModePerm)
-
-	miners := []*Miner{}
-	minerEvents := make(chan minerEvent)
+func minersNormal(minerEvents chan minerEvent, mut func(m *Miner)) (miners []*Miner) {
 
 	hashrates := generateMinerHashrates(HashrateDistLongtail, int(countMiners))
 	deriveMinerRelativeDifficultyHashes := func(genesisD int64, r float64) int64 {
@@ -150,7 +140,6 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 		return int64((float64(supply) * minerHashrate))
 	}
 
-	blockRowsN := 150
 	lastColor := colorful.Color{}
 	grad := colorgrad.Viridis()
 
@@ -182,6 +171,7 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 			// ConsensusAlgorithm: TD,
 			Index:         i,
 			Address:       minerName, // avoid collisions
+			Hashrate:      hashrates[i],
 			HashesPerTick: hashes,
 			Balance:       minerStartingBalance,
 			// BalanceCap:               minerStartingBalance,
@@ -208,6 +198,143 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 		m.processBlock(genesisBlock) // sets head to genesis
 		miners = append(miners, m)
 	}
+
+	return miners
+}
+
+func minersTwo(minerEvents chan minerEvent, mut func(m *Miner)) (miners []*Miner) {
+
+	// hashrates := generateMinerHashrates(HashrateDistLongtail, int(countMiners))
+	hashrates := []float64{0.45, 0.35, 0.2}
+	deriveMinerRelativeDifficultyHashes := func(genesisD int64, r float64) int64 {
+		return int64(float64(genesisD) * r)
+	}
+
+	// We use relative hashrate as a proxy for balance;
+	// more mining capital :: more currency capital.
+	deriveMinerStartingBalance := func(genesisTABS int64, minerHashrate float64) int64 {
+		// supply := genesisTABS * countMiners
+		supply := genesisTABS / presumeMinerShareBalancePerBlockDenominator * countMiners
+		return int64((float64(supply) * minerHashrate))
+	}
+
+	lastColor := colorful.Color{}
+	grad := colorgrad.Viridis()
+
+	for i := int64(0); i < countMiners; i++ {
+
+		// set up their starting view of the chain
+		bt := NewBlockTree()
+		bt.AppendBlockByNumber(genesisBlock)
+
+		// set up the miner
+
+		// minerStartingBalance := deriveMinerStartingBalance(genesisBlock.tabs, hashrates[i])
+		minerStartingBalance := deriveMinerStartingBalance(genesisBlock.tabs, hashrates[countMiners-1-i]) // backwards
+		hashes := deriveMinerRelativeDifficultyHashes(genesisBlock.d, hashrates[i])
+
+		clr := grad.At(1 - (hashrates[i] * (1 / hashrates[0])))
+		if clr == lastColor {
+			// Make sure colors (names) are unique.
+			clr.R++
+		}
+		lastColor = clr
+		minerName := clr.Hex()[1:]
+
+		// format := "#%02x%02x%02x"
+		// minerName := fmt.Sprintf("%02x%02x%02x", clr.R, clr.G, clr.B)
+
+		m := &Miner{
+			// ConsensusAlgorithm: TDTABS,
+			// ConsensusAlgorithm: TD,
+			Index:         i,
+			Address:       minerName, // avoid collisions
+			Hashrate:      hashrates[i],
+			HashesPerTick: hashes,
+			Balance:       minerStartingBalance,
+			// BalanceCap:               minerStartingBalance,
+			Blocks:                   bt,
+			head:                     nil,
+			receivedBlocks:           BlockTree{},
+			neighbors:                []*Miner{},
+			reorgs:                   make(map[int64]reorg),
+			decisionConditionTallies: make(map[string]int),
+			cord:                     minerEvents,
+			SendDelay: func(block *Block) int64 {
+				return int64(delaySecondsDefault * float64(ticksPerSecond))
+				// return int64(hr * 3 * rand.Float64() * float64(ticksPerSecond))
+			},
+			Latency: func() int64 {
+				return int64(latencySecondsDefault * float64(ticksPerSecond))
+				// return int64(4 * float64(ticksPerSecond))
+				// return int64((4 * rand.Float64()) * float64(ticksPerSecond))
+			},
+		}
+
+		mut(m)
+
+		m.processBlock(genesisBlock) // sets head to genesis
+		miners = append(miners, m)
+	}
+
+	return miners
+}
+
+func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
+
+	t.Log("Running", name)
+
+	outDir := filepath.Join("out", name)
+	os.MkdirAll(outDir, os.ModePerm)
+	os.RemoveAll(filepath.Join(outDir, "anim"))
+	os.MkdirAll(filepath.Join(outDir, "anim"), os.ModePerm)
+
+	miners := []*Miner{}
+	minerEvents := make(chan minerEvent)
+	blockRowsN := 150
+
+	miners = minersNormal(minerEvents, mut)
+	// miners = minersTwo(minerEvents, mut)
+
+	// Create and install an attack miner.
+	// This miner will NOT publish their blocks.
+	// They will be rich.
+	// attack: 1606651707293287461
+	// defend:  203433894893418879
+	attackerMinerBt := NewBlockTree()
+	attackerMinerBt.AppendBlockByNumber(genesisBlock)
+	attackMiner := &Miner{
+		Index:         int64(len(miners)),
+		Address:       "ff0000",
+		Blocks:        attackerMinerBt,
+		Hashrate:      0.5,
+		HashesPerTick: int64(float64(genesisDifficulty) * 0.5),
+		Balance:       genesisBlockTABS * 10, // rich enough to always win TABS
+		BalanceCap:    0,
+		CostPerBlock:  0,
+		Latency: func() int64 {
+			return int64(latencySecondsDefault * float64(ticksPerSecond))
+		},
+		SendDelay: func(block *Block) int64 {
+			return int64(60 * 60 * 8 * float64(ticksPerSecond)) // 8 hour send delay
+		},
+		ReceiveDelay: func(block *Block) int64 {
+			return int64(60 * 60 * 8 * float64(ticksPerSecond)) // 8 hour receive delay
+		},
+		ConsensusAlgorithm:             0,
+		ConsensusArbitrations:          0,
+		ConsensusObjectiveArbitrations: 0,
+		StrategySkipRandom:             false,
+		head:                           nil,
+		receivedBlocks:                 BlockTree{},
+		neighbors:                      []*Miner{},
+		reorgs:                         make(map[int64]reorg),
+		decisionConditionTallies:       make(map[string]int),
+		cord:                           minerEvents,
+	}
+	mut(attackMiner)
+	attackMiner.processBlock(genesisBlock)
+	miners = append(miners, attackMiner)
 
 	c := gg.NewContext(800, 1200)
 	marginX, marginY := c.Width()/100, c.Width()/100
@@ -390,10 +517,10 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 			return b.canonical && b.miner == m.Address
 		}).Len()
 
-		minerLog := fmt.Sprintf(`a=%s c=%s hr=%0.2f winr=%0.3f wins=%d head.i=%d head.tabs=%d k_mean=%0.3f k_med=%0.3f k_mode=%v intervals_mean=%0.3fs d_mean.rel=%0.3f balance=%d objective_decs=%0.3f arbs=%d reorgs.mag_mean=%0.3f
+		minerLog := fmt.Sprintf(`a=%s c=%s hr=%0.2f winr=%0.3f wins=%d head.i=%d head.tabs=%d head.td=%d head.tdtabs=%d k_mean=%0.3f k_med=%0.3f k_mode=%v intervals_mean=%0.3fs d_mean.rel=%0.3f balance=%d objective_decs=%0.3f arbs=%d reorgs.mag_mean=%0.3f
 `,
-			m.Address, m.ConsensusAlgorithm, hashrates[i], float64(wins)/float64(m.head.i), wins, /* m.HashesPerTick, */
-			m.head.i, m.head.tabs,
+			m.Address, m.ConsensusAlgorithm, m.Hashrate, float64(wins)/float64(m.head.i), wins, /* m.HashesPerTick, */
+			m.head.i, m.head.tabs, m.head.td, m.head.ttdtabs,
 			kMean, kMed, kMode,
 			intervalsMean, difficultiesMean/float64(genesisBlock.d),
 			m.Balance,
@@ -495,12 +622,15 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 		filename := filepath.Join(outDir, "miner_tds.png")
 		p := plot.New()
 
-		data := plotter.XYs{}
 		for _, m := range miners {
+			data := plotter.XYs{}
 			for k, v := range m.Blocks {
 				for _, b := range v {
 					// Plot ALL blocks together.
 					// Some numbers will be duplicated.
+					if !b.canonical {
+						continue
+					}
 					data = append(data, plotter.XY{X: float64(k), Y: float64(b.td)})
 				}
 			}
@@ -520,6 +650,76 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 		p.Save(800, 300, filename)
 	}
 	plotMinerTDs()
+
+	plotMinerTDTABS := func() {
+		filename := filepath.Join(outDir, "miner_ttdtabs_ts.png")
+		p := plot.New()
+		p.Title.Text = "Miner TD*TABS Values Over Timestamp"
+
+		for _, m := range miners {
+			data := plotter.XYs{}
+			for _, v := range m.Blocks {
+				for _, b := range v {
+					// Plot ALL blocks together.
+					// Some numbers will be duplicated.
+					if !b.canonical {
+						continue
+					}
+					// data = append(data, plotter.XY{X: float64(k), Y: float64(b.ttdtabs)})
+					data = append(data, plotter.XY{X: float64(b.s), Y: float64(b.ttdtabs)})
+				}
+			}
+
+			scatter, err := plotter.NewScatter(data)
+			if err != nil {
+				panic(err)
+			}
+			scatter.Radius = 1
+			scatter.Shape = draw.CircleGlyph{}
+			scatter.Color, _ = ParseHexColor("#" + m.Address)
+			p.Add(scatter)
+			p.Legend.Add(m.Address, scatter)
+		}
+
+		// p.Y.Min = float64(genesisBlock.td)
+		p.Save(800, 300, filename)
+	}
+	plotMinerTDTABS()
+
+	plotMinerTDTABSBlockN := func() {
+		filename := filepath.Join(outDir, "miner_ttdtabs_blockn.png")
+		p := plot.New()
+		p.Title.Text = "Miner TD*TABS Values Over Block Height"
+
+		for _, m := range miners {
+			data := plotter.XYs{}
+			for blockHeight, v := range m.Blocks {
+				for _, b := range v {
+					// Plot ALL blocks together.
+					// Some numbers will be duplicated.
+					if !b.canonical {
+						continue
+					}
+					data = append(data, plotter.XY{X: float64(blockHeight), Y: float64(b.ttdtabs)})
+					// data = append(data, plotter.XY{X: float64(b.s), Y: float64(b.ttdtabs)})
+				}
+			}
+
+			scatter, err := plotter.NewScatter(data)
+			if err != nil {
+				panic(err)
+			}
+			scatter.Radius = 1
+			scatter.Shape = draw.CircleGlyph{}
+			scatter.Color, _ = ParseHexColor("#" + m.Address)
+			p.Add(scatter)
+			p.Legend.Add(m.Address, scatter)
+		}
+
+		// p.Y.Min = float64(genesisBlock.td)
+		p.Save(800, 300, filename)
+	}
+	plotMinerTDTABSBlockN()
 
 	plotMinerReorgs := func() {
 

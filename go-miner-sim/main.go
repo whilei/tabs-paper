@@ -87,6 +87,7 @@ type Miner struct {
 	Address string
 	Blocks  BlockTree
 
+	Hashrate      float64
 	HashesPerTick int64 // per tick
 	Balance       int64 // Wei
 	BalanceCap    int64 // Max Wei this miner will hold. Use 0 for no limit hold 'em.
