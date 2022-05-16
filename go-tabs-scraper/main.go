@@ -1,3 +1,11 @@
+/*
+	By default, the query space will be derived backwards from the latest block number reported by the client (via the spanRange).
+	By default, the query will be sampled sequentially for the duration of this block range.
+
+	The spanRange variable allows the user to randomly query blocks at some rate.
+	This builds an opportunity for non-sequential sampling.
+*/
+
 package main
 
 import (
@@ -13,14 +21,16 @@ import (
 	"path/filepath"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/ethereum/go-ethereum/params"
 )
 
 func main() {
 	datadir := flag.String("datadir", "data", "Root data directory. Will be created if not existing.")
-	spanStart := flag.Uint64("span-start", 14_000_000, "Start of block query span (default=14,000,000")
-	spanEnd := flag.Uint64("span-end", 14_000_000+1000, "End of block query span (default=14,001,000)")
+	spanStart := flag.Uint64("span-start", math.MaxInt64, "Start of block query span (default=latest-1")
+	spanRange := flag.Uint64("span-range", 1, "Duration in blocks of block query span (default=1)")
 	spanRate := flag.Float64("span-rate", 1.0, "Rate of blocks query within span (default=1.0)")
 	url := flag.String("url", "http://127.0.0.1:8545", "Ethclient endpoint URL")
 	flag.Parse()
@@ -29,6 +39,10 @@ func main() {
 		log.Fatalln(err)
 	} else {
 		log.Println("OK: mkdir -p", *datadir)
+	}
+
+	if *spanRate > 1 || *spanRate < 0 {
+		log.Fatalln("impossible span rate:", *spanRate, "maximum = 1, minimum = 0")
 	}
 
 	client, err := ethclient.Dial(*url)
@@ -46,11 +60,20 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	if *spanStart == math.MaxInt64 {
+		latest, err := client.BlockNumber(bkgrnd)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		*spanStart = latest - *spanRange
+	}
+	log.Printf("* start=%d range=%d end=%d rate=%0.3f\n", *spanStart, *spanRange, *spanStart+*spanRange, *spanRate)
+
 	// This is the latest signer.
 	// It is expected to be backwards-compatible for all signers.
 	signer := types.NewLondonSigner(chainID)
 
-	for blockN := *spanStart; blockN <= *spanEnd; blockN++ {
+	for blockN := *spanStart; blockN <= *spanStart+*spanRange; blockN++ {
 
 		if rand.Float64() > *spanRate {
 			continue
@@ -72,9 +95,16 @@ func main() {
 
 		// Bundle it up in our app data type.
 		ap := AppBlock{
-			Block:                bl,
+			Header:               bl.Header(),
+			TxesN:                bl.Transactions().Len(),
 			MinerBalanceAtParent: minerBalanceAtParent,
 			AppTxes:              []AppTx{},
+
+			TABWithMiner:       new(big.Int).Set(minerBalanceAtParent),
+			TABWithMinerPretty: prettyBalance(minerBalanceAtParent),
+
+			TABWithoutMiner:       new(big.Int),
+			TABWithoutMinerPretty: new(big.Float),
 		}
 
 		for txi, tx := range bl.Transactions() {
@@ -92,9 +122,15 @@ func main() {
 				log.Fatalln(err)
 			}
 
+			ap.TABWithoutMiner.Add(ap.TABWithoutMiner, bal)
+			ap.TABWithoutMinerPretty.Add(ap.TABWithoutMinerPretty, prettyBalance(bal))
+
+			ap.TABWithMiner.Add(ap.TABWithMiner, bal)
+			ap.TABWithMinerPretty.Add(ap.TABWithMinerPretty, prettyBalance(bal))
+
 			// Bundle it up nice in our app data type.
 			at := AppTx{
-				Transaction:     tx,
+				CTransaction:    tx,
 				Index:           txi,
 				From:            from,
 				BalanceAtParent: bal,
@@ -117,16 +153,27 @@ func main() {
 	}
 }
 
+var etherBig = big.NewFloat(params.Ether)
+
+func prettyBalance(bal *big.Int) *big.Float {
+	return new(big.Float).Quo(new(big.Float).SetInt(bal), etherBig)
+}
+
 type AppBlock struct {
-	*types.Block
-	MinerBalanceAtParent *big.Int
-	AppTxes              []AppTx
+	Header                *types.Header
+	TxesN                 int
+	MinerBalanceAtParent  *big.Int
+	AppTxes               []AppTx
+	TABWithoutMiner       *big.Int
+	TABWithoutMinerPretty *big.Float
+	TABWithMiner          *big.Int
+	TABWithMinerPretty    *big.Float
 }
 
 type AppTx struct {
-	*types.Transaction
-	From            common.Address
-	BalanceAtParent *big.Int
-	Index           int
+	CTransaction          *types.Transaction
+	From                  common.Address
+	BalanceAtParent       *big.Int
+	BalanceAtParentPretty *big.Float
+	Index                 int
 }
-
