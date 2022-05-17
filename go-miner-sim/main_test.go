@@ -307,9 +307,9 @@ func runTestPlotting(t *testing.T, name string, mut func(m *Miner)) {
 		Index:         int64(len(miners)),
 		Address:       "ff0000",
 		Blocks:        attackerMinerBt,
-		Hashrate:      0.5,
-		HashesPerTick: int64(float64(genesisDifficulty) * 0.5),
-		Balance:       genesisBlockTABS * 10, // rich enough to always win TABS
+		Hashrate:      0.9,
+		HashesPerTick: int64(float64(genesisDifficulty) * 0.9),
+		Balance:       genesisBlockTABS * 11 / 10, // rich enough to always win TABS
 		BalanceCap:    0,
 		CostPerBlock:  0,
 		Latency: func() int64 {

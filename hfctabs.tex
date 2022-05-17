@@ -153,6 +153,68 @@ and is included with or easily referenced from this document.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\comment{
+Its about establishing capitalization as ONE OF the principles driving chain growth.
+
+How do we measure capitalization?
+
+Proofs of capital availability and dependence on chain state.
+Potential for transaction/chain exclusivity; exclusive investment.
+
+Should we tie capital (eg balance) more closely together with difficulty?
+
+Ideas.
+
+consensus score = difficulty * sum(block.txes[].from)=tab
+consensus score = 2 * difficulty * tab
+
+tab=sum(block.txes[](.gasUsed* .gasPrice * .from.balance))
+
+what if tabs could rise or fall depending on if pow rose or fell?
+
+If we assume no one controls 51\% or more of the hashrate...
+    (it is obvious we cannot assume this anymore).
+AND If we assume no one controls more than the median TAB measurement...
+AND If we assume that (public, measurable) transactions are (have been made able to be) EXCLUSIVE to the public chain state.
+Under these conditions we define the cost of an attack as:
+
+    the cost of beating the public TABS value * the cost of beating the public proof of work race
+    which is
+    the median segment-exclusive capitalization rate * matching (100+e\%) the rate of block production
+    which is
+    if you can beat the segment-exclusive capitalization rate by 10\% (1.1), then you only need 0.9 * hashrate
+
+
+
+For every x more blocks they can mark as TABS+ (compared to 50\% mean=median at public), they will get tabs*4097/4096,
+which buys them a 1/4096 depreciable margin in PoW (they can take one computer offline).
+That is, they can drop hashrate by 1/4096 of whatever they have online.
+
+Publicly available capitalization: 299 txes => 299 ETH (really assume 299*avg(bal)).
+Privately available capitalization: 1 txes => 1 ETH (miner coin capitalization == gen pop coin capitalization)
+  ... but we shouldn't expect this? Because miners are incentivized to hodl, because now they get paid for it (in probabilities).
+  ... should miner-private capitalization be expected to grow indefinitely? No, it has bounds.
+      Assume that ALL of the miner's capital is in PoW tech, not coin.
+      Assume that ALL of the miner's capital is in coin, not PoW tech. Do they mine any blocks? No.
+
+If the competitor can NOT EXCEED the segment-exclusive capitalization rate,
+
+
+On private-chain attacks:
+It is more efficient to mine alone.
+
+The "current TABS" adjustment algorithm defines +1/-1/n pattern,
+where the parent TABS value is adjusted by some ratio of itself.
+The current proposal is the median by definition.
+It moves up when the TABS value exceeds the parent,
+it drops when it falls short of the parent.
+This is the definition of median.
+
+What about using a a moving average algorithm.
+}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \section{\normalsize{Model Definitions}}\label{sec: definitions}
 
 \begin{table}[H]
