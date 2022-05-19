@@ -64,12 +64,12 @@ func main() {
 }
 
 func mustGetPrettyTABWithMiner(ap *lib.AppBlock) *big.Float {
-	if ap.TABWithMinerPretty != nil {
-		return ap.TABWithMinerPretty
-	}
-	if ap.TABWithMiner != nil {
-		return lib.PrettyBalance(ap.TABWithMiner)
-	}
+	// if ap.TABWithMinerPretty != nil {
+	// 	return ap.TABWithMinerPretty
+	// }
+	// if ap.TABWithMiner != nil {
+	// 	return lib.PrettyBalance(ap.TABWithMiner)
+	// }
 	out := new(big.Float)
 	uniqueSenders := make(map[common.Address]bool)
 
