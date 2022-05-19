@@ -34,12 +34,13 @@ func TestPlotting(t *testing.T) {
 		globalTweaks  func()
 		minerMutation func(m *Miner)
 	}{
-		// {
-		// 	name: "td",
-		// 	minerMutation: func(m *Miner) {
-		// 		m.ConsensusAlgorithm = TD
-		// 	},
-		// },
+		{
+			name: "td",
+			minerMutation: func(m *Miner) {
+				m.ConsensusAlgorithm = TD
+			},
+		},
+
 		// {
 		// 	name: "td_skiprandom",
 		// 	minerMutation: func(m *Miner) {
@@ -47,16 +48,16 @@ func TestPlotting(t *testing.T) {
 		// 		m.StrategySkipRandom = true
 		// 	},
 		// },
-		{
-			name: "tdtabs_4096",
-			globalTweaks: func() {
-				tabsAdjustmentDenominator = 4096 // what Isaac considers "equilibrium", most conservative
-
-			},
-			minerMutation: func(m *Miner) {
-				m.ConsensusAlgorithm = TDTABS
-			},
-		},
+		// {
+		// 	name: "tdtabs_4096",
+		// 	globalTweaks: func() {
+		// 		tabsAdjustmentDenominator = 4096 // what Isaac considers "equilibrium", most conservative
+		//
+		// 	},
+		// 	minerMutation: func(m *Miner) {
+		// 		m.ConsensusAlgorithm = TDTABS
+		// 	},
+		// },
 		// {
 		// 	name: "tdtabs_4096_tabsStep",
 		// 	globalTweaks: func() {

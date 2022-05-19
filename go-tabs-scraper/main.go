@@ -24,7 +24,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/whilei/go-tabs-scraper/lib"
 )
 
 func main() {
@@ -99,18 +99,20 @@ func main() {
 		}
 
 		// Bundle it up in our app data type.
-		ap := AppBlock{
+		ap := lib.AppBlock{
 			Header:               bl.Header(),
 			TxesN:                bl.Transactions().Len(),
 			MinerBalanceAtParent: minerBalanceAtParent,
-			AppTxes:              []AppTx{},
+			AppTxes:              []lib.AppTx{},
 
 			TABWithMiner:       new(big.Int).Set(minerBalanceAtParent),
-			TABWithMinerPretty: prettyBalance(minerBalanceAtParent),
+			TABWithMinerPretty: lib.PrettyBalance(minerBalanceAtParent),
 
 			TABWithoutMiner:       new(big.Int),
 			TABWithoutMinerPretty: new(big.Float),
 		}
+
+		uniqueSenders := make(map[common.Address]bool)
 
 		for txi, tx := range bl.Transactions() {
 
@@ -120,6 +122,11 @@ func main() {
 				log.Fatalln(err)
 			}
 			from := msg.From()
+			if _, ok := uniqueSenders[from]; ok {
+				continue
+			} else {
+				uniqueSenders[from] = true
+			}
 
 			// Get her balance.
 			bal, err := client.BalanceAt(bkgrnd, from, parentN)
@@ -127,7 +134,7 @@ func main() {
 				log.Fatalln(err)
 			}
 
-			prettyBal := prettyBalance(bal)
+			prettyBal := lib.PrettyBalance(bal)
 			ap.TABWithoutMiner.Add(ap.TABWithoutMiner, bal)
 			ap.TABWithoutMinerPretty.Add(ap.TABWithoutMinerPretty, prettyBal)
 
@@ -135,7 +142,7 @@ func main() {
 			ap.TABWithMinerPretty.Add(ap.TABWithMinerPretty, prettyBal)
 
 			// Bundle it up nice in our app data type.
-			at := AppTx{
+			at := lib.AppTx{
 				CTransaction:          tx,
 				Index:                 txi,
 				From:                  from,
@@ -158,29 +165,4 @@ func main() {
 			log.Fatalln(err)
 		}
 	}
-}
-
-var etherBig = big.NewFloat(params.Ether)
-
-func prettyBalance(bal *big.Int) *big.Float {
-	return new(big.Float).Quo(new(big.Float).SetInt(bal), etherBig)
-}
-
-type AppBlock struct {
-	Header                *types.Header
-	TxesN                 int
-	MinerBalanceAtParent  *big.Int
-	AppTxes               []AppTx
-	TABWithoutMiner       *big.Int
-	TABWithoutMinerPretty *big.Float
-	TABWithMiner          *big.Int
-	TABWithMinerPretty    *big.Float
-}
-
-type AppTx struct {
-	CTransaction          *types.Transaction
-	From                  common.Address
-	BalanceAtParent       *big.Int
-	BalanceAtParentPretty *big.Float
-	Index                 int
 }

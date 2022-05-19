@@ -2,7 +2,10 @@ module github.com/whilei/go-tabs-scraper
 
 go 1.17
 
-require github.com/ethereum/go-ethereum v1.10.17
+require (
+	github.com/ethereum/go-ethereum v1.10.17
+	github.com/montanaflynn/stats v0.6.6
+)
 
 require (
 	github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6 // indirect
