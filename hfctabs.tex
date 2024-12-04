@@ -153,6 +153,80 @@ and is included with or easily referenced from this document.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\comment{
+Its about establishing capitalization as ONE OF the principles driving chain growth.
+
+How do we measure capitalization?
+
+Proofs of capital availability and dependence on chain state.
+Potential for transaction/chain exclusivity; exclusive investment.
+
+Should we tie capital (eg balance) more closely together with difficulty?
+
+Ideas.
+
+consensus score = difficulty * sum(block.txes[].from)=tab
+consensus score = 2 * difficulty * tab
+
+tab=sum(block.txes[](.gasUsed* .gasPrice * .from.balance))
+
+what if tabs could rise or fall depending on if pow rose or fell?
+
+If we assume no one controls 51\% or more of the hashrate...
+    (it is obvious we cannot assume this anymore).
+AND If we assume no one controls more than the median TAB measurement...
+AND If we assume that (public, measurable) transactions are (have been made able to be) EXCLUSIVE to the public chain state.
+Under these conditions we define the cost of an attack as:
+
+    the cost of beating the public TABS value * the cost of beating the public proof of work race
+    which is
+    the median segment-exclusive capitalization rate * matching (100+e\%) the rate of block production
+    which is
+    if you can beat the segment-exclusive capitalization rate by 10\% (1.1), then you only need 0.9 * hashrate
+
+
+
+For every x more blocks they can mark as TABS+ (compared to 50\% mean=median at public), they will get tabs*4097/4096,
+which buys them a 1/4096 depreciable margin in PoW (they can take one computer offline).
+That is, they can drop hashrate by 1/4096 of whatever they have online.
+
+Publicly available capitalization: 299 txes => 299 ETH (really assume 299*avg(bal)).
+Privately available capitalization: 1 txes => 1 ETH (miner coin capitalization == gen pop coin capitalization)
+  ... but we shouldn't expect this? Because miners are incentivized to hodl, because now they get paid for it (in probabilities).
+  ... should miner-private capitalization be expected to grow indefinitely? No, it has bounds.
+      Assume that ALL of the miner's capital is in PoW tech, not coin.
+      Assume that ALL of the miner's capital is in coin, not PoW tech. Do they mine any blocks? No.
+
+If the competitor can NOT EXCEED the segment-exclusive capitalization rate,
+
+
+On private-chain attacks:
+It is more efficient to mine alone.
+
+The "current TABS" adjustment algorithm defines +1/-1/n pattern,
+where the parent TABS value is adjusted by some ratio of itself.
+The current proposal is the median by definition.
+It moves up when the TABS value exceeds the parent,
+it drops when it falls short of the parent.
+This is the definition of median.
+
+What about using a a moving average algorithm.
+
+
+---
+
+We define two types of transactions: segment-exclusive and segment-agnostic.
+The degree to which they are exclusive will matter, but is black and white at the atomic (one block) level.
+
+In "normal" conditions, we assume that segment-agnostic transactions do not ever achieve 100\%.
+Because: each miner agent has some private capital that they should apply only to blocks they produce; segment-exclusivity.
+
+
+
+}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \section{\normalsize{Model Definitions}}\label{sec: definitions}
 
 \begin{table}[H]
@@ -176,9 +250,10 @@ information and its reception. \\~\\
 
 $B_i$ & A block with number $i$. \\~\\
 $H_i$ & A block header with number $i$. \\~\\
-
 $H_d$ & Block (and header) annotated difficulty. \\~\\
+$H_{td}$ & Block (and header) annotated total difficulty. \\~\\
 $H_k$ & Block (and header) annotated $\mathrm{TABS}$ value. \\~\\
+$H_t$ & Block (and header) annotated timestamp value. \\~\\
 
 $TAB(B)$ & A scalar value representing aggregated account balances for a given
 block $B$. "TAB" stands for Total Active Balance. \\~\\
@@ -241,6 +316,12 @@ Proposed.
 Use optional.
 Synonyms: Segment ID, HFC (Header Field Context) Hash.
 Related: Chain ID.
+\\~\\
+
+AHA Transactions &
+Ancestor Hash Appended transactions.
+Transactions which implement the \textit{Ancestor Hash} field.
+In Ethereum, such a transaction may be implemented as an EIP-2718 Typed Transaction.
 \\~\\
 
 Canonical-Arbitration Algorithm &
@@ -508,8 +589,8 @@ In this section we describe the elements of the $TABS$ modification to the
 % TABS must change more slowly than Difficulty, per block.
 % TABS should be able to fall more quickly than rise.
 
-Total Active Balance Synthesis (TABS) is a positive scalar value,
-an aggregate of all transaction sender accounts (and the miner) for a blockchain of some length.
+Total Active Balance Synthesis (TABS) is a positive scalar value.
+It is a representative aggregate of all transacting-originating accounts for a blockchain of some length.
 Generally considered, it provides a representative measure of active capital on some chain state.
 It is denominated in Wei.\footnote{
     1000000000000000000 (1e18) Wei equal 1 Ether. % See \url{https://ethereum.stackexchange.com/questions/253}
@@ -528,11 +609,11 @@ where:
 \begin{equation}
 \mathrm{TABS}(H) \equiv \begin{cases}
 
-\minTABS & \text{if} \quad H_{\mathrm{i}} = 0 \, \vert\vert \, P(H)_{H_k}
-\text{is undefined} \\
+%\minTABS & \text{if} \quad %% H_{\mathrm{i}} = 0 \, \vert\vert \,P(H)_{H_k} \text{ is undefined} \\
+\minTABS & \text{if} \, P(H)_{H_k} \, \text{is undefined} \\
 
 \text{max}\!\left(\minTABS, {P(H)_{\mathrm{H}}}_{\mathrm{k}} +
-\diffadjustment\times\mynumerator \right) & \text{otherwise} \\
+\diffadjustment \mynumerator \right) & \text{otherwise} \\
 \end{cases}
 \end{equation}
 
@@ -563,12 +644,11 @@ y \equiv
 \end{cases}
 \end{equation}
 
-The \mathrm{TAB(B)} value of a block is defined as the sum of the miner balance
-and all of the sender balances for transactions with an assertive $T_a$
-ancestor hash field:
+The \mathrm{TAB(B)} value of a block is defined as the sum of balances
+of transaction-sending accounts for a block:
 
 \begin{equation}
-TAB(B) \equiv L(B, B_c) \, + \, \sum_{T \in B_{\mathrm{txes}}}
+TAB(B) \equiv \sum_{T \in B_{\mathrm{txes}}}
 L(B,T_{\mathrm{sender}})
 \end{equation}
 
@@ -585,12 +665,15 @@ balance at parent block $P(B)$ of account $s$} \\
 %Both values are tuneable constant parameters in the algorithm.
 $K_0$ expresses an arbitrary minimum value for $TABS$,
 while $x$ expresses an adjustment ratio of the $TABS$ value between two parent-child related blocks.
+
+%% TODO/Isaac maybe move me to a Discussion section,
+%% ie. Why we picked 4096 for this value, and what happens if the value were different (esp. smaller = bigger change).
 The constant $\tabsAdjustmentDenominator$ is defined relative to
 the minimum incumbent Ethereum difficulty adjustment factor (
     $\left\lfloor\frac{{P(H)_{\mathrm{H}}}_{\mathrm{d}}}{2048}\right\rfloor$
 )
 with $\tabsAdjustmentDenominator$'s definition designed
-to maintain the precedence of the difficulty value in the resulting Consensus Score product.
+to maintain the precedence of the difficulty value in the resulting Canon Score product.
 This ensures that difficulty remains the primary driver of chain growth,
 keeping miner incentives invariant.
 
@@ -601,10 +684,12 @@ keeping miner incentives invariant.
 %then the TABS value should move by a factor of $<\pm1/2048$.
 %}
 
-\subsection{\small{Canon Scoring}}
+\subsection{\small{Canon Arbitration}}
 
-Canon-arbitration algorithms are assumed to compare two blocks and to
-indicate decisively which one of the two ought to receive canonical status.
+Canon-arbitration is the keystone of network consensus.
+
+Canon-arbitration is defined as the comparison of two blocks, eventually yielding only one.
+The resulting block is understood to be canonical, while any others competitive with it are not.
 This section formally defines a value Canon Score \textit{CS}, which is used as
 the \textit{initial condition} for a canon-arbitration algorithm.
 
@@ -645,33 +730,6 @@ In both the pre-existing algorithm and the proposed algorithm, a candidate
 block having a greater $\mathrm{TCS}$ value than the other should be selected for
 the exclusive canonical state.
 
-\subsection{\small{Segment-Specific Transactions}}\label{subsec:small{segment-specific-transactions}}
-
-% Transaction/Segment exclusivity is important because differential TABS depends on differential txes.
-The effectiveness of Total Active Balance measurements on any chain (segment)
-as a decisive factor in consensus scoring depends on an assumption of transactions having
-segment-specificity.
-Without segment-specificity (segment-agnosticism), we assume that in the scenario of a double-spend,
-an attacker would be able to replay all transactions from the public chain on their private
-attack chain, thereby making the measurements equivalent (or near to it).
-If transactions are equally available for all chains, measurements based on them become indecisive.
-
-% In practice, this could be worked around, but without guarantees.
-There are existing ways that this is practically possible (or imitable),
-though this option and others like it are limited compared with the proposal outlined below.
-A private messaging service, like e-mail, could be used to send
-transaction information to miners.
-In this context, the sender would assume the bespoke transaction would be handled privately by the miner
-until their winning of a next block.
-However, in this example, there could be no guarantee that the miner would indeed handle
-the transaction exclusively before including it in a block.
-The transaction may be resold, publicized, ignored -- all at the miner's discretion.
-
-Other options toward this task could include using smart contract logic to make
-chain data assertions before enabling some hypothetical, gas expenditure and/or further logic.
-This option, while perhaps limiting fee transfer in some undesirable contexts,
-has the drawbacks of burdensome complexity, cost, and still limited applicability to the problem.
-
 \subsection{\small{Transactions with Ancestor Hash Appended}}\label{subsec:small{transactions-with-ancestor-hash-appended}
 
 The task of enabling transactions to accommodate chain-exclusivity (ie. segment-specificity)
@@ -694,25 +752,6 @@ The generalization of this concept is defined as $\tau$ (see Glossary).
 As proposed, transactions are not required to provide this value.
 However, discretionary use is not necessary.
 The field's annotation \textit{could} be demanded by the protocol.
-
-In the annotation of the proposed field, the transaction sender makes reference to an observed state of the blockchain.
-The observation of and reference to chain state is an incumbent pattern of practical use.
-Under the current protocol, transaction senders commonly reference an observed chain state to
-establish or validate their transaction's Nonce, the ChainId, their balance, current gas prices,
-and current gas fees (for smart contract composition).
-The citation of an observed block hash does not impose a novel demand on block state observation.
-
-Moreover, the ability for a transactor to declare a dependency on some observed block state
-enables them to make these established habits and practical assumptions explicit.
-The chain a transactor sees becomes a chain they can demand.
-
-Availability
-
-In database contexts, "availability" (aka "liveness" for some), is the likelihood that a valid transaction
-will actually be processed by the database.
-By definition, the application of AHA transactions restricts transaction availability
-because it limits the state(s) of the database to which the transaction can be applied.
-The limitation makes the interaction with invisible or otherwise unknown states impossible.
 
 % "The chain I see is the chain I get."
 
@@ -969,18 +1008,331 @@ the theoretical $\epsilon$ value is a positive, small, number.
 
 \section{\normalsize{Discussion}}
 
-The consensus properties of so-called Nakamoto Consensus are well studied.
-% TODO this is an actual quote from a so-called paper.
+\subsection{\small{Segment-Specific Transactions}}\label{subsec:small{segment-specific-transactions}}
 
-We seek to show that an implementation of the proposed AHA/TABS protocol for a PoW network
-either preserves or improves key characteristics of network behavior and usability.
+\textit{Ancestor Hash Appended} typed transactions are proposed
+as a scheme to implement a general task: limiting transaction availability
+such that public chains are prioritized to the exclusion of private chains.
 
-We provide the outcomes of two programmatic simulations as experimental evidence of our claims.
+% Transaction/Segment exclusivity is important because differential TABS depends on differential txes.
+The effectiveness of Total Active Balance measurements on any chain (segment)
+as a decisive factor in consensus scoring depends on transactions having segment-specificity.
+
+Without segment-specificity, in the scenario of a double-spend
+an attacker would be able to replay all transactions (save one) from the public chain on their private chain,
+thereby equalizing total active balance values.
+
+There are ways under the existing protocol that segment-specificity is practically imitable,
+though this option and others like it are limited compared with the proposal outlined below.
+
+For example, a private messaging service, like e-mail,
+could be used to send transaction information exclusively to a subset of miners.
+In this context, the sender trusts some miner to handle a transaction privately until their next block composition.
+But this example depends on a unilateral trust between the transactor and their miner of choice.
+The transaction could be resold, publicized, ignored -- all at the miner's discretion.
+
+\textbf{Observable Finality Confidence}
+
+Another benefit of implementing segment-exclusivity at the protocol level
+is that it becomes an \textit{observable} expression of a chain state dependency.
+On reading a demand on some chain state at a block $H_n$, the transaction expresses
+confidence in the finality of that state $H_n$.
+Taken together, transactions expressing these dependencies provide
+observable, objective traits that can be used for inferences about chain state finality in general.
+
+Since the usefulness of the proof-of-work blockchain depends on users
+having effective judgements about an always imperfect state finality, establishing an
+on-chain and observable value suggestive of assumed finality should help
+transactors make better judgements about block delay intervals for off-chain elements of transactions, for example.
+
+\textbf{Practical Implementation}
+
+In the annotation of the proposed field, the transaction sender makes reference to an observed state of the blockchain.
+The observation of and reference to chain state is an incumbent pattern of practical use.
+Under the current protocol, transaction senders commonly reference an observed chain state to
+establish or validate their transaction's Nonce, the current \textit{Chain ID}, their balance, current gas prices,
+and current gas fees (for smart contract composition).
+The citation of an observed block hash does not impose a practically novel demand on block state observation.
+
+Moreover, the ability for a transactor to declare a dependency on some observed block state
+enables them to make these established habits and practical assumptions explicit.
+The chain a transactor sees becomes a chain they can demand.
+
+\textbf{Lesser Availability, Same Throughput}
+
+In database contexts, "availability" (aka "liveness" for some),
+is the likelihood that a valid transaction will actually be processed by the database.
+
+By definition, the application of AHA transactions restricts transaction availability
+because it limits the state(s) of the database to which the transaction can be applied.
+The limitation makes the interaction with invisible or otherwise unknown states impossible.
+
+In this way, database availability is reduced in a desirable way, and without effect
+on "throughput" capacity under normal chain-growth.
+Throughput is only diminished when unexpected (ie. private) states overtake public ones.
+
+
+% Model:
+%    x = The number of transactions, expressed as a ratio of gas used over gas limit. Mean.
+%    y = The depth of transaction dependency, expressed as a difference between block heights. Mean.
+%    z = The value of the transactions toward the consensus arbitration algo, eg. sum balances. Median.
+
+%    \begin{center}
+%        \begin{tabular}{ c c c }
+%            cell1 & cell2 & cell3 \\
+%            cell4 & cell5 & cell6 \\
+%            cell7 & cell8 & cell9
+%        \end{tabular}
+%    \end{center}
+%
+%    \begin{tabularx}{1.0\textwidth} {
+%         >{\raggedright\arraybackslash}X
+%         >{\centering\arraybackslash}X
+%         >{\raggedleft\arraybackslash}X  }
+%%        \hline
+%        item 11 & item 12 & item 13 \\
+%%        \hline
+%        item 21  & item 22  & item 23  \\
+%%        \hline
+%    \end{tabularx}
+
+
+% ----
+%
+%The consensus properties of so-called Nakamoto Consensus are well studied.
+%% TODO this is an actual quote from a so-called paper.
+%
+%We seek to show that an implementation of the proposed AHA/TABS protocol for a PoW network
+%either preserves or improves key characteristics of network behavior and usability.
+%
+%We provide the outcomes of two programmatic simulations as experimental evidence of our claims.
 
 \subsection{\normalsize{Chain-Growth}}
 
-Because the TABS adjustment rate is smaller than that of Difficulty in all cases,
-we can show that PoW mining remains the primary driver of chain-growth.
+Under Nakamoto Consensus, aggregate block difficulty ($H_d$) plays two roles:
+pacing block production and nominating canon eligibility.
+Since the proposed TABS consensus arbitration algorithm modifies the role of difficulty in canon-arbitration,
+it must be shown that chain-growth pacing and the incentives which drive it remain intact.
+
+We follow a \textit{reductio ad absurdam} argument to demonstrate that the proposed modification
+of the consensus protocol does not violate any pre-existing assumptions or conditions about the
+physics or economic incentives of the block production race.
+
+%First we look at the incumbent assumption and behavior around Total Difficulty, specifically tie (symmetric) scenarios.
+
+The step function which describes chain difficulty and the incumbent consensus arbitration is parametrized by
+parent difficulty, current block time, and whether the current block cites any uncles.\footnote{
+    The difficulty function analysed is that of the current Ethereum Protocol at the time of writing,
+    and includes EIP-100.
+}
+
+Each step has a domain of 8 seconds.
+So, holding parent and uncles constant, blocks produced in the 1-8 second range yield equivalent difficulties.
+Same for blocks with 9-17 second intervals, 18-26 seconds, and so forth.
+
+We note also that the variable inclusion of whether a block includes uncle references
+extends the domain (time intervals) of equivalent outcomes to 16 seconds.
+    A block produced at $t=3$ without uncles is canonically-equivalent to
+    a block produced at $t=8$ without uncles and
+    a block produced at $t=17$ with uncles.
+
+Since a block produced at $t=1$ and a subsequent, competitive block produced at $t=4$ would be assigned
+\textit{at least} the same canon-arbitration score, and yet it does not appear to be the case that block heights are intentionally
+mined for the duration of their competitive interval for some block height,
+we must infer that some incentive exists for the miner to mine the \textit{next} block;
+rather than pursue a later-occurring but equivalent (or better) canon-scoring block.
+
+We provide a rationale for this phenomenon in the following charts.
+
+%Empirically, around fifty percent of all blocks produced occur in the $[1-8]$ second interval,
+%giving them equivalent Total Difficulties.\nolinebreak
+%\footnote{TODO: Cite me. Currently empirical/ETH/stats.go}
+
+\begin{figure}[tph]
+    \centering
+    \includegraphics[width=1.0\textwidth]{imgs/vis_ethash_difficulty_adjustment.png}
+    \caption{
+        Parent-relative difficulty adjustment rates over timestamped interval.
+        Under the incumbent \mghost protocol, these scores are equivalent with our so-called Canon Score value.
+        One can see that a block produced at any time may have one of two Canon Scores.
+        This chart was produced by the function \texttt{TestPlotDifficultyAdjustments} in the \texttt{go-tabs-charts} module.
+    }
+    \label{fig:vis_ethash_difficulty_adjustment}
+\end{figure}
+
+\begin{figure}[tph]
+    \centering
+    \includegraphics[width=1.0\textwidth]{imgs/tdtabs_canon_scores.png}
+    \caption{
+        Proposed parent-relative canon score rates over timestamped interval.
+        One can see that a block produced at any time may have one of five Canon Scores.
+        However, these Canon Scores are not all equally likely.
+        This chart was produced by the function \texttt{TestPlotCanonScores\_TDTABS} in the \texttt{go-tabs-charts} module.
+    }
+    \label{fig:tdtabs_canon_scores}
+\end{figure}
+
+\clearpage
+What is the incentive driving the game's pursuit of the next block, rather than pursuing a (symmetric) competitor?
+
+We define these strategies respectively as ADOPT and ORPHAN.
+The ADOPT strategy begins work on a new round, asserting some valid proposed block.
+The ORPHAN strategy continues work on the parent round, disregarding some valid proposed block.
+
+\begin{figure}[tph]
+    \centering
+    \includegraphics[width=1.0\textwidth]{imgs/vis_poisson_game_redblue.png}
+    \caption{
+        Two rounds are presented for two miners with varying hashrate shares.
+        At time $t=14$ a block is discovered.
+        Miners choose to either continue play on the current challenge height,
+        or they begin a new round.
+        The probability of their discovery of a block in the new round (ADOPT strategy) diminishes less
+        (has a greater slope) than the persistent alternative (ORPHAN strategy),
+        indicating that it is more profitable in expectation for them to begin a new round.
+    }
+    \label{fig:vis_poisson_game_redblue}
+\end{figure}
+
+\clearpage
+
+    \begin{figure}[tph]
+        \centering
+        \includegraphics[width=1.0\textwidth]{imgs/vis_poisson_lambda.png}
+        \caption{
+            Scaling expectations for block(s) discovery by modifying the Poisson \textit{lambda} value.
+            One notes that the probability value of 0.5 is met at time $t=9$,
+            and that empirically about 50\% of blocks are produced within the $1 < t < 9$ second domain
+            for the original $1/13 (second)$ lambda value.
+        }
+        \label{fig:vis_poisson_lambda}
+    \end{figure}
+
+
+
+
+%
+%IMPORTANT
+%
+%TABS rewards richer miners more than poorer miner, irrespective of their block production.
+%    We want to incentivize canonical block production.
+%    However, this reward imbalance is probably small.
+%
+%
+\clearpage
+\textbf{Race Event Likelihoods}
+
+Under the current $\mghost$ protocol, we consider the rate of chain growth symmetry as more-or-less
+equivalent to the chance of the network's generation of near-simultaneous competitive blocks.
+The characteristic of being near-simultaneous gives the blocks equivalent Total Difficulty scores.
+
+The probability of these coincidences are defined above.
+
+Under the proposed TDTABS protocol, this rate of ties
+(which are ultimately deferred to later arbitration conditions)
+is expected to drop.
+
+
+
+
+%\begin{tabularx}{1.0\textwidth} {
+%     >{\raggedright\arraybackslash}X
+%     >{\raggedright\arraybackslash}X
+%     >{\raggedright\arraybackslash}X  }
+%%        \hline
+%    Arbitration Condition & Likelihood Decided & Notes \\
+%%        \hline
+%    $B_{td} > B_{td}$   & 0.8  & Total difficulty comparison  \\
+%    $B_{n} < B_{n}$   & 0.0  & Lower height (usually inoperative)  \\
+%    $B_{c}$ is self   & 0.1  & Prefer self-authored blocks  \\
+%    $50/50$   & 0.1  & Coin toss  \\
+%%        \hline
+%\end{tabularx}
+%
+
+
+%
+%What is the likelihood that a miner is able to be differentially competitive as a result of TABS?
+%
+%We first need to assume some number of transactions per block, and an average balance for those transactions.
+%
+%Let's assume block space is scare (there are sufficient public transactions available to fill any block).
+%We model an average number of transactions per block as the block's gas limit allowance divided by the average
+%gas use per transaction.
+%Let's say this gives us an average of 300 transactions per block.
+%
+%
+
+
+
+
+%From this, we can deduce that for the game of the block race,
+%a block's publication time priority is critically important to its chance of canonicalization.
+
+
+
+
+
+
+%
+%In the case of a block A produced within a Difficulty interval X with a decremented TABS score
+%and
+%a block B produced within a Difficulty interval X+1 with an incremented TABS score,
+%the resulting Canon Scores of these block will be equal.
+%
+%We consider these relative adjustment factor values to represent an equilibrium.
+%Remembering that under the current protocol, blocks may be produced in a sequence within 8 seconds of each
+%other and result also in a Canon Score tie, we hone our intuition to see that these theoretical
+%ties in cases of sequential (non-simultaneous) blocks are disincentivized and thus practically edge cases.
+%Miners are incentivized to work on the latest block available to them despite an available consensus tie scenario,
+%so we do not expect rich miners to chase authorship of slow-rich blocks following the observance of fast-poor blocks.
+
+
+
+\begin{equation}
+
+\end{equation}
+
+
+
+% ---
+
+\comment{
+        expected profit = miner.hashrateshare X prob of block production X prob of canonical X block rev
+        S = miner hashrate share
+        R = block revenue
+        p(t) = S/1 X p(e, t) X p(c)~0.96 X R
+
+        current:
+        t=0
+        minerA finds block at t=0
+        minerA -> p(t) = p(c)~0.96 X R [block.t=0] + p(t) [block.t>0]
+        minerB -> p(t) = S/1 X p(e, t) X p(c)~0.96 X R [block.t>0]
+
+        The best minerB can do is tie. minerA has a 1 block head start.
+        By mining on block.t=0, minerB removes the (most of) minerA's head start (though minerA still has latency head start)
+
+        proposed:
+        t=0
+        minerA finds block at t=0
+        minerA -> p(t) = p(c)~0.96 X R [block.t=0] + p(t) [block.t>0]
+        minerB -> p(t) = p(t) [block.t>0]
+
+
+        real numbers
+
+        t=0
+        minerA finds block at t=0
+        they have 93\% chance of keeping that block
+        minerB: 50\% network hashrate, receive block 0.5 seconds later (latency),
+
+
+    }
+
+
+
+\comment{Because the TABS adjustment rate is equal to or less than that of Difficulty in all cases,
+    we can show that PoW mining remains the primary driver of chain-growth.
 
 %Increased difficulty, increased TABS.
 %Increased difficulty, stable TABS.
@@ -995,41 +1347,43 @@ we can show that PoW mining remains the primary driver of chain-growth.
 %Decreased difficulty, decreased TABS.
 
 % Relevant cases:
-A: Difficulty+, TABS-
+    A: Difficulty+, TABS-
 B: Difficulty0, TABS+
-=> B
+    => B
 
-\begin{equation}
-    (H_d + \frac{H_d}{2048}) \times (H_k - \frac{H_k}{2049}) > (H_d + 0) \times (H_k + \frac{H_k}{2049})
-\end{equation}
+    \begin{equation}
+    (H_d + \frac{H_d}{2048})
+        \times (H_k - \frac{H_k}{2049}) > (H_d + 0) \times (H_k + \frac{H_k}{2049})
+    \end{equation}
 
-\begin{equation}
-(H_d + \frac{H_d}{2048}) \times (H_k - \frac{H_k}{2049}) > (H_d + 0) \times (H_k + \frac{H_k}{2049})
-\end{equation}
+    \begin{equation}
+    (H_d + \frac{H_d}{2048})
+        \times (H_k - \frac{H_k}{2049}) > (H_d + 0) \times (H_k + \frac{H_k}{2049})
+    \end{equation}
 
 
-A: Difficulty+, TABS-
+    A: Difficulty+, TABS-
 B: Difficulty-, TABS+
-=> A
+    => A
 
 
-\begin{equation}
-    \mathrm{TCS} \equiv \sum_{H_\mathrm{i = 0}}^{\mathrm{i <= n}} H_d
-\end{equation}
+    \begin{equation}
+        \mathrm{TCS} \equiv \sum_{H_\mathrm{i = 0}}^{\mathrm{i <= n}} H_d
+    \end{equation}
 
 
-(12947922331000968 + 12947922331000968 * (1/2048)) * ()
+    (12947922331000968 + 12947922331000968 * (1/2048)) * ()
 
-\subsection{\normalsize{Decidability Matrix}}
+    \subsection{\normalsize{Decidability Matrix}}
 
-TABS is expected to increase network decidability (and thus finality) rates.
+    TABS is expected to increase network decidability (and thus finality) rates.
 % aka canon-arbitration asymmetry outcomes, aka decrease number of ties
 
-\begin{tabular}[pos]{cols}
-    table & content
-\end{tabular}
+    \begin{tabular}[pos]{cols}
+        table & content
+    \end{tabular}
 
-
+}
 \subsection{\normalsize{Network block emission rates}}
 % This should include fork (noncanonical) and canonical block production.
 
@@ -1039,13 +1393,14 @@ as an indicator of what some domain literature considers "symmetry" during "chai
 The coincidence of block emission occurrences is an event of chain-growth symmetry.
 Since only one block may be ultimately selected for the canon, we consider the rate of orphan production
 a measure of network \emph{efficiency}.
-Orphan blocks represent wasted electricity on behalf of the orphan miner.\footnote{
+Orphan blocks represent wasted electricity on behalf of the orphan miner,
+as well on behalf of miners who mine on top of it.\footnote{
     Compensating for orphans is the main objective of the GHOST protocol,
     which specifies increasing difficulty for blocks with uncle citations.
 }
 
 The AHA/TABS protocol is expected to reduce the orphan rate of the network by increasing decidability (asymmetry)
-during canon-arbitration by virtue of an assumed asymmetry in respective block Total Active Balances.
+during canon-arbitration by virtue of an assumed asymmetry between sequential block Total Active Balance values.
 
 Block emission rates will not change.
 Emission rates are a function of difficulty, which is codependent with block intervals.
@@ -1076,7 +1431,7 @@ We can thereby expect that puzzle solutions will continue to be
 the primary driving factor for chain-growth.
 
 Do we expect any additional vulnerabilities to malicious behavior?
-Can the TABS Consensus Score be exploited to allow slower blocks produced by rich miners to win?
+Can the TABS Canon Score be exploited to allow slower blocks produced by rich miners to win?
 
 When could a slower block produced by a rich miner win?
 Block difficulty function is a step function parameterized by block interval.
@@ -1980,5 +2335,116 @@ Why 128?
 
 ---\label{subsec:small{transactions-with-ancestor-hash-appended}\label{subsec:small{transactions-with-ancestor-hash-appended2}\label{subsec:small{transactions-with-ancestor-hash-appended}
 
+    \comment{
+    SCRATCH Q&A FROM ECIP DRAFT:
+
+        ### What happens if no one uses chain state exclusive transactions?
+
+        The AHA proposal does not define any demand on the use of that transaction type.
+        As such, it may be that transactors on the public chain do not make use of it, or use it with distant chain state references.
+
+        The rate at which a private chain cannot include transactions available to the public chain determines the relative, differential finality expectation.
+
+        If AHA is unused or otherwise does not express exclusive demands on chain state, the marginal augmentation of expected state finality under TABS diminishes,
+        approaching the expectations incumbent under the proof-of-work protocol without it.
+
+        AHA is NOT the only mechanism that could be used to implement chain state exclusivity for transactions.
+        For example, if we explore a thought experiment where the global transaction pool has become disused,
+        and in its place convention has become direct-to-miner publication of transactions (say, via email) and that,
+        by an incentivized convention, miners do not share their available transactions freely with one another,
+        then those "direct-message" transactions will not be available for inclusion on the attacker's chain.
+
+        ### Are richer miners rewarded preferentially?
+
+        Yes, but probably only "a little".
+
+        Richer miners are preferred as a function of the determining factors of probably infrequent tie-break scenarios, eg. orphan blocks (recorded as uncles).
+
+        Assume: Unequal distribution of capital between miners (richness, poorness).
+        Assume: Miners are comparably capitalized with any other transactor. (Miner's aren't perfect hodlers.)
+
+        Granted: The TABS adjustment algorithm move TABS toward the median. Half the blocks will adjust it up,
+        half down.
+
+        Assume: Miners use the globally available transaction pool.
+        Assume: The transaction pool yields some random distribution of values.
+        Unknown: The actual distribution (and variance) we should expect for the transaction pool.
+        Assume: Normal distribution.
+
+        OK, so, say the miner has 1/300 of the capital available to the block.
+
+        The scenario where the richer miner is preferred over the poorer is:
+        Two blocks have been produced nearly-simultaneously, one by the poorer and one the richer.
+        The richer is able to achieve a TABS increase because their 1/300 of the represented balance is sufficient, while the poorer's is not.
+
+        The probabilities of our demands:
+        Near-simultanaeity. Say, 10% of the blocks produced are time-twins.
+        What is the probability that a block n+1 will have a TAB of within 1/300 of the parent n's TABS? (Causing the richer's miner marginal addition balance to be decisive.) Depends on the distribution.
+
+
+
+        ### How should miners sort transactions?
+
+        If blocks are not full (block space is not scarce), then sorting is a moot point. Include all of them.
+
+        Sorting by balance can yield a sometimes-higher expectation of canonical status; on which miner revenues depend.
+        Miner revenues also depend on transaction fees.
+
+        If the expected benefit (profit) from an additional marginal probability of canonicalization offered by a balance-sort exceeds the marginal losses in transaction fees,
+        then the miner should sort by balance. Otherwise, they should continue to sort by fee.
+
+        To the extent that the transaction pool offers unpredictable and variable aggregate balances, incentive to sort by balance is reduced.
+
+        In most cases, the earnest race to discover and publish block solutions will easily outpace any marginal gains offered by balance-based transaction sorting.
+
+        It is important to note that the incumbent protocol does not define a sort order: it is left to the market, to the presumed classically-greedy capitalistic whims of the miners and the developers who build defaults.
+        A transaction sort order cannot be adequately defined by the availability of transactions (the "global" transaction pool) to miners is not guaranteed nor within the scope of the consensus-facing protocol.
+        Thus, any model or algorithm this proposal provides in this regard should be considered only as an approach to a probably-sane default for an optimization problem, rather than a any demand on validity.
+
+        TODO
+
+        Naive?:
+        If blocks are full, then sort by balance while pending TABS score is below that of the parent block.
+        If the balances of all available transactions are insufficient to push the TABS value up, use fee sorting instead.
+        Problem?:
+        This explanation does not have the probability math, and it needs it.
+
+        ### Will miners "stuff" blocks with their own transactions?
+
+        We assume a (some) miner controls some finite amount of capital as blockchain currency (ie balance).
+        In the cases where a miner is incentivized to include a self-signed transaction activating their own balance in a block they author,
+        one transaction is theoretically sufficient.
+        The use of more than sufficient transactions for the purpose is inefficient (and thus disincentivized) because, attributable to the block gas limit,
+        they do so at the expense of cannibalizing space (and time) for a revenue-producing transaction.
+
+        So: Indeed, they may "stuff" blocks with transactions of their own, but they expect to profit most
+        by using only one transaction (using the least amount of gas) per block.
+
+        ### How much is finality improved?
+
+        Finality is measured as the expected likelihood of some state being eventually and ultimately permanent.
+
+        In the case of a double-spend scenario, the incumbent cost of an attack (ie. a 51% attack) is the cost of capital available to provide the necessary proof-of-work solutions.
+        TABS augments this cost by the aggregated balances of the senders of all exclusive transactions in the contending, public blocks.
+        If the `gasLimit` is `10_000_000` and the average transaction requires `30000` gas, then a block will fit 333 transactions.
+        We define an assumption that the average balance of a transaction sender address is `10ETC`.
+        We assume that _all_ of these transactions define chain state dependencies concurrent with the contentious chain segment in question.
+        Under these assumptions, the cost of a viable attack is increased by `333 * 10ETC = 3330ETC + epsilon`.
+
+        If we modify the assumptions to use a 50% rate of relevant chain-state exclusive transactions (ie. 50% adoption and relevant use of AHA),
+        the value becomes `333 * 10ETC * 0.5 = 1665ETC + epsilon`.
+
+        It is noteworthy that this additional cost does not represent "spent" capital, rather _available_ capital.
+        If the required capital is available to an attacker and yet the attack is not successful, the balance capital is recovered while the proof-of-work capital is not.
+        An attacker must have _access_ to this additional capital, but does not have to actually part with it.
+
+        ### Are there known vulnerabilities introduced?
+
+        TABS Poisoning
+
+        The attacker attempts to cause the public chain's TABS score to drop by filling the public transaction pool with high-fee, low-balance transactions.
+
+
+    }
 
 \end{document}

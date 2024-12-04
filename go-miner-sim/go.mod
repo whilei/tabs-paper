@@ -7,7 +7,9 @@ require (
 	github.com/lucasb-eyer/go-colorful v1.2.0
 	github.com/mazznoer/colorgrad v0.8.1
 	github.com/montanaflynn/stats v0.6.6
+	golang.org/x/exp v0.0.0-20191002040644-a1355ae1e2c3
 	golang.org/x/image v0.0.0-20210628002857-a66eb6448b8d
+	gonum.org/v1/gonum v0.9.3
 	gonum.org/v1/plot v0.10.0
 )
 

@@ -1,0 +1,8 @@
+{
+    "CBlock": {
+        "ReceivedAt": "0001-01-01T00:00:00Z",
+        "ReceivedFrom": null
+    },
+    "MinerBalanceAtParent": 5419083323718432111550,
+    "AppTxes": []
+}

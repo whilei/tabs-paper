@@ -1,2 +1,0 @@
-=== RUN   TestZ
-    main_test.go:655: Running td

@@ -16,6 +16,31 @@ import (
 	"gonum.org/v1/plot/vg/draw"
 )
 
+func ExamplePrintPoissonCDFAt() {
+	interval := float64(120) // seconds
+	rate := float64(1) / float64(13.5)
+	poisson := distuv.Poisson{
+		Lambda: float64(interval * rate),
+		Src:    exprand.NewSource(uint64(time.Now().UnixNano())),
+	}
+	out := poisson.CDF(8) // seconds
+	fmt.Println(out)
+	// Output: 0.47037983942260975
+}
+
+func TestPrintPoissonCDFAt(t *testing.T) {
+	interval := float64(120) // seconds
+	rate := float64(1) / float64(13.5)
+	poisson := distuv.Poisson{
+		Lambda: float64(interval * rate),
+		Src:    exprand.NewSource(uint64(time.Now().UnixNano())),
+	}
+	vals := []float64{0.5, 1, 1.5, 2, 3, 4, 5, 6, 7, 8, 9, 11, 13, 15, 17, 19, 26, 35}
+	for _, v := range vals {
+		t.Logf("v=%0.1f cdf=%0.5f", v, poisson.CDF(v))
+	}
+}
+
 func TestPoissonCDFNextBlock(t *testing.T) {
 
 	interval := float64(6)
@@ -360,7 +385,6 @@ func TestPoissonIntervals_Latency2(t *testing.T) {
 
 }
 
-
 func TestPoissonIntervals_Latency3_Strategic(t *testing.T) {
 	numSamples := 3600 * 24
 	latency := float64(3)
@@ -400,7 +424,7 @@ func TestPoissonIntervals_Latency3_Strategic(t *testing.T) {
 				}
 				gotInterval += float64(rand.Intn(int(latency))) + 1
 
-				gotInterval += float64(1)/float64(8) * mean
+				gotInterval += float64(1) / float64(8) * mean
 				// gotInterval = gotInterval * (1 + (1/8))
 			}
 
